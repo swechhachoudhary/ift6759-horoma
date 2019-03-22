@@ -10,7 +10,7 @@
 # set the working directory to where the job is launched
 cd "${PBS_O_WORKDIR}"
 
-s_exec python -u hyperparameter_search.py --config="logs/CAE_cluster/param_search/config.json" --helios-run="param_search"
+s_exec python -u ./runner/hyperparameter_search.py --config="logs/CAE_cluster/param_search/config.json" --helios-run="param_search"
 
 mv param_search.err logs/CAE_cluster/param_search/
 mv param_search.out logs/CAE_cluster/param_search/

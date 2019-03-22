@@ -10,4 +10,4 @@
 # set the working directory to where the job is launched
 cd "${PBS_O_WORKDIR}"
 
-s_exec python -u cross_validation.py -p ../submissions/b2phot1/checkpoint/variational/ -m best_variational.pth -d ../data/horoma
+s_exec python -u ./runner/cross_validation.py -p ../submissions/b2phot1/checkpoint/variational/ -m best_variational.pth -d ../data/horoma
