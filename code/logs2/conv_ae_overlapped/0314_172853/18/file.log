@@ -1,0 +1,168 @@
+2019-03-14 20:56:51,929 - ClusterTrainer - INFO - |  Hyperparameter  |        Value         |
+| :--------------- | :------------------- |
+| lr               | 0.000967528798346777 |
+| code_size        | 32                   |
+| lin2_in_channels | 116                  |
+| dropout          | 0.11095174808637008  |
+
+2019-03-14 20:56:51,932 - ClusterTrainer - INFO - Train Epoch: 0
+2019-03-14 20:56:52,014 - ClusterTrainer - INFO -    > [128/517313 (0%), 39.52s] Loss: 0.077914 
+2019-03-14 20:56:55,044 - ClusterTrainer - INFO -    > [8192/517313 (2%), 38.54s] Loss: 0.009367 
+2019-03-14 20:56:58,063 - ClusterTrainer - INFO -    > [16256/517313 (3%), 37.35s] Loss: 0.006789 
+2019-03-14 20:57:01,078 - ClusterTrainer - INFO -    > [24320/517313 (5%), 37.10s] Loss: 0.005311 
+2019-03-14 20:57:04,100 - ClusterTrainer - INFO -    > [32384/517313 (6%), 36.77s] Loss: 0.004663 
+2019-03-14 20:57:07,113 - ClusterTrainer - INFO -    > [40448/517313 (8%), 36.62s] Loss: 0.004473 
+2019-03-14 20:57:10,128 - ClusterTrainer - INFO -    > [48512/517313 (9%), 34.77s] Loss: 0.003958 
+2019-03-14 20:57:13,144 - ClusterTrainer - INFO -    > [56576/517313 (11%), 34.65s] Loss: 0.003545 
+2019-03-14 20:57:16,157 - ClusterTrainer - INFO -    > [64640/517313 (12%), 34.34s] Loss: 0.003549 
+2019-03-14 20:57:19,171 - ClusterTrainer - INFO -    > [72704/517313 (14%), 32.88s] Loss: 0.003280 
+2019-03-14 20:57:22,185 - ClusterTrainer - INFO -    > [80768/517313 (16%), 32.32s] Loss: 0.002822 
+2019-03-14 20:57:27,758 - ClusterTrainer - INFO -    > [88832/517313 (17%), 33.20s] Loss: 0.002999 
+2019-03-14 20:57:30,774 - ClusterTrainer - INFO -    > [96896/517313 (19%), 31.88s] Loss: 0.003125 
+2019-03-14 20:57:33,786 - ClusterTrainer - INFO -    > [104960/517313 (20%), 30.29s] Loss: 0.002831 
+2019-03-14 20:57:36,800 - ClusterTrainer - INFO -    > [113024/517313 (22%), 29.99s] Loss: 0.002769 
+2019-03-14 20:57:39,814 - ClusterTrainer - INFO -    > [121088/517313 (23%), 29.86s] Loss: 0.002628 
+2019-03-14 20:57:42,829 - ClusterTrainer - INFO -    > [129152/517313 (25%), 30.03s] Loss: 0.002490 
+2019-03-14 20:57:45,846 - ClusterTrainer - INFO -    > [137216/517313 (26%), 28.65s] Loss: 0.002666 
+2019-03-14 20:57:48,858 - ClusterTrainer - INFO -    > [145280/517313 (28%), 27.69s] Loss: 0.002502 
+2019-03-14 20:57:51,873 - ClusterTrainer - INFO -    > [153344/517313 (30%), 26.99s] Loss: 0.002725 
+2019-03-14 20:57:54,887 - ClusterTrainer - INFO -    > [161408/517313 (31%), 26.74s] Loss: 0.002470 
+2019-03-14 20:57:57,888 - ClusterTrainer - INFO -    > [169472/517313 (33%), 25.99s] Loss: 0.002325 
+2019-03-14 20:58:00,930 - ClusterTrainer - INFO -    > [177536/517313 (34%), 26.15s] Loss: 0.002425 
+2019-03-14 20:58:03,967 - ClusterTrainer - INFO -    > [185600/517313 (36%), 25.31s] Loss: 0.002347 
+2019-03-14 20:58:07,002 - ClusterTrainer - INFO -    > [193664/517313 (37%), 24.54s] Loss: 0.002508 
+2019-03-14 20:58:10,042 - ClusterTrainer - INFO -    > [201728/517313 (39%), 24.15s] Loss: 0.002302 
+2019-03-14 20:58:13,076 - ClusterTrainer - INFO -    > [209792/517313 (41%), 23.73s] Loss: 0.002212 
+2019-03-14 20:58:16,109 - ClusterTrainer - INFO -    > [217856/517313 (42%), 22.22s] Loss: 0.002197 
+2019-03-14 20:58:19,140 - ClusterTrainer - INFO -    > [225920/517313 (44%), 22.13s] Loss: 0.002301 
+2019-03-14 20:58:22,181 - ClusterTrainer - INFO -    > [233984/517313 (45%), 21.69s] Loss: 0.002228 
+2019-03-14 20:58:25,217 - ClusterTrainer - INFO -    > [242048/517313 (47%), 21.35s] Loss: 0.002107 
+2019-03-14 20:58:28,280 - ClusterTrainer - INFO -    > [250112/517313 (48%), 20.31s] Loss: 0.002038 
+2019-03-14 20:58:31,309 - ClusterTrainer - INFO -    > [258176/517313 (50%), 19.74s] Loss: 0.002436 
+2019-03-14 20:58:34,344 - ClusterTrainer - INFO -    > [266240/517313 (51%), 19.20s] Loss: 0.002045 
+2019-03-14 20:58:37,386 - ClusterTrainer - INFO -    > [274304/517313 (53%), 18.66s] Loss: 0.002294 
+2019-03-14 20:58:40,430 - ClusterTrainer - INFO -    > [282368/517313 (55%), 18.09s] Loss: 0.002113 
+2019-03-14 20:58:43,470 - ClusterTrainer - INFO -    > [290432/517313 (56%), 17.32s] Loss: 0.002323 
+2019-03-14 20:58:46,514 - ClusterTrainer - INFO -    > [298496/517313 (58%), 16.77s] Loss: 0.002192 
+2019-03-14 20:58:49,557 - ClusterTrainer - INFO -    > [306560/517313 (59%), 16.45s] Loss: 0.002279 
+2019-03-14 20:58:52,599 - ClusterTrainer - INFO -    > [314624/517313 (61%), 15.49s] Loss: 0.002061 
+2019-03-14 20:58:55,643 - ClusterTrainer - INFO -    > [322688/517313 (62%), 15.16s] Loss: 0.002198 
+2019-03-14 20:58:58,695 - ClusterTrainer - INFO -    > [330752/517313 (64%), 14.24s] Loss: 0.002129 
+2019-03-14 20:59:01,741 - ClusterTrainer - INFO -    > [338816/517313 (65%), 13.62s] Loss: 0.002052 
+2019-03-14 20:59:04,786 - ClusterTrainer - INFO -    > [346880/517313 (67%), 12.84s] Loss: 0.002288 
+2019-03-14 20:59:07,841 - ClusterTrainer - INFO -    > [354944/517313 (69%), 12.47s] Loss: 0.002183 
+2019-03-14 20:59:10,877 - ClusterTrainer - INFO -    > [363008/517313 (70%), 11.76s] Loss: 0.002150 
+2019-03-14 20:59:13,908 - ClusterTrainer - INFO -    > [371072/517313 (72%), 11.38s] Loss: 0.002084 
+2019-03-14 20:59:16,944 - ClusterTrainer - INFO -    > [379136/517313 (73%), 10.61s] Loss: 0.002230 
+2019-03-14 20:59:19,988 - ClusterTrainer - INFO -    > [387200/517313 (75%), 10.02s] Loss: 0.002328 
+2019-03-14 20:59:23,029 - ClusterTrainer - INFO -    > [395264/517313 (76%), 9.39s] Loss: 0.002156 
+2019-03-14 20:59:26,073 - ClusterTrainer - INFO -    > [403328/517313 (78%), 8.72s] Loss: 0.002161 
+2019-03-14 20:59:29,115 - ClusterTrainer - INFO -    > [411392/517313 (79%), 8.08s] Loss: 0.002368 
+2019-03-14 20:59:32,159 - ClusterTrainer - INFO -    > [419456/517313 (81%), 7.44s] Loss: 0.001999 
+2019-03-14 20:59:35,208 - ClusterTrainer - INFO -    > [427520/517313 (83%), 6.97s] Loss: 0.002281 
+2019-03-14 20:59:38,254 - ClusterTrainer - INFO -    > [435584/517313 (84%), 6.40s] Loss: 0.002168 
+2019-03-14 20:59:41,300 - ClusterTrainer - INFO -    > [443648/517313 (86%), 5.69s] Loss: 0.001981 
+2019-03-14 20:59:44,352 - ClusterTrainer - INFO -    > [451712/517313 (87%), 5.05s] Loss: 0.002167 
+2019-03-14 20:59:47,402 - ClusterTrainer - INFO -    > [459776/517313 (89%), 4.46s] Loss: 0.002276 
+2019-03-14 20:59:50,447 - ClusterTrainer - INFO -    > [467840/517313 (90%), 3.83s] Loss: 0.001875 
+2019-03-14 20:59:53,494 - ClusterTrainer - INFO -    > [475904/517313 (92%), 3.16s] Loss: 0.002168 
+2019-03-14 20:59:56,543 - ClusterTrainer - INFO -    > [483968/517313 (94%), 2.58s] Loss: 0.002078 
+2019-03-14 20:59:59,592 - ClusterTrainer - INFO -    > [492032/517313 (95%), 1.97s] Loss: 0.002124 
+2019-03-14 21:00:02,642 - ClusterTrainer - INFO -    > [500096/517313 (97%), 1.32s] Loss: 0.001949 
+2019-03-14 21:00:05,687 - ClusterTrainer - INFO -    > [508160/517313 (98%), 0.72s] Loss: 0.002123 
+2019-03-14 21:00:08,736 - ClusterTrainer - INFO -    > [516224/517313 (100%), 0.10s] Loss: 0.002225 
+2019-03-14 21:00:09,156 - ClusterTrainer - INFO -    > Total loss: 0.002876
+2019-03-14 21:00:09,158 - ClusterTrainer - INFO - Valid Epoch: 0
+2019-03-14 21:00:09,202 - ClusterTrainer - INFO -    > [128/27436 (0%), 0.75s] Loss: 0.001906 
+2019-03-14 21:00:11,834 - ClusterTrainer - INFO -    > [8192/27436 (29%), 0.53s] Loss: 0.003114 
+2019-03-14 21:00:14,454 - ClusterTrainer - INFO -    > [16256/27436 (59%), 0.31s] Loss: 0.002639 
+2019-03-14 21:00:17,099 - ClusterTrainer - INFO -    > [24320/27436 (88%), 0.09s] Loss: 0.000868 
+2019-03-14 21:00:18,123 - ClusterTrainer - INFO -    > Total loss: 0.002018
+2019-03-14 21:03:53,211 - ClusterTrainer - INFO - Saving checkpoint: logs/conv_ae_horoma/0314_172853/18/last_checkpoint.pth ...
+2019-03-14 21:07:16,297 - ClusterTrainer - INFO - Saving best checkpoint: logs/conv_ae_horoma/0314_172853/18/best_checkpoint.pth ...
+2019-03-14 21:07:59,150 - ClusterTrainer - INFO - Saving best checkpoint: logs/conv_ae_horoma/0314_172853/18/best_checkpoint_kmeans100-F1.pth ...
+2019-03-14 21:08:42,863 - ClusterTrainer - INFO - Saving best checkpoint: logs/conv_ae_horoma/0314_172853/18/best_checkpoint_kmeans100-accuracy.pth ...
+2019-03-14 21:08:46,863 - ClusterTrainer - INFO - |  Hyperparameter  | Value |
+| :--------------- | :---- |
+| lr               | 0.001 |
+| code_size        | 75    |
+| lin2_in_channels | 120   |
+| dropout          | 0.1   |
+
+2019-03-14 21:08:46,866 - ClusterTrainer - INFO - Train Epoch: 0
+2019-03-14 21:08:46,949 - ClusterTrainer - INFO -    > [128/517313 (0%), 39.33s] Loss: 0.074586 
+2019-03-14 21:08:50,006 - ClusterTrainer - INFO -    > [8192/517313 (2%), 39.56s] Loss: 0.008464 
+2019-03-14 21:08:53,066 - ClusterTrainer - INFO -    > [16256/517313 (3%), 38.69s] Loss: 0.007256 
+2019-03-14 21:08:56,122 - ClusterTrainer - INFO -    > [24320/517313 (5%), 38.20s] Loss: 0.006162 
+2019-03-14 21:08:59,161 - ClusterTrainer - INFO -    > [32384/517313 (6%), 37.16s] Loss: 0.005367 
+2019-03-14 21:09:02,185 - ClusterTrainer - INFO -    > [40448/517313 (8%), 35.88s] Loss: 0.004448 
+2019-03-14 21:09:05,203 - ClusterTrainer - INFO -    > [48512/517313 (9%), 35.91s] Loss: 0.003794 
+2019-03-14 21:09:08,217 - ClusterTrainer - INFO -    > [56576/517313 (11%), 34.49s] Loss: 0.003512 
+2019-03-14 21:09:11,237 - ClusterTrainer - INFO -    > [64640/517313 (12%), 34.15s] Loss: 0.003453 
+2019-03-14 21:09:14,254 - ClusterTrainer - INFO -    > [72704/517313 (14%), 33.38s] Loss: 0.003325 
+2019-03-14 21:09:17,273 - ClusterTrainer - INFO -    > [80768/517313 (16%), 33.71s] Loss: 0.002910 
+2019-03-14 21:09:20,291 - ClusterTrainer - INFO -    > [88832/517313 (17%), 32.07s] Loss: 0.002943 
+2019-03-14 21:09:23,314 - ClusterTrainer - INFO -    > [96896/517313 (19%), 31.74s] Loss: 0.002457 
+2019-03-14 21:09:26,333 - ClusterTrainer - INFO -    > [104960/517313 (20%), 31.53s] Loss: 0.002887 
+2019-03-14 21:09:29,354 - ClusterTrainer - INFO -    > [113024/517313 (22%), 31.12s] Loss: 0.002310 
+2019-03-14 21:09:32,371 - ClusterTrainer - INFO -    > [121088/517313 (23%), 29.44s] Loss: 0.002528 
+2019-03-14 21:09:35,389 - ClusterTrainer - INFO -    > [129152/517313 (25%), 29.79s] Loss: 0.002507 
+2019-03-14 21:09:38,405 - ClusterTrainer - INFO -    > [137216/517313 (26%), 28.58s] Loss: 0.002350 
+2019-03-14 21:09:41,431 - ClusterTrainer - INFO -    > [145280/517313 (28%), 27.55s] Loss: 0.002332 
+2019-03-14 21:09:44,448 - ClusterTrainer - INFO -    > [153344/517313 (30%), 27.95s] Loss: 0.002336 
+2019-03-14 21:09:47,465 - ClusterTrainer - INFO -    > [161408/517313 (31%), 27.60s] Loss: 0.002421 
+2019-03-14 21:09:50,480 - ClusterTrainer - INFO -    > [169472/517313 (33%), 27.26s] Loss: 0.002210 
+2019-03-14 21:09:53,499 - ClusterTrainer - INFO -    > [177536/517313 (34%), 25.33s] Loss: 0.002235 
+2019-03-14 21:09:56,515 - ClusterTrainer - INFO -    > [185600/517313 (36%), 24.94s] Loss: 0.002120 
+2019-03-14 21:09:59,536 - ClusterTrainer - INFO -    > [193664/517313 (37%), 25.00s] Loss: 0.002048 
+2019-03-14 21:10:02,555 - ClusterTrainer - INFO -    > [201728/517313 (39%), 23.36s] Loss: 0.002171 
+2019-03-14 21:10:05,566 - ClusterTrainer - INFO -    > [209792/517313 (41%), 23.75s] Loss: 0.002005 
+2019-03-14 21:10:08,605 - ClusterTrainer - INFO -    > [217856/517313 (42%), 23.01s] Loss: 0.002021 
+2019-03-14 21:10:11,641 - ClusterTrainer - INFO -    > [225920/517313 (44%), 22.33s] Loss: 0.001992 
+2019-03-14 21:10:14,678 - ClusterTrainer - INFO -    > [233984/517313 (45%), 21.25s] Loss: 0.002167 
+2019-03-14 21:10:17,717 - ClusterTrainer - INFO -    > [242048/517313 (47%), 21.03s] Loss: 0.001929 
+2019-03-14 21:10:20,752 - ClusterTrainer - INFO -    > [250112/517313 (48%), 20.18s] Loss: 0.001799 
+2019-03-14 21:10:23,791 - ClusterTrainer - INFO -    > [258176/517313 (50%), 19.72s] Loss: 0.001941 
+2019-03-14 21:10:26,832 - ClusterTrainer - INFO -    > [266240/517313 (51%), 18.94s] Loss: 0.001810 
+2019-03-14 21:10:31,106 - ClusterTrainer - INFO -    > [274304/517313 (53%), 18.68s] Loss: 0.001803 
+2019-03-14 21:10:34,163 - ClusterTrainer - INFO -    > [282368/517313 (55%), 18.18s] Loss: 0.001684 
+2019-03-14 21:10:37,213 - ClusterTrainer - INFO -    > [290432/517313 (56%), 17.51s] Loss: 0.001753 
+2019-03-14 21:10:40,243 - ClusterTrainer - INFO -    > [298496/517313 (58%), 17.20s] Loss: 0.001649 
+2019-03-14 21:10:43,291 - ClusterTrainer - INFO -    > [306560/517313 (59%), 16.03s] Loss: 0.001755 
+2019-03-14 21:10:46,335 - ClusterTrainer - INFO -    > [314624/517313 (61%), 15.77s] Loss: 0.001728 
+2019-03-14 21:10:49,381 - ClusterTrainer - INFO -    > [322688/517313 (62%), 14.96s] Loss: 0.001817 
+2019-03-14 21:10:52,429 - ClusterTrainer - INFO -    > [330752/517313 (64%), 14.61s] Loss: 0.001816 
+2019-03-14 21:10:55,481 - ClusterTrainer - INFO -    > [338816/517313 (65%), 13.87s] Loss: 0.001788 
+2019-03-14 21:10:58,530 - ClusterTrainer - INFO -    > [346880/517313 (67%), 13.08s] Loss: 0.001677 
+2019-03-14 21:11:01,588 - ClusterTrainer - INFO -    > [354944/517313 (69%), 12.53s] Loss: 0.001664 
+2019-03-14 21:11:05,104 - ClusterTrainer - INFO -    > [363008/517313 (70%), 12.22s] Loss: 0.001817 
+2019-03-14 21:11:08,159 - ClusterTrainer - INFO -    > [371072/517313 (72%), 11.33s] Loss: 0.001737 
+2019-03-14 21:11:11,214 - ClusterTrainer - INFO -    > [379136/517313 (73%), 10.65s] Loss: 0.001667 
+2019-03-14 21:11:14,269 - ClusterTrainer - INFO -    > [387200/517313 (75%), 10.08s] Loss: 0.001672 
+2019-03-14 21:11:17,319 - ClusterTrainer - INFO -    > [395264/517313 (76%), 9.44s] Loss: 0.001748 
+2019-03-14 21:11:20,375 - ClusterTrainer - INFO -    > [403328/517313 (78%), 8.85s] Loss: 0.001707 
+2019-03-14 21:11:23,426 - ClusterTrainer - INFO -    > [411392/517313 (79%), 8.21s] Loss: 0.001651 
+2019-03-14 21:11:26,479 - ClusterTrainer - INFO -    > [419456/517313 (81%), 7.62s] Loss: 0.001636 
+2019-03-14 21:11:29,532 - ClusterTrainer - INFO -    > [427520/517313 (83%), 6.99s] Loss: 0.001703 
+2019-03-14 21:11:32,587 - ClusterTrainer - INFO -    > [435584/517313 (84%), 6.50s] Loss: 0.001612 
+2019-03-14 21:11:35,631 - ClusterTrainer - INFO -    > [443648/517313 (86%), 5.76s] Loss: 0.001740 
+2019-03-14 21:11:38,685 - ClusterTrainer - INFO -    > [451712/517313 (87%), 4.92s] Loss: 0.001632 
+2019-03-14 21:11:41,715 - ClusterTrainer - INFO -    > [459776/517313 (89%), 4.44s] Loss: 0.001656 
+2019-03-14 21:11:44,760 - ClusterTrainer - INFO -    > [467840/517313 (90%), 3.84s] Loss: 0.001623 
+2019-03-14 21:11:47,805 - ClusterTrainer - INFO -    > [475904/517313 (92%), 3.21s] Loss: 0.001691 
+2019-03-14 21:11:50,854 - ClusterTrainer - INFO -    > [483968/517313 (94%), 2.58s] Loss: 0.001584 
+2019-03-14 21:11:53,903 - ClusterTrainer - INFO -    > [492032/517313 (95%), 1.98s] Loss: 0.001536 
+2019-03-14 21:11:56,954 - ClusterTrainer - INFO -    > [500096/517313 (97%), 1.39s] Loss: 0.001634 
+2019-03-14 21:12:00,006 - ClusterTrainer - INFO -    > [508160/517313 (98%), 0.73s] Loss: 0.001635 
+2019-03-14 21:12:03,060 - ClusterTrainer - INFO -    > [516224/517313 (100%), 0.10s] Loss: 0.001628 
+2019-03-14 21:12:03,483 - ClusterTrainer - INFO -    > Total loss: 0.002630
+2019-03-14 21:12:03,485 - ClusterTrainer - INFO - Valid Epoch: 0
+2019-03-14 21:12:03,529 - ClusterTrainer - INFO -    > [128/27436 (0%), 0.76s] Loss: 0.001868 
+2019-03-14 21:12:06,174 - ClusterTrainer - INFO -    > [8192/27436 (29%), 0.53s] Loss: 0.001880 
+2019-03-14 21:12:08,819 - ClusterTrainer - INFO -    > [16256/27436 (59%), 0.32s] Loss: 0.001474 
+2019-03-14 21:12:11,462 - ClusterTrainer - INFO -    > [24320/27436 (88%), 0.09s] Loss: 0.001022 
+2019-03-14 21:12:12,486 - ClusterTrainer - INFO -    > Total loss: 0.001399
+2019-03-14 21:16:07,235 - ClusterTrainer - INFO - Saving checkpoint: logs/conv_ae_horoma/0314_172853/19/last_checkpoint.pth ...
+2019-03-14 21:16:46,798 - ClusterTrainer - INFO - Saving best checkpoint: logs/conv_ae_horoma/0314_172853/19/best_checkpoint.pth ...
+2019-03-14 21:17:38,589 - ClusterTrainer - INFO - Saving best checkpoint: logs/conv_ae_horoma/0314_172853/19/best_checkpoint_kmeans100-F1.pth ...
+2019-03-14 21:18:21,899 - ClusterTrainer - INFO - Saving best checkpoint: logs/conv_ae_horoma/0314_172853/19/best_checkpoint_kmeans100-accuracy.pth ...

@@ -1,0 +1,110 @@
+2019-03-13 01:58:08,216 - ClusterTrainer - INFO - |  Hyperparameter  | Value |
+| :--------------- | :---- |
+| lr               | 0.001 |
+| latent_dimension | 2     |
+| linear_size      | 408   |
+| dropout          | 0.5   |
+
+2019-03-13 01:58:08,222 - ClusterTrainer - INFO - Train Epoch: 0
+2019-03-13 01:58:08,816 - ClusterTrainer - INFO -    > [200/143300 (0%), 376.87s] Loss: 0.913207 
+2019-03-13 01:58:21,223 - ClusterTrainer - INFO -    > [5400/143300 (4%), 287.70s] Loss: 0.050832 
+2019-03-13 01:58:33,589 - ClusterTrainer - INFO -    > [10600/143300 (7%), 277.05s] Loss: 0.041835 
+2019-03-13 01:58:45,957 - ClusterTrainer - INFO -    > [15800/143300 (11%), 268.57s] Loss: 0.038278 
+2019-03-13 01:58:58,359 - ClusterTrainer - INFO -    > [21000/143300 (15%), 254.59s] Loss: 0.035802 
+2019-03-13 01:59:10,730 - ClusterTrainer - INFO -    > [26200/143300 (18%), 243.77s] Loss: 0.037068 
+2019-03-13 01:59:23,107 - ClusterTrainer - INFO -    > [31400/143300 (22%), 233.43s] Loss: 0.033196 
+2019-03-13 01:59:35,512 - ClusterTrainer - INFO -    > [36600/143300 (25%), 222.80s] Loss: 0.032514 
+2019-03-13 01:59:47,901 - ClusterTrainer - INFO -    > [41800/143300 (29%), 211.80s] Loss: 0.034303 
+2019-03-13 02:00:00,294 - ClusterTrainer - INFO -    > [47000/143300 (33%), 201.19s] Loss: 0.029736 
+2019-03-13 02:00:12,673 - ClusterTrainer - INFO -    > [52200/143300 (36%), 190.02s] Loss: 0.032822 
+2019-03-13 02:00:25,096 - ClusterTrainer - INFO -    > [57400/143300 (40%), 181.69s] Loss: 0.030951 
+2019-03-13 02:00:38,208 - ClusterTrainer - INFO -    > [62600/143300 (44%), 168.88s] Loss: 0.031263 
+2019-03-13 02:00:50,615 - ClusterTrainer - INFO -    > [67800/143300 (47%), 159.69s] Loss: 0.032816 
+2019-03-13 02:01:03,030 - ClusterTrainer - INFO -    > [73000/143300 (51%), 147.35s] Loss: 0.029763 
+2019-03-13 02:01:15,430 - ClusterTrainer - INFO -    > [78200/143300 (54%), 136.90s] Loss: 0.033577 
+2019-03-13 02:01:27,817 - ClusterTrainer - INFO -    > [83400/143300 (58%), 126.18s] Loss: 0.031474 
+2019-03-13 02:01:40,237 - ClusterTrainer - INFO -    > [88600/143300 (62%), 116.23s] Loss: 0.028538 
+2019-03-13 02:01:52,673 - ClusterTrainer - INFO -    > [93800/143300 (65%), 103.58s] Loss: 0.034436 
+2019-03-13 02:02:05,078 - ClusterTrainer - INFO -    > [99000/143300 (69%), 92.98s] Loss: 0.032316 
+2019-03-13 02:02:17,473 - ClusterTrainer - INFO -    > [104200/143300 (73%), 82.28s] Loss: 0.030333 
+2019-03-13 02:02:29,897 - ClusterTrainer - INFO -    > [109400/143300 (76%), 71.32s] Loss: 0.028054 
+2019-03-13 02:02:42,315 - ClusterTrainer - INFO -    > [114600/143300 (80%), 60.48s] Loss: 0.029473 
+2019-03-13 02:02:54,716 - ClusterTrainer - INFO -    > [119800/143300 (83%), 49.67s] Loss: 0.030162 
+2019-03-13 02:03:07,116 - ClusterTrainer - INFO -    > [125000/143300 (87%), 38.88s] Loss: 0.030284 
+2019-03-13 02:03:19,522 - ClusterTrainer - INFO -    > [130200/143300 (91%), 27.91s] Loss: 0.025218 
+2019-03-13 02:03:31,953 - ClusterTrainer - INFO -    > [135400/143300 (94%), 17.16s] Loss: 0.028080 
+2019-03-13 02:03:44,396 - ClusterTrainer - INFO -    > [140600/143300 (98%), 6.31s] Loss: 0.026728 
+2019-03-13 02:03:50,856 - ClusterTrainer - INFO -    > Total loss: 0.230634
+2019-03-13 02:03:50,860 - ClusterTrainer - INFO - Valid Epoch: 0
+2019-03-13 02:03:51,052 - ClusterTrainer - INFO -    > [200/7600 (0%), 5.01s] Loss: 0.022492 
+2019-03-13 02:03:56,009 - ClusterTrainer - INFO -    > [5400/7600 (68%), 1.58s] Loss: 0.070875 
+2019-03-13 02:03:58,110 - ClusterTrainer - INFO -    > Total loss: 0.031940
+2019-03-13 02:05:58,890 - ClusterTrainer - INFO - Saving checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/last_checkpoint.pth ...
+2019-03-13 02:06:18,255 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint.pth ...
+2019-03-13 02:06:28,445 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_kmeans20-F1.pth ...
+2019-03-13 02:06:39,824 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_kmeans20-accuracy.pth ...
+2019-03-13 02:06:51,785 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_kmeans100-F1.pth ...
+2019-03-13 02:07:04,089 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_kmeans100-accuracy.pth ...
+2019-03-13 02:07:13,680 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_kmeans300-F1.pth ...
+2019-03-13 02:07:26,826 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_kmeans300-accuracy.pth ...
+2019-03-13 02:07:40,728 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_gmm20-F1.pth ...
+2019-03-13 02:07:53,621 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_gmm20-accuracy.pth ...
+2019-03-13 02:08:05,465 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_gmm100-F1.pth ...
+2019-03-13 02:08:16,882 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_gmm100-accuracy.pth ...
+2019-03-13 02:08:29,939 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_gmm300-F1.pth ...
+2019-03-13 02:08:43,138 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/18/best_checkpoint_gmm300-accuracy.pth ...
+2019-03-13 02:08:49,270 - ClusterTrainer - INFO - |  Hyperparameter  | Value |
+| :--------------- | :---- |
+| lr               | 0.001 |
+| latent_dimension | 50    |
+| linear_size      | 722   |
+| dropout          | 0.1   |
+
+2019-03-13 02:08:49,275 - ClusterTrainer - INFO - Train Epoch: 0
+2019-03-13 02:08:49,890 - ClusterTrainer - INFO -    > [200/143300 (0%), 391.48s] Loss: 4.278145 
+2019-03-13 02:09:02,444 - ClusterTrainer - INFO -    > [5400/143300 (4%), 297.96s] Loss: 0.076212 
+2019-03-13 02:09:14,924 - ClusterTrainer - INFO -    > [10600/143300 (7%), 282.78s] Loss: 0.048946 
+2019-03-13 02:09:27,380 - ClusterTrainer - INFO -    > [15800/143300 (11%), 268.96s] Loss: 0.040932 
+2019-03-13 02:09:39,899 - ClusterTrainer - INFO -    > [21000/143300 (15%), 263.64s] Loss: 0.038577 
+2019-03-13 02:09:52,428 - ClusterTrainer - INFO -    > [26200/143300 (18%), 245.88s] Loss: 0.037714 
+2019-03-13 02:10:04,962 - ClusterTrainer - INFO -    > [31400/143300 (22%), 238.68s] Loss: 0.038810 
+2019-03-13 02:10:17,495 - ClusterTrainer - INFO -    > [36600/143300 (25%), 229.05s] Loss: 0.035930 
+2019-03-13 02:10:30,036 - ClusterTrainer - INFO -    > [41800/143300 (29%), 219.09s] Loss: 0.030837 
+2019-03-13 02:10:42,538 - ClusterTrainer - INFO -    > [47000/143300 (33%), 202.07s] Loss: 0.033406 
+2019-03-13 02:10:55,076 - ClusterTrainer - INFO -    > [52200/143300 (36%), 193.82s] Loss: 0.033741 
+2019-03-13 02:11:07,604 - ClusterTrainer - INFO -    > [57400/143300 (40%), 184.78s] Loss: 0.030536 
+2019-03-13 02:11:20,111 - ClusterTrainer - INFO -    > [62600/143300 (44%), 173.85s] Loss: 0.028673 
+2019-03-13 02:11:32,650 - ClusterTrainer - INFO -    > [67800/143300 (47%), 160.07s] Loss: 0.031050 
+2019-03-13 02:11:45,157 - ClusterTrainer - INFO -    > [73000/143300 (51%), 153.25s] Loss: 0.034223 
+2019-03-13 02:11:57,675 - ClusterTrainer - INFO -    > [78200/143300 (54%), 136.79s] Loss: 0.027350 
+2019-03-13 02:12:10,180 - ClusterTrainer - INFO -    > [83400/143300 (58%), 129.12s] Loss: 0.026590 
+2019-03-13 02:12:22,678 - ClusterTrainer - INFO -    > [88600/143300 (62%), 115.72s] Loss: 0.031541 
+2019-03-13 02:12:35,181 - ClusterTrainer - INFO -    > [93800/143300 (65%), 106.76s] Loss: 0.031702 
+2019-03-13 02:12:47,659 - ClusterTrainer - INFO -    > [99000/143300 (69%), 94.16s] Loss: 0.028968 
+2019-03-13 02:13:00,172 - ClusterTrainer - INFO -    > [104200/143300 (73%), 83.65s] Loss: 0.031584 
+2019-03-13 02:13:12,667 - ClusterTrainer - INFO -    > [109400/143300 (76%), 72.24s] Loss: 0.027808 
+2019-03-13 02:13:25,176 - ClusterTrainer - INFO -    > [114600/143300 (80%), 61.62s] Loss: 0.026626 
+2019-03-13 02:13:37,885 - ClusterTrainer - INFO -    > [119800/143300 (83%), 50.01s] Loss: 0.026888 
+2019-03-13 02:13:50,394 - ClusterTrainer - INFO -    > [125000/143300 (87%), 39.44s] Loss: 0.032203 
+2019-03-13 02:14:02,884 - ClusterTrainer - INFO -    > [130200/143300 (91%), 28.32s] Loss: 0.030721 
+2019-03-13 02:14:15,396 - ClusterTrainer - INFO -    > [135400/143300 (94%), 17.39s] Loss: 0.026746 
+2019-03-13 02:14:27,878 - ClusterTrainer - INFO -    > [140600/143300 (98%), 6.33s] Loss: 0.029560 
+2019-03-13 02:14:34,385 - ClusterTrainer - INFO -    > Total loss: 0.102317
+2019-03-13 02:14:34,390 - ClusterTrainer - INFO - Valid Epoch: 0
+2019-03-13 02:14:34,584 - ClusterTrainer - INFO -    > [200/7600 (0%), 5.11s] Loss: 0.051808 
+2019-03-13 02:14:39,536 - ClusterTrainer - INFO -    > [5400/7600 (68%), 1.60s] Loss: 0.020272 
+2019-03-13 02:14:41,634 - ClusterTrainer - INFO -    > Total loss: 0.024605
+2019-03-13 02:22:30,388 - ClusterTrainer - INFO - Saving checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/last_checkpoint.pth ...
+2019-03-13 02:22:45,620 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint.pth ...
+2019-03-13 02:22:58,322 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_kmeans20-F1.pth ...
+2019-03-13 02:23:09,113 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_kmeans20-accuracy.pth ...
+2019-03-13 02:23:23,092 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_kmeans100-F1.pth ...
+2019-03-13 02:23:35,611 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_kmeans100-accuracy.pth ...
+2019-03-13 02:23:47,761 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_kmeans300-F1.pth ...
+2019-03-13 02:24:00,289 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_kmeans300-accuracy.pth ...
+2019-03-13 02:24:13,876 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_gmm20-F1.pth ...
+2019-03-13 02:24:27,616 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_gmm20-accuracy.pth ...
+2019-03-13 02:24:38,171 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_gmm100-F1.pth ...
+2019-03-13 02:24:53,107 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_gmm100-accuracy.pth ...
+2019-03-13 02:25:05,210 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_gmm300-F1.pth ...
+2019-03-13 02:25:20,804 - ClusterTrainer - INFO - Saving best checkpoint: logs/variational_horoma_non_overlapped/0312_205116/19/best_checkpoint_gmm300-accuracy.pth ...
