@@ -28,7 +28,7 @@ class HoromaDataset(Dataset):
 
         if split == "train":
             self.nb_examples = 152000
-        elif split == "train_labeled"
+        elif split == "train_labeled":
             self.nb_examples = 228
         elif split == "valid":
             self.nb_examples = 252
@@ -51,13 +51,14 @@ class HoromaDataset(Dataset):
         self.region_ids = np.loadtxt(filename_region_ids, dtype=object)
 
         self.targets = None
-        if os.path.exists(filename_y) and not split.startswith("train") and not split.startswith("train_overlapped"):
+        if os.path.exists(filename_y):
             pre_targets = np.loadtxt(filename_y, 'U2')
 
             self.str_labels = np.unique(pre_targets)
 
-            str_to_id = dict(zip(str_labels, range(len(str_labels))))
-            id_to_str = dict((v, k) for k, v in str_to_id.items())
+            self.str_to_id = dict(
+                zip(self.str_labels, range(len(self.str_labels))))
+            self.id_to_str = dict((v, k) for k, v in self.str_to_id.items())
 
             if subset is None:
                 pre_targets = pre_targets[skip: None]
@@ -65,7 +66,7 @@ class HoromaDataset(Dataset):
                 pre_targets = pre_targets[skip: skip + subset]
 
             self.targets = np.asarray(
-                [str_to_id[_str] for _str in pre_targets if _str in str_to_id])
+                [self.str_to_id[_str] for _str in pre_targets if _str in self.str_to_id])
 
         self.data = np.memmap(
             filename_x,
@@ -304,7 +305,7 @@ class FullDataset(Dataset):
 
 if __name__ == "__main__":
     train_dataset = HoromaDataset(
-        data_dir='/home/user44/ift6759-horoma/data/horoma',
+        data_dir='./../data/horoma',
         split='train_labeled',
         transforms=functional.to_pil_image
     )
@@ -318,6 +319,11 @@ if __name__ == "__main__":
     # train, valid = splitter(dataset)
 
     print(len(train_dataset))
-    print(type(train_dataset[0]))
-    # im = Image.open(train_dataset[0])
-    # im.show()
+    img = train_dataset[0][0]
+    label = train_dataset[0][1]
+    print("label: ", train_dataset.id_to_str[int(label.data.item())])
+    print(img.size, img.format, img.mode)
+    img.show()
+    size = 128, 128
+    img.thumbnail(size)
+    img.save("Sample", "JPEG")
