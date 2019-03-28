@@ -31,7 +31,7 @@ def check_priority():
     return False
 
 
-def generate_pbs_file(conf, log_dir, start_time):
+def generate_pbs_file(conf, runner, gpu_type, log_dir, start_time):
     """
     Generate a run.pbs file, that will be run by Moab on Helios.
 
@@ -49,13 +49,15 @@ def generate_pbs_file(conf, log_dir, start_time):
     with open('template/pbs.template', 'r') as file:
         template = file.read()
 
-    specific = '' if not priority else '#PBS -l advres=MILA2019\n#PBS -l feature=k80'
+    specific = '' if not priority else '#PBS -l advres=MILA2019'
 
     pbs = template.format(
         wall_time=int(wall_time * 3600),
         n_gpu=n_gpu,
         files_name=files_name,
         prioritization=specific,
+        py_file=runner,
+        gpu_type=gpu_type,
         result_dir=log_dir,
         start_time=start_time,
         PBS_O_WORKDIR='{PBS_O_WORKDIR}',
@@ -95,7 +97,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default='config.json')
-
+    parser.add_argument("--runner", type=str, default='train.py')
+    parser.add_argument("--gpu_type", type=str, default='k80')
     args = parser.parse_args()
 
     with open(args.config, 'r') as f:
@@ -111,4 +114,4 @@ if __name__ == '__main__':
         print(e)
         sys.exit(1)
 
-    generate_pbs_file(config, log_dir, start_time)
+    generate_pbs_file(config, args.runner, args.gpu_type, log_dir, start_time)
