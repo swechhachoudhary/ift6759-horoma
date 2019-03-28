@@ -304,7 +304,7 @@ class FullDataset(Dataset):
 
 if __name__ == "__main__":
     train_dataset = HoromaDataset(
-        data_dir='/home/user44/ift6759-horoma/code/data/horoma',
+        data_dir='/home/user44/ift6759-horoma/data/horoma',
         split='train_labeled',
         transforms=functional.to_pil_image
     )
