@@ -3,15 +3,14 @@
 #PBS -l nodes=1:gpus=1
 #PBS -l walltime=28800
 #PBS -E
-#PBS -e cnnautoencoder_cluster_kmeans_l20_0327_212445.err
-#PBS -o cnnautoencoder_cluster_kmeans_l20_0327_212445.out
-#PBS -l feature=k20
+#PBS -e cnnautoencoder_cluster_kmeans_l20_0327_213326.err
+#PBS -o cnnautoencoder_cluster_kmeans_l20_0327_213326.out
 #PBS -l advres=MILA2019
 
 # set the working directory to where the job is launched
 cd "${PBS_O_WORKDIR}"
 
-s_exec python -u train.py --config="logs/cnnautoencoder_cluster_kmeans_l20/0327_212445/config.json" --helios-run="0327_212445"
+s_exec python -u ./runner/train.py --config="logs/cnnautoencoder_cluster_kmeans_l20/0327_213326/config.json" --helios-run="0327_213326"
 
-mv cnnautoencoder_cluster_kmeans_l20_0327_212445.err logs/cnnautoencoder_cluster_kmeans_l20/0327_212445/
-mv cnnautoencoder_cluster_kmeans_l20_0327_212445.out logs/cnnautoencoder_cluster_kmeans_l20/0327_212445/
+mv cnnautoencoder_cluster_kmeans_l20_0327_213326.err logs/cnnautoencoder_cluster_kmeans_l20/0327_213326/
+mv cnnautoencoder_cluster_kmeans_l20_0327_213326.out logs/cnnautoencoder_cluster_kmeans_l20/0327_213326/

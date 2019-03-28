@@ -1,0 +1,59 @@
+{
+  "trainer": {
+    "epochs": 100,
+    "log_dir": "logs/",
+    "save_dir": "saved/",
+    "type": "ClusterKMeansTrainer",
+    "options": {
+      "kmeans_headstart": 0,
+      "kmeans_interval": 0,
+      "kmeans_weight": 10.0,
+      "n_clusters": 100
+    },
+    "save_period": 10
+  },
+  "optimizer": {
+    "args": {
+      "amsgrad": false,
+      "weight_decay": 0,
+      "lr": 0.0001
+    },
+    "type": "Adam"
+  },
+  "name": "cnnautoencoder_cluster_kmeans_l20",
+  "data": {
+    "dataloader": {
+      "train": {
+        "shuffle": true,
+        "batch_size": 128
+      },
+      "split": 0.9,
+      "valid": {
+        "shuffle": false,
+        "batch_size": 128
+      }
+    },
+    "dataset": {
+      "flattened": false,
+      "data_dir": "/rap/jvb-000-aa/COURS2019/etudiants/data/horoma"
+    }
+  },
+  "wall_time": 8,
+  "n_gpu": 1,
+  "numpy_seed": 1,
+  "model": {
+    "args": {
+      "maxpool_kernel": 2,
+      "lin2_in_channels": 50,
+      "code_size": 20,
+      "dropout": 0.1,
+      "cnn2_out_channels": 20,
+      "cnn1_out_channels": 10,
+      "cnn2_kernel_size": 5,
+      "cnn1_kernel_size": 5,
+      "loss_fct": "MSELoss"
+    },
+    "type": "ConvolutionalAutoEncoder"
+  },
+  "torch_seed": 1
+}

@@ -61,7 +61,6 @@ class HoromaDataset(Dataset):
                 np.where(self.map_labels == t)[0][0]
                 for t in pre_targets
             ])
-
         self.data = np.memmap(
             filename_x,
             dtype=datatype,
