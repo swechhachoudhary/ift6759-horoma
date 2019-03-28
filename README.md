@@ -107,3 +107,37 @@ That way everyone would be able to do the changes in their own config files.
 The configuration file is an input file containing several parameters :
 * general.use_gpu             : boolean - whether or not we use the GPU for training/validation/testing
 
+
+## Data Files
+### Input Data Format
+Location : `/rap/jvb-000-aa/COURS2019/etudiants/data/horoma`
+  * train_x.dat: 152,000 x 32 x 32 x 3.
+  * train_labeled_x.dat: 228 x 32 x 32 x 3 (used to label clusters).
+  * valid_x.dat: 252 x 32 x 32 x 3 (used to evaluate your models).
+
+We also have access to files containing overlapped patches to increase the size of your
+datasets (pixel patches with ~50% overlap):
+  * train_overlapped_x.dat: 548,720 x 32 x 32 x 3.
+  * train_labeled_overlapped_x.dat: 635 x 32 x 32 x 3.
+  * valid_overlapped_x.dat: 696 x 32 x 32 x 3.
+
+###  Output(Label) Data Format
+Outputs are provided as text files (can be easily read from a terminal).
+  * train_labeled_y.txt: contains 228 tree species (2 characters).
+  * valid_y.txt: contains 252 tree species (2 characters).
+  * train_labeled_overlapped_y.txt: contains 635 tree species (2 characters).
+  * valid_overlapped_y.txt: contains 696 tree species (2 characters).
+  * The i-th value in filename_y.txt is associated to the i-th pixel patch in
+filename_x.dat.
+
+### Data region ids
+To split labeled datasets efficiently, we have access to files
+containing ids representing the pixel subregion where each pixel patch has
+been extracted from images:
+  * train_regions_id.txt.
+  * train_overlapped_regions_id.txt.
+  * train_labeled_regions_id.txt.
+  * train_labeled_overlapped_regions_id.txt.
+  * valid_regions_id.txt.
+  * valid_overlapped_regions_id.txt. 
+

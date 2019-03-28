@@ -2,6 +2,7 @@ import os
 
 import torch
 import numpy as np
+from PIL import Image
 from torch.utils.data import Dataset, Subset
 from torchvision.transforms import functional
 
@@ -26,41 +27,46 @@ class HoromaDataset(Dataset):
         datatype = "uint8"
 
         if split == "train":
-            self.nb_examples = 150900
+            self.nb_examples = 152000
+        elif split == "train_labeled"
+            self.nb_examples = 228
         elif split == "valid":
-            self.nb_examples = 480
+            self.nb_examples = 252
         elif split == "test":
             self.nb_examples = 498
         elif split == "train_overlapped":
-            self.nb_examples = 544749
+            self.nb_examples = 548720
+        elif split == "train_labeled_overlapped":
+            self.nb_examples = 635
         elif split == "valid_overlapped":
-            self.nb_examples = 1331
+            self.nb_examples = 696
         else:
             raise ("Dataset: Invalid split. "
-                   "Must be [train, valid, test, train_overlapped, valid_overlapped]")
+                   "Must be [train, train_labeled, valid, test, train_overlapped, train_labeled_overlapped, valid_overlapped]")
 
         filename_x = os.path.join(data_dir, "{}_x.dat".format(split))
         filename_y = os.path.join(data_dir, "{}_y.txt".format(split))
-
         filename_region_ids = os.path.join(data_dir,
                                            "{}_regions_id.txt".format(split))
         self.region_ids = np.loadtxt(filename_region_ids, dtype=object)
 
         self.targets = None
-        if os.path.exists(filename_y) and not split.startswith("train"):
+        if os.path.exists(filename_y) and not split.startswith("train") and not split.startswith("train_overlapped"):
             pre_targets = np.loadtxt(filename_y, 'U2')
+
+            self.str_labels = np.unique(pre_targets)
+
+            str_to_id = dict(zip(str_labels, range(len(str_labels))))
+            id_to_str = dict((v, k) for k, v in str_to_id.items())
 
             if subset is None:
                 pre_targets = pre_targets[skip: None]
             else:
                 pre_targets = pre_targets[skip: skip + subset]
 
-            self.map_labels = np.unique(pre_targets)
+            self.targets = np.asarray(
+                [str_to_id[_str] for _str in pre_targets if _str in str_to_id])
 
-            self.targets = np.asarray([
-                np.where(self.map_labels == t)[0][0]
-                for t in pre_targets
-            ])
         self.data = np.memmap(
             filename_x,
             dtype=datatype,
@@ -112,12 +118,14 @@ class CustomSubset(Dataset):
     def __getitem__(self, item):
         return self.dataset[self.indices[item]]
 
+# TODO
+
 
 class SplitDataset:
 
     def __init__(self, split=.9):
         """
-        Callable class that performs a split according to the region.
+        Callable class that performs a new split according to the region.
 
         Args:
             split (float): The proportion of examples to keep in the training set.
@@ -127,19 +135,21 @@ class SplitDataset:
 
         self.split = split
 
-    def __call__(self, dataset):
+    def __call__(self, train_labeled_dataset, valid_dataset):
         """
-        Takes a dataset and returns a split between training and validation.
+        Takes train_labeled and valid dataset and returns a new split between training and validation.
 
         Args:
-            dataset (torch.utils.data.Dataset): The original dataset to split.
-
+            train_labeled_dataset (torch.utils.data.Dataset): The original train_labeled dataset to split.
+            valid_dataset (torch.utils.data.Dataset): The original valid dataset to split.
         Returns:
             train_set (torch.utils.data.Dataset): The new training set.
             valid_set (torch.utils.data.Dataset): The new validation set.
         """
 
-        n = len(dataset)
+        n_train = len(train_labeled_dataset)
+        n_valid = len(valid_dataset)
+        n_total = n_train + n_valid
 
         unique_regions, unique_region_inverse, unique_region_counts = np.unique(
             dataset.region_ids,
@@ -293,9 +303,9 @@ class FullDataset(Dataset):
 
 
 if __name__ == "__main__":
-    dataset = HoromaDataset(
-        data_dir='/Users/basile/Documents/Helios/data/horoma',
-        split='valid_overlapped',
+    train_dataset = HoromaDataset(
+        data_dir='/home/user44/ift6759-horoma/code/data/horoma',
+        split='train_labeled',
         transforms=functional.to_pil_image
     )
 
@@ -303,8 +313,11 @@ if __name__ == "__main__":
 
     # loader = DataLoader(dataset, shuffle=False, batch_size=100)
 
-    splitter = SplitDataset(.9)
+    # splitter = SplitDataset(.9)
 
-    train, valid = splitter(dataset)
+    # train, valid = splitter(dataset)
 
-    print(len(train), len(valid))
+    print(len(train_dataset))
+    print(type(train_dataset[0]))
+    # im = Image.open(train_dataset[0])
+    # im.show()
