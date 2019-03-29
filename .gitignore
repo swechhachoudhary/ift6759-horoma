@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -120,3 +121,9 @@ block1/
 .DS_Store
 
 logs/
+=======
+*results
+*.err
+*.out
+*.pyc
+>>>>>>> master
