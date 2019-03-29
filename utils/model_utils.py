@@ -112,7 +112,7 @@ def train_network(model, train_loader, test_loader, optimizer, n_epochs, device,
                     "optimizer": optimizer.state_dict(),
                     "model": model.state_dict(),
                     "loss": valid_loss
-                }, "experiment_models/" + str(key) + '.tar')
+                }, "experiment_models/" + str(key) + '.pth')
                 best_loss = valid_loss
                 best_model = deepcopy(model)  # Keep best model thus far
         except FileNotFoundError as e:

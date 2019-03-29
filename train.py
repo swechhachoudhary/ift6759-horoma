@@ -57,7 +57,7 @@ def main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, f
 
         # Save models
         model = {'cluster': clustering_model, 'embedding': encoding_model, 'cluster_labels': cluster_labels}
-        torch.save(model, Constants.PATH_TO_MODEL + str(experiment.get_key()) + '.tar')
+        torch.save(model, Constants.PATH_TO_MODEL + str(experiment.get_key()) + '.pth')
 
 
 if __name__ == '__main__':
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = True
 
     # Set up Comet Experiment tracking
-    experiment = OfflineExperiment('7JGOyx76z1rxMpShRa0kCOOaO', project_name='general',
+    experiment = OfflineExperiment(project_name='general',
                                    workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
                                    offline_directory="experiments")
     experiment.set_name(
