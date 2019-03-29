@@ -113,16 +113,19 @@ class HoromaDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, index):
+
         img = self.data[index]
+        label = None
+
         if self.transforms:
-            img = self.transforms(img)
+            img = self.transform(img)
+        img = functional.to_tensor(img)
 
-        if self.flattened:
-            img = img.view(-1)
-
-        if self.targets is not None:
-            return img, torch.Tensor([self.targets[index]])
-        return img
+        if label is None:
+            return img
+        else:
+            label = torch.Tensor([self.targets[index]])
+            return img, label
 
     def get_targets(self, list_of_filename):
         targets = []

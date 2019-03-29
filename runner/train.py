@@ -9,7 +9,7 @@ from utils.dataset import HoromaDataset
 from utils.mnist_dataset import CustomMNIST
 from utils.factories import ModelFactory, OptimizerFactory, TrainerFactory
 from utils.transforms import HoromaTransforms
-from utils.mnist_dataset import CustomLabelledMNIST
+from utils.mnist_dataset import CustomlabeledMNIST
 
 
 def main(config, resume, test_run=False, helios_run=None, horoma_test=False):
@@ -29,28 +29,56 @@ def main(config, resume, test_run=False, helios_run=None, horoma_test=False):
 
     # setup data_loader instances
     if not test_run:
-        unlabelled = HoromaDataset(
+        unlabeled = HoromaDataset(
+            **config["data"]["dataset"],
+            split='train',
+            transforms=HoromaTransforms()
+        )
+        unlabeled_overlapped = HoromaDataset(
             **config["data"]["dataset"],
             split='train_overlapped',
             transforms=HoromaTransforms()
         )
-
-        labelled = HoromaDataset(
+        train_labeled = HoromaDataset(
+            data_dir=config["data"]["dataset"]['data_dir'],
+            flattened=False,
+            split='train_labeled',
+            transforms=HoromaTransforms()
+        )
+        train_labeled_overlapped = HoromaDataset(
+            data_dir=config["data"]["dataset"]['data_dir'],
+            flattened=False,
+            split='train_labeled_overlapped',
+            transforms=HoromaTransforms()
+        )
+        valid = HoromaDataset(
+            data_dir=config["data"]["dataset"]['data_dir'],
+            flattened=False,
+            split='valid',
+            transforms=HoromaTransforms()
+        )
+        valid_overlapped = HoromaDataset(
             data_dir=config["data"]["dataset"]['data_dir'],
             flattened=False,
             split='valid_overlapped',
             transforms=HoromaTransforms()
         )
+        train_labeled = HoromaDataset(
+            data_dir=config["data"]["dataset"]['data_dir'],
+            flattened=False,
+            split='train_labeled',
+            transforms=HoromaTransforms()
+        )
     elif horoma_test:
 
-        unlabelled = HoromaDataset(
+        unlabeled = HoromaDataset(
             **config["data"]["dataset"],
             split='train_overlapped',
             transforms=HoromaTransforms(),
             subset=5000
         )
 
-        labelled = HoromaDataset(
+        labeled = HoromaDataset(
             data_dir=config["data"]["dataset"]['data_dir'],
             flattened=False,
             split='valid_overlapped',
@@ -58,14 +86,17 @@ def main(config, resume, test_run=False, helios_run=None, horoma_test=False):
             subset=1000
         )
     else:
-        unlabelled = CustomMNIST(**config["data"]["dataset"], subset=5000)
-        labelled = CustomLabelledMNIST(**config["data"]["dataset"],
-                                       subset=1000)
+        unlabeled = CustomMNIST(**config["data"]["dataset"], subset=5000)
+        labeled = CustomlabeledMNIST(**config["data"]["dataset"],
+                                     subset=1000)
+
+    train_all_dataset = HoromaDataset(config['data']['dataset']['data_dir'],
+                                      split="train_all", subset=None, skip=0,
+                                      flattened=False, transforms=None)
 
     model = ModelFactory.get(config)
 
     print(model)
-    print()
 
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = OptimizerFactory.get(config, trainable_params)
@@ -75,8 +106,7 @@ def main(config, resume, test_run=False, helios_run=None, horoma_test=False):
         optimizer,
         resume=resume,
         config=config,
-        unlabelled=unlabelled,
-        labelled=labelled,
+        unlabeled=train_all_dataset,
         helios_run=helios_run,
         **config['trainer']['options']
     )
