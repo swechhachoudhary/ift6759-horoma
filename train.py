@@ -57,7 +57,7 @@ def main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, f
 
         # Save models
         model = {'cluster': clustering_model, 'embedding': encoding_model, 'cluster_labels': cluster_labels}
-        torch.save(model, Constants.PATH_TO_MODEL + str(experiment.get_key()) + '.tar')
+        torch.save(model, Constants.PATH_TO_MODEL + str(experiment.get_key()) + '.pth')
 
 
 if __name__ == '__main__':
