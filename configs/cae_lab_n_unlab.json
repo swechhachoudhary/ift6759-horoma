@@ -32,28 +32,24 @@
 																																					        "log_dir": "logs/",
 																																						        "save_period": 10,
 																																							        "type": "Trainer",
-																																								        // "options": {
-																																										      //       "n_clusters": 100,
-																																											     //            "kmeans_interval": 0,
-																																													   //          "kmeans_headstart": 0,
-																																														  //               "kmeans_weight": 10.0
-																																																//         }
-																																																	    },
-																																																	        "data": {
-																																																			        "dataset": {
-																																																					            "data_dir": "/rap/jvb-000-aa/COURS2019/etudiants/data/horoma",
-																																																						                "flattened": false
-																																																								        },
-																																																									        "dataloader": {
-																																																											            "split": 0.9,
-																																																												                "train": {
-																																																															                "batch_size": 128,
-																																																																	                "shuffle": true
-																																																																			            },
-																																																																				                "valid": {
-																																																																							                "batch_size": 128,
-																																																																									                "shuffle": false
-																																																																											            }
-																																																																												            }
-																																																																													        }
+																																								        "options": {
+																																						            				}
+																																													    },
+																																													        "data": {
+																																															        "dataset": {
+																																																	            "data_dir": "/rap/jvb-000-aa/COURS2019/etudiants/data/horoma",
+																																																		                "flattened": false
+																																																				        },
+																																																					        "dataloader": {
+																																																							            "split": 0.9,
+																																																								                "train": {
+																																																											                "batch_size": 128,
+																																																													                "shuffle": true
+																																																															            },
+																																																																                "valid": {
+																																																																			                "batch_size": 128,
+																																																																					                "shuffle": false
+																																																																							            }
+																																																																								            }
+																																																																									        }
 }
