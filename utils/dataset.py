@@ -28,7 +28,7 @@ class HoromaDataset(Dataset):
 
         if split == "train":
             self.nb_examples = 152000
-        elif split == "train_labeled"
+        elif split == "train_labeled":
             self.nb_examples = 228
         elif split == "valid":
             self.nb_examples = 252
@@ -319,5 +319,6 @@ if __name__ == "__main__":
 
     print(len(train_dataset))
     print(type(train_dataset[0]))
-    # im = Image.open(train_dataset[0])
-    # im.show()
+    print(train_dataset[0].size, train_dataset[0].format, train_dataset[0].mode)
+    train_dataset[0].save("sample", "JPEG")
+    
