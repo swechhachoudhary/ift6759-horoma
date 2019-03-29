@@ -66,7 +66,7 @@ if __name__ == '__main__':
     parser.add_argument("--datapath", type=str, default=Constants.DATAPATH,
                         help="Path to dataset folder")
     parser.add_argument("--encoder_path", type=str, default=None)
-    parser.add_argument("--config", type=str, default="DEFAULT", help="To select configuration from config.json")
+    parser.add_argument("--config", type=str, default="CVAE_BASE", help="To select configuration from config.json")
     args = parser.parse_args()
     config_key = args.config
     datapath = args.datapath
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = True
 
     # Set up Comet Experiment tracking
-    experiment = OfflineExperiment(project_name='general',
+    experiment = OfflineExperiment('7JGOyx76z1rxMpShRa0kCOOaO', project_name='general',
                                    workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
                                    offline_directory="experiments")
     experiment.set_name(
