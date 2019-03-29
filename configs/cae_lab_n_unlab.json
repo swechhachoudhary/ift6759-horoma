@@ -31,7 +31,7 @@
 																																				        "save_dir": "saved/",
 																																					        "log_dir": "logs/",
 																																						        "save_period": 10,
-																																							        "type": "trainer",
+																																							        "type": "Trainer",
 																																								        "options": {
 																																						            				}
 																																													    },
