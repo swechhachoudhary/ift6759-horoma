@@ -393,6 +393,11 @@ if __name__ == "__main__":
 
     # train, valid = splitter(dataset)
 
+    print(len(train_dataset))
+    print(type(train_dataset[0]))
+    print(train_dataset[0].size, train_dataset[0].format, train_dataset[0].mode)
+    train_dataset[0].save("sample", "JPEG")
+    
     print("No. of images in train dataset: ", len(train_dataset))
     print("No. of images in valid dataset: ", len(valid_dataset))
     # i = 152001
