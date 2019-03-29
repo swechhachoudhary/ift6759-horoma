@@ -16,7 +16,7 @@ class Trainer(BaseTrainer):
     """
 
     def __init__(self, model, optimizer, resume, config,
-                 unlabelled, helios_run, experiment_folder=None, **kwargs):
+                 unlabelled, helios_run, **kwargs):
         """
         Initialize the trainer.
 
@@ -31,7 +31,7 @@ class Trainer(BaseTrainer):
         :param kwargs: additional arguments if necessary
         """
         super(Trainer, self).__init__(model, optimizer, resume, config,
-                                      helios_run, experiment_folder)
+                                      helios_run)
         self.config = config
 
         ############################################
