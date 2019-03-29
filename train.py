@@ -99,7 +99,7 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = True
 
     # Set up Comet Experiment tracking
-    experiment = OfflineExperiment('7JGOyx76z1rxMpShRa0kCOOaO', project_name='general',
+    experiment = OfflineExperiment(project_name='general',
                                    workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
                                    offline_directory="experiments")
     experiment.set_name(
