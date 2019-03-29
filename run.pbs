@@ -1,16 +1,10 @@
 #!/bin/bash
 #PBS -A colosse-users
-#PBS -l nodes=1:gpus=1
-#PBS -l walltime=28800
-#PBS -E
-#PBS -e cnnautoencoder_cluster_kmeans_l20_0327_213326.err
-#PBS -o cnnautoencoder_cluster_kmeans_l20_0327_213326.out
-#PBS -l advres=MILA2019
 
-# set the working directory to where the job is launched
+#PBS -l feature=k80
+#PBS -l nodes=1:gpus=1
+#PBS -l walltime=10:00:00
+
 cd "${PBS_O_WORKDIR}"
 
-s_exec python -u ./runner/train.py --config="logs/cnnautoencoder_cluster_kmeans_l20/0327_213326/config.json" --helios-run="0327_213326"
-
-mv cnnautoencoder_cluster_kmeans_l20_0327_213326.err logs/cnnautoencoder_cluster_kmeans_l20/0327_213326/
-mv cnnautoencoder_cluster_kmeans_l20_0327_213326.out logs/cnnautoencoder_cluster_kmeans_l20/0327_213326/
+s_exec python train.py
