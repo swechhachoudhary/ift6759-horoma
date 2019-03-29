@@ -3,7 +3,7 @@ from time import time
 import numpy as np
 from torch.utils.data import DataLoader
 
-from utils.dataset import SplitDataset
+from utils.dataset import SplitDataset, HoromaDataset
 from trainer.basetrainer import BaseTrainer
 
 
@@ -39,18 +39,21 @@ class Trainer(BaseTrainer):
         ############################################
 
         # Splitting 9:1 by default
-        split = config['data']['dataloader'].get('split', .9)
+        #split = config['data']['dataloader'].get('split', .9)
 
-        splitter = SplitDataset(split)
+        #splitter = SplitDataset(split)
 
-        train_set, valid_set = splitter(unlabelled)
+        #train_set, valid_set = splitter(unlabelled)
+
+        train_labeled_dataset = train_all_dataset.train_labeled
+        train_labels = train_all_dataset.targets
 
         ############################################
         #  Creating the corresponding dataloaders  #
         ############################################
 
         train_loader = DataLoader(
-            dataset=train_set,
+            dataset=train_all_dataset,
             **config['data']['dataloader']['train'],
             pin_memory=True
         )
@@ -92,7 +95,8 @@ class Trainer(BaseTrainer):
             if isinstance(output, tuple):
                 loss = self.model.loss(data, *output)
             else:
-                loss = self.model.loss(data, output)
+                loss = self.model.loss(
+                    data.view(data.shape[0], -1), output.view(output.shape[0], -1))
             loss.backward()
             self.optimizer.step()
 
@@ -142,7 +146,8 @@ class Trainer(BaseTrainer):
             if isinstance(output, tuple):
                 loss = self.model.loss(data, *output)
             else:
-                loss = self.model.loss(data, output)
+                loss = self.model.loss(
+                    data.view(data.shape[0], -1), output.view(output.shape[0], -1))
 
             step = epoch * len(self.valid_loader) + batch_idx
             self.tb_writer.add_scalar('valid/loss', loss.item(), step)

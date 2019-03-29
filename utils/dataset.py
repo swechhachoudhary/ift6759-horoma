@@ -3,6 +3,7 @@ import os
 import torch
 import numpy as np
 from PIL import Image
+from tempfile import mkdtemp
 from torch.utils.data import Dataset, Subset
 from torchvision.transforms import functional
 
@@ -21,10 +22,16 @@ class HoromaDataset(Dataset):
         :param flattened: If True return the images in a flatten format.
         :param transforms: Transforms to apply on the dataset before using it.
         """
-        nb_channels = 3
-        height = 32
-        width = 32
-        datatype = "uint8"
+        self.nb_channels = 3
+        self.height = 32
+        self.width = 32
+        self.datatype = "uint8"
+        self.data_dir = data_dir
+        self.str_labels = []
+        self.str_to_id = []
+        self.id_to_str = []
+
+        self.train_labeled_split = ""
 
         if split == "train":
             self.nb_examples = 152000
@@ -40,46 +47,63 @@ class HoromaDataset(Dataset):
             self.nb_examples = 635
         elif split == "valid_overlapped":
             self.nb_examples = 696
-        else:
-            raise ("Dataset: Invalid split. "
-                   "Must be [train, train_labeled, valid, test, train_overlapped, train_labeled_overlapped, valid_overlapped]")
+        # else:
+        #     raise ("Dataset: Invalid split. "
+        #            "Must be [train, train_labeled, valid, test, train_overlapped, train_labeled_overlapped, valid_overlapped]")
 
         filename_x = os.path.join(data_dir, "{}_x.dat".format(split))
-        filename_y = os.path.join(data_dir, "{}_y.txt".format(split))
-        filename_region_ids = os.path.join(data_dir,
-                                           "{}_regions_id.txt".format(split))
-        self.region_ids = np.loadtxt(filename_region_ids, dtype=object)
 
-        self.targets = None
-        if os.path.exists(filename_y) and not split.startswith("train") and not split.startswith("train_overlapped"):
-            pre_targets = np.loadtxt(filename_y, 'U2')
-
-            self.str_labels = np.unique(pre_targets)
-
-            str_to_id = dict(zip(str_labels, range(len(str_labels))))
-            id_to_str = dict((v, k) for k, v in str_to_id.items())
-
-            if subset is None:
-                pre_targets = pre_targets[skip: None]
+        if split.startswith("train"):
+            if split == "train_all":
+                split_1 = "train"
+                self.train_labeled_split = "train_labeled"
+                self.data, self.train_data, self.train_labeled = self.merge_memmap(
+                    split_1, self.train_labeled_split, 152000, 228, split)
+            elif split == "train_overlapped_all":
+                split_1 = "train_overlapped"
+                self.train_labeled_split = "train_labeled_overlapped"
+                self.data, self.train_overlapped, self.train_labeled_overlapped = self.merge_memmap(
+                    split_1, self.train_labeled_split, 548720, 635, split)
             else:
-                pre_targets = pre_targets[skip: skip + subset]
+                self.data = np.memmap(
+                    filename_x,
+                    dtype=self.datatype,
+                    mode="r",
+                    shape=(self.nb_examples, self.height,
+                           self.width, self.nb_channels)
+                )
 
-            self.targets = np.asarray(
-                [str_to_id[_str] for _str in pre_targets if _str in str_to_id])
+        # Get train data labels
+        if split.startswith("train"):
+            label_filename = os.path.join(
+                data_dir, "{}_y.txt".format(self.train_labeled_split))
+            self.targets = self.get_targets([label_filename])
+        elif split == "valid_all":
+            split_1 = "valid"
+            split_2 = "valid_overlapped"
+            self.data, self.valid, self.valid_overlapped = self.merge_memmap(
+                split_1, split_2, 252, 696, split)
+            filename_valid1 = os.path.join(
+                data_dir, "{}_y.txt".format(split_1))
+            filename_valid2 = os.path.join(
+                data_dir, "{}_y.txt".format(split_2))
+            # get valid labels
+            self.targets = self.get_targets(
+                [filename_valid1, filename_valid2])
+        elif split == "valid" or split == "valid_overlapped":
+            self.data = np.memmap(
+                filename_x,
+                dtype=self.datatype,
+                mode="r",
+                shape=(self.nb_examples, self.height,
+                       self.width, self.nb_channels)
+            )
 
-        self.data = np.memmap(
-            filename_x,
-            dtype=datatype,
-            mode="r",
-            shape=(self.nb_examples, height, width, nb_channels)
-        )
+            filename_y = os.path.join(
+                data_dir, "{}_y.txt".format(split))
 
-        if subset is None:
-            self.data = self.data[skip: None]
-            self.region_ids = self.region_ids[skip: None]
-        else:
-            self.data = self.data[skip: skip + subset]
-            self.region_ids = self.region_ids[skip: skip + subset]
+            # get valid labels
+            self.targets = self.get_targets([filename_y])
 
         self.flattened = flattened
 
@@ -89,16 +113,62 @@ class HoromaDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, index):
+
         img = self.data[index]
+        label = None
+
         if self.transforms:
-            img = self.transforms(img)
+            img = self.transform(img)
+        img = functional.to_tensor(img)
 
-        if self.flattened:
-            img = img.view(-1)
+        if label is None:
+            return img
+        else:
+            label = torch.Tensor([self.targets[index]])
+            return img, label
 
-        if self.targets is not None:
-            return img, torch.Tensor([self.targets[index]])
-        return img
+    def get_targets(self, list_of_filename):
+        targets = []
+
+        for filename_y in list_of_filename:
+            if os.path.exists(filename_y):
+                pre_targets = np.loadtxt(filename_y, 'U2')
+
+                self.str_labels = np.unique(pre_targets)
+
+                self.str_to_id = dict(
+                    zip(self.str_labels, range(len(self.str_labels))))
+                self.id_to_str = dict((v, k)
+                                      for k, v in self.str_to_id.items())
+
+                targets += [self.str_to_id[_str]
+                            for _str in pre_targets if _str in self.str_to_id]
+        return np.asarray(targets)
+
+    def merge_memmap(self, split_1, split_2, n_1, n_2, new_split):
+        filename_1 = os.path.join(self.data_dir, "{}_x.dat".format(split_1))
+        data1 = np.memmap(
+            filename_1,
+            dtype=self.datatype,
+            mode="r",
+            shape=(n_1, self.height, self.width, self.nb_channels)
+        )
+        filename_2 = os.path.join(self.data_dir, "{}_x.dat".format(split_2))
+        data2 = np.memmap(
+            filename_2,
+            dtype=self.datatype,
+            mode="r",
+            shape=(n_2, self.height, self.width, self.nb_channels)
+        )
+        filename = os.path.join(self.data_dir, mkdtemp(), new_split + '.dat')
+        data = np.memmap(
+            filename,
+            dtype=self.datatype,
+            mode='w+',
+            shape=(n_1 + n_2, self.height, self.width, self.nb_channels), order='C')
+        data[:n_1, :] = data1
+        data[n_1:, :] = data2
+        return data, data1, data2
 
 
 class CustomSubset(Dataset):
@@ -304,8 +374,14 @@ class FullDataset(Dataset):
 
 if __name__ == "__main__":
     train_dataset = HoromaDataset(
-        data_dir='/home/user44/ift6759-horoma/data/horoma',
-        split='train_labeled',
+        data_dir='./../data/horoma',
+        split='train_all',
+        transforms=functional.to_pil_image
+    )
+
+    valid_dataset = HoromaDataset(
+        data_dir='./../data/horoma',
+        split='valid',
         transforms=functional.to_pil_image
     )
 
@@ -322,3 +398,12 @@ if __name__ == "__main__":
     print(train_dataset[0].size, train_dataset[0].format, train_dataset[0].mode)
     train_dataset[0].save("sample", "JPEG")
     
+    print("No. of images in train dataset: ", len(train_dataset))
+    print("No. of images in valid dataset: ", len(valid_dataset))
+    # i = 152001
+    # index = i - 152000
+    # img = train_dataset[0][0]
+    # label = train_dataset.targets[index]
+    # print("label: ", train_dataset.id_to_str[int(label)])
+    # img.show()
+    # img.save("Sample", "JPEG")
