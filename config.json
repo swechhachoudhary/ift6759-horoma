@@ -78,10 +78,10 @@
     "lr": 1e-3,
     "n_clusters": 21,
     "latent_dim": 10,
-    "train_subset": null,
+    "train_subset": 500,
     "overlapped": false,
     "encode": true,
-    "cluster": true
+    "cluster": false
   },
   "VAE_BASE_OVERLAPPED": {
     "cluster_model": "kmeans",

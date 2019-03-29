@@ -100,7 +100,6 @@ if __name__ == '__main__':
 
     # Set up Comet Experiment tracking
     experiment = OfflineExperiment(project_name='general',
-									api_key="7JGOyx76z1rxMpShRa0kCOOaO",
                                    workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
                                    offline_directory="experiments")
     experiment.set_name(
