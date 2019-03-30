@@ -19,6 +19,7 @@ class ConvAE(nn.Module):
         self.latent_dim = latent_dim
         self.input_dim = input_dim
         self.is_variational = True
+        self.calculate_own_loss = True
 
         super().__init__()
         
@@ -64,13 +65,8 @@ class ConvAE(nn.Module):
 
         return code
 
-    def _get_dist_output(self, input):
-        """return the two vectors of means and standard deviations"""
-        input = self.encoder(input)
-        input = input.view(-1, 16 * 4 * 4)
-        mu, sigma = self.embedding_mu(input), self.embedding_sigma(input)
-
-        return mu, sigma
+    def _calculate_own_loss(self):
+        return True
 
     def decode(self, input):
         """reconstruct the input from the latent space representation"""
@@ -134,6 +130,7 @@ class CVAE(nn.Module):
         self.latent_dim = latent_dim
         self.input_dim = input_dim
         self.is_variational = True
+        self.calculate_own_loss = False
 
         super().__init__()
         self.encoder = nn.Sequential(
@@ -235,6 +232,9 @@ class CVAE(nn.Module):
 
         best_model = train_network(self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
         return encode_dataset(self, data, batch_size, device), best_model
+    
+    def _calculate_own_loss(self):
+        return False
 
 
 class CAE(nn.Module):

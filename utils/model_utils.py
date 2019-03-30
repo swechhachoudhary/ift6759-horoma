@@ -49,11 +49,9 @@ def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
     for batch_idx, inputs in enumerate(train_loader):
         inputs = inputs.to(device)
         optimizer.zero_grad()
-        # ConvAE do the calculation himself for the loss. In this case, in place of mu we return the loss
-        # and logvar value is -1
         if model.is_variational:
             pred, mu, logvar = model(inputs)
-            if logvar == -1:
+            if model.calculate_own_loss:
                 loss = mu
             else:
                 loss = loss_function(pred, inputs, mu, logvar)
@@ -87,7 +85,10 @@ def _test(model, test_loader, epoch, device, experiment):
             inputs = inputs.to(device)
             if model.is_variational:
                 output, mu, logvar = model(inputs)
-                test_loss += loss_function(output, inputs, mu, logvar).item()
+                if model.calculate_own_loss:
+                    test_loss += mu
+                else:
+                    test_loss += loss_function(output, inputs, mu, logvar).item()
                 test_size += len(inputs)
             else:
                 output = model(inputs)

@@ -1,9 +1,20 @@
-<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 *.pyc
+
+# All the err and out files
+*.err
+*.out
+
+# All the experiments and models
+experiments/*
+experiment_models/*
+
+# All pycache
+models/__pycache__/*
+utils/__pycache__/*
 
 # C extensions
 *.so
@@ -121,9 +132,3 @@ block1/
 .DS_Store
 
 logs/
-=======
-*results
-*.err
-*.out
-*.pyc
->>>>>>> master
