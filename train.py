@@ -66,7 +66,7 @@ if __name__ == '__main__':
     parser.add_argument("--datapath", type=str, default=Constants.DATAPATH,
                         help="Path to dataset folder")
     parser.add_argument("--encoder_path", type=str, default=None)
-    parser.add_argument("--config", type=str, default="CVAE_BASE", help="To select configuration from config.json")
+    parser.add_argument("--config", type=str, default="CONV_AE", help="To select configuration from config.json")
     args = parser.parse_args()
     config_key = args.config
     datapath = args.datapath
@@ -129,6 +129,9 @@ if __name__ == '__main__':
         flattened = False
     elif encoding_model == "cvae":
         encoding_model = CVAE(latent_dim=latent_dim).to(device)
+        flattened = False
+    elif encoding_model == "convae":
+        encoding_model = ConvAE(latent_dim=latent_dim).to(device)
         flattened = False
     else:
         print('No encoding model specified. Using PCA.')

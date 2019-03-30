@@ -1,5 +1,5 @@
 from time import time
-from data.dataset import HoromaDataset
+from data.dataset import HoromaDataset, OriginalHoromaDataset
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score
 from utils.constants import Constants
@@ -126,8 +126,8 @@ def load_datasets(datapath, train_subset, flattened=False, overlapped=True):
                                     split="valid_overlapped",
                                     flattened=flattened)
     else:
-        trainset = HoromaDataset(datapath, split="train", subset=train_subset, flattened=flattened)
-        labeled_set = HoromaDataset(datapath,
+        trainset = OriginalHoromaDataset(datapath, split="train", subset=train_subset, flattened=flattened)
+        labeled_set = OriginalHoromaDataset(datapath,
                                     split="valid",
                                     flattened=flattened)
     print("Done in {:.2f} sec".format(time() - start_time))
