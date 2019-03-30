@@ -80,7 +80,7 @@
     "latent_dim": 10,
     "train_subset": 500,
     "overlapped": false,
-    "encode": true,
+    "encode": false,
     "cluster": false
   },
   "VAE_BASE_OVERLAPPED": {
