@@ -10,8 +10,8 @@
     "latent_dim": 10,
     "train_subset": null,
     "overlapped": false,
-    "encode": true,
-    "cluster": false
+    "encode": false,
+    "cluster": true
   },
   "CONV_AE": {
     "cluster_model": "kmeans",
@@ -24,7 +24,7 @@
     "latent_dim": 40,
     "train_subset": null,
     "overlapped": false,
-    "encode": true,
-    "cluster": false
+    "encode": false,
+    "cluster": true
   }
 }

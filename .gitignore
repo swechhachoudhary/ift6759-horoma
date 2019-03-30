@@ -8,9 +8,8 @@ __pycache__/
 *.err
 *.out
 
-# All the experiments and models
+# All the experiments
 experiments/*
-experiment_models/*
 
 # All pycache
 models/__pycache__/*
