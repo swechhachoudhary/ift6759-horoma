@@ -82,7 +82,7 @@ def _test(model, test_loader, epoch, device, experiment):
     test_size = 0
 
     with torch.no_grad():
-        for inputs in test_loader:
+        for batch_idx, inputs in enumerate(test_loader):
             inputs = inputs.to(device)
             if model.is_variational:
                 output, mu, logvar = model(inputs)
@@ -92,9 +92,9 @@ def _test(model, test_loader, epoch, device, experiment):
                 output = model(inputs)
                 criterion = nn.MSELoss(reduction='sum')
                 test_loss += criterion(output, inputs).item()
-                test_size += len(inputs)
+                # test_size += len(inputs)
 
-    test_loss /= test_size
+    test_loss /= len(test_loader.dataset)
     experiment.log_metric("Validation loss", test_loss, step=epoch)
     return test_loss
 
