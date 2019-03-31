@@ -74,12 +74,14 @@ def main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, f
                    str(experiment.get_key()) + '.pth')
 
 
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--datapath", type=str, default=Constants.DATAPATH,
                         help="Path to dataset folder")
     parser.add_argument("--encoder_path", type=str, default=None)
+
     parser.add_argument("--config", type=str, default="CAE_BASE",
                         help="To select configuration from config.json")
     args = parser.parse_args()
@@ -117,11 +119,13 @@ if __name__ == '__main__':
 
     # Set up Comet Experiment tracking  # Replace this with appropriate comet
     # workspaces
-    experiment = OfflineExperiment(
-        "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="swechhas_experiments")
-    # experiment.set_name(
-    # name=args.config + "_dim={}_cluster={}_overlapped={}".format(latent_dim,
-    # n_clusters, overlapped))
+#     experiment = OfflineExperiment(
+#         "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="swechhas_experiments")
+
+    # Set up Comet Experiment tracking
+    experiment = OfflineExperiment(project_name='general',
+                                   workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
+                                   offline_directory="experiments")
     experiment.set_name(
         name=args.config + "_dim={}_overlapped={}".format(latent_dim, train_split))
     experiment.log_parameters(configuration)
@@ -149,6 +153,9 @@ if __name__ == '__main__':
         flattened = False
     elif encoding_model == "cvae":
         encoding_model = CVAE(latent_dim=latent_dim).to(device)
+        flattened = False
+    elif encoding_model == "convae":
+        encoding_model = ConvAE(latent_dim=latent_dim).to(device)
         flattened = False
     else:
         print('No encoding model specified. Using PCA.')
