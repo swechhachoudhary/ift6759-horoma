@@ -138,6 +138,9 @@ class HoromaDataset(Dataset):
         elif split == "test":
             self.nb_examples = 498
 
+        self.data = self.data.reshape(
+            len(self.data), self.nb_channels, self.height, self.width)
+
         self.targets = None
 
         if split in ["train_labeled", "train_labeled_overlapped", "valid", "valid_overlapped"]:
@@ -151,9 +154,6 @@ class HoromaDataset(Dataset):
 
         if flattened:
             self.data = self.data.reshape(len(self.data), -1)
-        else:
-            self.data = self.data.reshape(
-                len(self.data), self.nb_channels, self.height, self.width)
 
         self.transform = transform
 
