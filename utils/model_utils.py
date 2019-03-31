@@ -6,19 +6,21 @@ import torch.nn as nn
 import torch
 
 
-def get_ae_dataloaders(traindata, batch_size, split):
+def get_ae_dataloaders(traindata, valid_data, batch_size=32):
     """get dataloaders for train and valid sets"""
-    indices = list(range(len(traindata)))
-    np.random.shuffle(indices)
-    n_train = int(split * len(indices))
-    train_loader = DataLoader(traindata, batch_size=batch_size, sampler=SubsetRandomSampler(indices[:n_train]))
-    valid_loader = DataLoader(traindata, batch_size=batch_size, sampler=SubsetRandomSampler(indices[n_train:]))
+    # indices = list(range(len(traindata)))
+    # np.random.shuffle(indices)
+    # n_train = int(split * len(indices))
+    # train_loader = DataLoader(traindata, batch_size=batch_size, sampler=SubsetRandomSampler(indices[:n_train]))
+    train_loader = DataLoader(traindata, batch_size=batch_size, shuffle=True)
+    valid_loader = DataLoader(valid_data, batch_size=batch_size)
 
     return train_loader, valid_loader
 
 
 def loss_function(recon_x, x, mu, logvar):
-    MSE = F.mse_loss(recon_x.view(-1, 32 * 32 * 3), x.view(-1, 32 * 32 * 3), reduction='sum')
+    MSE = F.mse_loss(recon_x.view(-1, 32 * 32 * 3),
+                     x.view(-1, 32 * 32 * 3), reduction='sum')
 
     # see Appendix B from VAE paper:
     # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
@@ -64,8 +66,10 @@ def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
         running_loss += loss.item()
         if batch_idx % 10 == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(inputs),
-                                                                           len(train_loader) * len(inputs),
-                                                                           100. * batch_idx / len(train_loader),
+                                                                           len(train_loader) *
+                                                                           len(inputs),
+                                                                           100. * batch_idx /
+                                                                           len(train_loader),
                                                                            loss.item() / len(inputs)))
 
     train_loss = running_loss / len(train_loader.dataset)
@@ -105,10 +109,12 @@ def train_network(model, train_loader, test_loader, optimizer, n_epochs, device,
     best_loss = np.inf
     key = experiment.get_key()
     best_model = None
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.5)
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer, step_size=2, gamma=0.5)
     for epoch in range(n_epochs):
         scheduler.step()
-        train_loss = _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment)
+        train_loss = _train_one_epoch(
+            model, train_loader, optimizer, epoch, device, experiment)
         valid_loss = _test(model, test_loader, epoch, device, experiment)
 
         try:
@@ -122,7 +128,8 @@ def train_network(model, train_loader, test_loader, optimizer, n_epochs, device,
                 best_loss = valid_loss
                 best_model = deepcopy(model)  # Keep best model thus far
         except FileNotFoundError as e:
-            print("Directory for logging experiments does not exist. Launch script from repository root.")
+            print(
+                "Directory for logging experiments does not exist. Launch script from repository root.")
             raise e
 
         print("Training loss after {} epochs: {:.6f}".format(epoch, train_loss))

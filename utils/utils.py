@@ -109,7 +109,7 @@ def _map_to_idx(regions):
     return idx
 
 
-def load_datasets(datapath, train_subset, flattened=False, overlapped=True):
+def load_datasets(datapath, train_subset, flattened=False, split="train_all"):
     """
     Load Horoma datasets from specified data directory.
 
@@ -120,19 +120,12 @@ def load_datasets(datapath, train_subset, flattened=False, overlapped=True):
 
     print("Loading datasets from ({}) ...".format(datapath), end=' ')
     start_time = time()
-    if overlapped:
-        trainset = HoromaDataset(datapath, split="train_overlapped", subset=train_subset, flattened=flattened)
-        labeled_set = HoromaDataset(datapath,
-                                    split="valid_overlapped",
-                                    flattened=flattened)
-    else:
-        trainset = OriginalHoromaDataset(datapath, split="train", subset=train_subset, flattened=flattened)
-        labeled_set = OriginalHoromaDataset(datapath,
-                                    split="valid",
-                                    flattened=flattened)
+    dataset = HoromaDataset(
+        datapath, split=split, subset=train_subset, flattened=flattened)
+
     print("Done in {:.2f} sec".format(time() - start_time))
 
-    return trainset, labeled_set
+    return dataset
 
 
 def assign_labels_to_clusters(model, data, labels_true):
@@ -181,4 +174,5 @@ def eval_model_predictions(model, x, y_true, cluster_labels):
 
 
 if __name__ == '__main__':
-    train, labeled = load_datasets("/rap/jvb-000-aa/COURS2019/etudiants/data/horoma", None, overlapped=False)
+    train, labeled = load_datasets(
+        "/rap/jvb-000-aa/COURS2019/etudiants/data/horoma", None, overlapped=False)

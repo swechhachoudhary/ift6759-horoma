@@ -102,6 +102,7 @@ class PCAEncoder:
     to project it to a lower dimensional space.
 
     """
+
     def __init__(self, seed):
         self.pca = PCA(n_components=0.9, random_state=seed)
 
@@ -126,6 +127,7 @@ class CVAE(nn.Module):
     :param latent_dim: dimension of latent-space representation.
 
     """
+
     def __init__(self, input_dim=3072, latent_dim=2):
         self.latent_dim = latent_dim
         self.input_dim = input_dim
@@ -134,16 +136,20 @@ class CVAE(nn.Module):
 
         super().__init__()
         self.encoder = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),  # input is b, 3, 32, 32
+            nn.Conv2d(3, 64, kernel_size=3, stride=1,
+                      padding=1),  # input is b, 3, 32, 32
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=4, stride=2, padding=1),  # input is b, 3, 32, 32
+            nn.Conv2d(64, 64, kernel_size=4, stride=2,
+                      padding=1),  # input is b, 3, 32, 32
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.Conv2d(64, 32, kernel_size=3, stride=1, padding=1),  # b, 32, 8,8
+            nn.Conv2d(64, 32, kernel_size=3, stride=1,
+                      padding=1),  # b, 32, 8,8
             nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.Conv2d(32, 32, kernel_size=4, stride=2, padding=1),  # b, 32, 8,8
+            nn.Conv2d(32, 32, kernel_size=4, stride=2,
+                      padding=1),  # b, 32, 8,8
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.Conv2d(32, 16, kernel_size=3, stride=1, padding=1),  # b, 16,4,4
@@ -159,19 +165,24 @@ class CVAE(nn.Module):
         self.decode_embedding = nn.Linear(self.latent_dim, 16 * 4 * 4)
 
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(16, 32, kernel_size=4, stride=2, padding=1),  # b, 32, 8, 8
+            nn.ConvTranspose2d(16, 32, kernel_size=4,
+                               stride=2, padding=1),  # b, 32, 8, 8
             nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, 32, kernel_size=3, stride=1, padding=1),  # b, 32, 8, 8
+            nn.ConvTranspose2d(32, 32, kernel_size=3,
+                               stride=1, padding=1),  # b, 32, 8, 8
             nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, 64, kernel_size=4, stride=2, padding=1),  # b, 64, 16, 16
+            nn.ConvTranspose2d(32, 64, kernel_size=4,
+                               stride=2, padding=1),  # b, 64, 16, 16
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 64, kernel_size=3, stride=1, padding=1),  # b, 64, 16, 16
+            nn.ConvTranspose2d(64, 64, kernel_size=3,
+                               stride=1, padding=1),  # b, 64, 16, 16
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 3, kernel_size=4, stride=2, padding=1),  # b, 3, 32, 32
+            nn.ConvTranspose2d(64, 3, kernel_size=4, stride=2,
+                               padding=1),  # b, 3, 32, 32
             nn.BatchNorm2d(3),
             nn.Sigmoid()
         )
@@ -180,7 +191,8 @@ class CVAE(nn.Module):
         """return reconstruction of the latent variable, the mean mu and log prob"""
         mu, logvar = self._get_dist_output(x)
         embedding = self._reparameterization_trick(mu, logvar)
-        rev_embedding = F.relu(self.decode_embedding(embedding).view(-1, 16, 4, 4))
+        rev_embedding = F.relu(self.decode_embedding(
+            embedding).view(-1, 16, 4, 4))
         return self.decoder(rev_embedding), mu, logvar
 
     def encode(self, input):
@@ -227,10 +239,12 @@ class CVAE(nn.Module):
         :param experiment: for tracking comet experiment
 
         """
-        train_loader, valid_loader = get_ae_dataloaders(data, batch_size, split=0.8)
+        train_loader, valid_loader = get_ae_dataloaders(
+            data, batch_size, split=0.8)
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
-        best_model = train_network(self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
+        best_model = train_network(
+            self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
         return encode_dataset(self, data, batch_size, device), best_model
     
     def _calculate_own_loss(self):
@@ -247,6 +261,7 @@ class CAE(nn.Module):
     :param latent_dim: dimension of latent-space representation.
 
     """
+
     def __init__(self, input_dim=3072, latent_dim=2):
         self.latent_dim = latent_dim
         self.input_dim = input_dim
@@ -254,16 +269,20 @@ class CAE(nn.Module):
 
         super().__init__()
         self.encoder = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),  # input is b, 3, 32, 32
+            nn.Conv2d(3, 64, kernel_size=3, stride=1,
+                      padding=1),  # input is b, 3, 32, 32
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=4, stride=2, padding=1),  # input is b, 3, 32, 32
+            nn.Conv2d(64, 64, kernel_size=4, stride=2,
+                      padding=1),  # input is b, 3, 32, 32
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.Conv2d(64, 32, kernel_size=3, stride=1, padding=1),  # b, 32, 8,8
+            nn.Conv2d(64, 32, kernel_size=3, stride=1,
+                      padding=1),  # b, 32, 8,8
             nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.Conv2d(32, 32, kernel_size=4, stride=2, padding=1),  # b, 32, 8,8
+            nn.Conv2d(32, 32, kernel_size=4, stride=2,
+                      padding=1),  # b, 32, 8,8
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.Conv2d(32, 16, kernel_size=3, stride=1, padding=1),  # b, 16,4,4
@@ -278,19 +297,24 @@ class CAE(nn.Module):
         self.decode_embedding = nn.Linear(self.latent_dim, 16 * 4 * 4)
 
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(16, 32, kernel_size=4, stride=2, padding=1),  # b, 32, 8, 8
+            nn.ConvTranspose2d(16, 32, kernel_size=4,
+                               stride=2, padding=1),  # b, 32, 8, 8
             nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, 32, kernel_size=3, stride=1, padding=1),  # b, 32, 8, 8
+            nn.ConvTranspose2d(32, 32, kernel_size=3,
+                               stride=1, padding=1),  # b, 32, 8, 8
             nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, 64, kernel_size=4, stride=2, padding=1),  # b, 64, 16, 16
+            nn.ConvTranspose2d(32, 64, kernel_size=4,
+                               stride=2, padding=1),  # b, 64, 16, 16
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 64, kernel_size=3, stride=1, padding=1),  # b, 64, 16, 16
+            nn.ConvTranspose2d(64, 64, kernel_size=3,
+                               stride=1, padding=1),  # b, 64, 16, 16
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 3, kernel_size=4, stride=2, padding=1),  # b, 3, 32, 32
+            nn.ConvTranspose2d(64, 3, kernel_size=4, stride=2,
+                               padding=1),  # b, 3, 32, 32
             nn.BatchNorm2d(3),
             nn.Sigmoid()
         )
@@ -298,17 +322,20 @@ class CAE(nn.Module):
     def forward(self, x):
         """return the reconstructed input after encoding/decoding"""
         embedding = self.encode(x)
-        rev_embedding = F.relu(self.decode_embedding(embedding).view(-1, 16, 4, 4))
+        rev_embedding = F.relu(self.decode_embedding(
+            embedding).view(-1, 16, 4, 4))
         return self.decoder(rev_embedding)
 
     def encode(self, x):
         return self.embedding(self.encoder(x).view(-1, 16 * 4 * 4))
 
-    def fit(self, data, batch_size, n_epochs, lr, device, experiment):
-        train_loader, valid_loader = get_ae_dataloaders(data, batch_size, split=0.8)
+    def fit(self, traindata, valid_data, batch_size, n_epochs, lr, device, experiment):
+        train_loader, valid_loader = get_ae_dataloaders(
+            traindata, valid_data, batch_size)
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
-        best_model = train_network(self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
+        best_model = train_network(
+            self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
         return encode_dataset(self, data, batch_size, device), best_model
 
 
@@ -391,10 +418,12 @@ class VAE(nn.Module):
         return reconstruction, mu, logvar
 
     def fit(self, data, batch_size, n_epochs, lr, device, experiment):
-        train_loader, valid_loader = get_ae_dataloaders(data, batch_size, split=0.8)
+        train_loader, valid_loader = get_ae_dataloaders(
+            data, batch_size, split=0.8)
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
-        best_model = train_network(self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
+        best_model = train_network(
+            self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
 
         return encode_dataset(best_model, data, batch_size, device), best_model
 
@@ -409,6 +438,7 @@ class AE(nn.Module):
     :param latent_dim: dimension of latent-space representation.
 
     """
+
     def __init__(self, input_dim=3072, latent_dim=2):
         self.latent_dim = latent_dim
         self.input_dim = input_dim
@@ -444,8 +474,10 @@ class AE(nn.Module):
         return self.encoder(x)
 
     def fit(self, data, batch_size, n_epochs, lr, device, experiment):
-        train_loader, valid_loader = get_ae_dataloaders(data, batch_size, split=0.8)
+        train_loader, valid_loader = get_ae_dataloaders(
+            data, batch_size, split=0.8)
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
-        best_model = train_network(self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
+        best_model = train_network(
+            self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
         return encode_dataset(best_model, data, batch_size, device), best_model
