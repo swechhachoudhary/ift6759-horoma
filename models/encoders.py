@@ -4,7 +4,97 @@ import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.decomposition import PCA
 
+class ConvAE(nn.Module):
+    """
+    Convolutional autoencoder: composed of encoder an decoder components.
+    Applies multiple 2D convolutions and 2D transpose convolutions, over
+    the input images. each operator is followed by batch normalization and
+    ReLU activations.
 
+    :param input_dim: input dimension of the model, 3072.
+    :param latent_dim: dimension of latent-space representation.
+
+    """
+    def __init__(self, input_dim=3072, latent_dim=2):
+        self.latent_dim = latent_dim
+        self.input_dim = input_dim
+        self.is_variational = True
+        self.calculate_own_loss = True
+
+        super().__init__()
+        
+        self.code_size = 100
+        self.maxpool_kernel = 2
+        self.loss_fct = getattr(nn, "MSELoss")()
+        self.dropout = nn.Dropout(0.1)
+
+        self.encode_cnn_1 = nn.Conv2d(3, 10, kernel_size=5)
+        self.encode_cnn_2 = nn.Conv2d(10, 20, kernel_size=5)
+
+        self.encode_lin_1 = nn.Linear(500, 200)
+        self.encode_lin_2 = nn.Linear(200, 100)
+
+        self.decode_lin_1 = nn.Linear(100, 500)
+        self.decode_lin_2 = nn.Linear(500, 1024 * 3)
+        
+
+    def forward(self, x):
+        """return reconstruction of the latent variable, the mean mu and log prob"""
+        code = self.encode(x)
+        reconstruction = self.decode(code)
+        loss = self.loss_fct(reconstruction, x)
+        return reconstruction, loss, -1
+
+    def encode(self, input):
+        """
+        parametrizes the approximate posterior of the latent variables
+        and outputs parameters to the distribution
+
+        """
+        code = self.encode_cnn_1(input)
+        code = F.selu(F.max_pool2d(code, self.maxpool_kernel))
+        code = self.dropout(code)
+
+        code = self.encode_cnn_2(code)
+        code = F.selu(F.max_pool2d(code, self.maxpool_kernel))
+        code = self.dropout(code)
+
+        code = code.view([code.size(0), -1])
+        code = F.selu(self.encode_lin_1(code))
+        code = self.encode_lin_2(code)
+
+        return code
+
+    def _calculate_own_loss(self):
+        return True
+
+    def decode(self, input):
+        """reconstruct the input from the latent space representation"""
+        reconstruction = F.selu(self.decode_lin_1(input))
+        reconstruction = torch.sigmoid(self.decode_lin_2(reconstruction))
+        reconstruction = reconstruction.view((input.size(0), 3, 32, 32))
+
+        return reconstruction
+
+    def fit(self, data, batch_size, n_epochs, lr, device, experiment):
+        """
+        fit the model with the data.
+
+        :param data: the input data
+        :param batch_size: batch size set in config file
+        :param seed: for reproductibililty.
+        :param n_epochs: number of epochs
+        :param lr: learning rate
+        :param device: 'cuda' if available else 'cpu'
+        :param experiment: for tracking comet experiment
+
+        """
+        train_loader, valid_loader = get_ae_dataloaders(data, batch_size, split=0.8)
+        optimizer = torch.optim.Adam(self.parameters(), lr=lr)
+
+        best_model = train_network(self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
+        return encode_dataset(self, data, batch_size, device), best_model
+    
 class PCAEncoder:
     """
     Principal component analysis (PCA): Linear dimensionality
@@ -42,6 +132,7 @@ class CVAE(nn.Module):
         self.latent_dim = latent_dim
         self.input_dim = input_dim
         self.is_variational = True
+        self.calculate_own_loss = False
 
         super().__init__()
         self.encoder = nn.Sequential(
@@ -155,6 +246,9 @@ class CVAE(nn.Module):
         best_model = train_network(
             self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
         return encode_dataset(self, data, batch_size, device), best_model
+    
+    def _calculate_own_loss(self):
+        return False
 
 
 class CAE(nn.Module):

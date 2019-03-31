@@ -53,7 +53,10 @@ def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
         optimizer.zero_grad()
         if model.is_variational:
             pred, mu, logvar = model(inputs)
-            loss = loss_function(pred, inputs, mu, logvar)
+            if model.calculate_own_loss:
+                loss = mu
+            else:
+                loss = loss_function(pred, inputs, mu, logvar)
         else:
             outputs = model(inputs)
             criterion = nn.MSELoss(reduction='sum')
@@ -86,7 +89,10 @@ def _test(model, test_loader, epoch, device, experiment):
             inputs = inputs.to(device)
             if model.is_variational:
                 output, mu, logvar = model(inputs)
-                test_loss += loss_function(output, inputs, mu, logvar).item()
+                if model.calculate_own_loss:
+                    test_loss += mu
+                else:
+                    test_loss += loss_function(output, inputs, mu, logvar).item()
                 test_size += len(inputs)
             else:
                 output = model(inputs)
