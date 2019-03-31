@@ -29,10 +29,10 @@ def main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, f
     :param path_to_model: path to the directory containing saved models.
 
     """
-    train = load_datasets(datapath, train_subset=train_subset,
-                          flattened=flattened, split=train_split)
-    labeled = load_datasets(datapath, train_subset=train_subset,
-                            flattened=flattened, split=train_labeled_split)
+    train = HoromaDataset(datapath, split=train_split, subset=train_subset,
+                          flattened=flattened)
+    labeled = HoromaDataset(datapath, split=train_labeled_split, subset=train_subset,
+                            flattened=flattened)
     valid_data = HoromaDataset(
         datapath, split=valid_split, subset=train_subset, flattened=flattened)
 
@@ -42,6 +42,7 @@ def main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, f
     #     labeled.targets, overlapped=overlapped)
 
     print("Shape of training set: ", train.data.shape)
+    print("Shape of validation set: ", valid_data.data.shape)
     # print("Shape of labeled training set: ",
     #       labeled.data[train_label_indices].shape)
     # print("Shape of validation dataset: ", labeled.data[valid_indices].shape)
@@ -72,7 +73,6 @@ def main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, f
                  'embedding': encoding_model, 'cluster_labels': cluster_labels}
         torch.save(model, Constants.PATH_TO_MODEL +
                    str(experiment.get_key()) + '.pth')
-
 
 
 if __name__ == '__main__':

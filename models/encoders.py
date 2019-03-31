@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.decomposition import PCA
 
+
 class ConvAE(nn.Module):
     """
     Convolutional autoencoder: composed of encoder an decoder components.
@@ -15,6 +16,7 @@ class ConvAE(nn.Module):
     :param latent_dim: dimension of latent-space representation.
 
     """
+
     def __init__(self, input_dim=3072, latent_dim=2):
         self.latent_dim = latent_dim
         self.input_dim = input_dim
@@ -22,7 +24,7 @@ class ConvAE(nn.Module):
         self.calculate_own_loss = True
 
         super().__init__()
-        
+
         self.code_size = 100
         self.maxpool_kernel = 2
         self.loss_fct = getattr(nn, "MSELoss")()
@@ -36,7 +38,6 @@ class ConvAE(nn.Module):
 
         self.decode_lin_1 = nn.Linear(100, 500)
         self.decode_lin_2 = nn.Linear(500, 1024 * 3)
-        
 
     def forward(self, x):
         """return reconstruction of the latent variable, the mean mu and log prob"""
@@ -89,12 +90,15 @@ class ConvAE(nn.Module):
         :param experiment: for tracking comet experiment
 
         """
-        train_loader, valid_loader = get_ae_dataloaders(data, batch_size, split=0.8)
+        train_loader, valid_loader = get_ae_dataloaders(
+            data, batch_size, split=0.8)
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
-        best_model = train_network(self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
+        best_model = train_network(
+            self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
         return encode_dataset(self, data, batch_size, device), best_model
-    
+
+
 class PCAEncoder:
     """
     Principal component analysis (PCA): Linear dimensionality
@@ -246,7 +250,7 @@ class CVAE(nn.Module):
         best_model = train_network(
             self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
         return encode_dataset(self, data, batch_size, device), best_model
-    
+
     def _calculate_own_loss(self):
         return False
 
@@ -336,7 +340,7 @@ class CAE(nn.Module):
 
         best_model = train_network(
             self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
-        return encode_dataset(self, data, batch_size, device), best_model
+        return encode_dataset(self, traindata, batch_size, device), best_model
 
 
 class VAE(nn.Module):

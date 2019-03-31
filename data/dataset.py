@@ -7,6 +7,7 @@ from tempfile import mkdtemp
 from torchvision.transforms import functional
 from torch.utils.data import Dataset
 
+
 class OriginalHoromaDataset(Dataset):
 
     def __init__(self, data_dir, split="train", subset=None, skip=0, flattened=False, transform=None):
@@ -79,6 +80,7 @@ class OriginalHoromaDataset(Dataset):
         else:
             return torch.Tensor(self.data[index]) / 255
 
+
 class HoromaDataset(Dataset):
 
     def __init__(self, data_dir, split="train", subset=None, skip=0, flattened=False, transform=None):
@@ -149,6 +151,9 @@ class HoromaDataset(Dataset):
 
         if flattened:
             self.data = self.data.reshape(len(self.data), -1)
+        else:
+            self.data = self.data.reshape(
+                len(self.data), self.nb_channels, self.height, self.width)
 
         self.transform = transform
 
@@ -160,7 +165,7 @@ class HoromaDataset(Dataset):
             img = torch.Tensor(self.transform(self.data[index])) / 255
         else:
             img = torch.Tensor(self.data[index]) / 255
-        img = img.transpose(2, 0).transpose(2, 1)
+        # img = img.transpose(2, 0).transpose(2, 1)
         if self.targets is None:
             return img
         else:
