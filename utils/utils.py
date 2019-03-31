@@ -134,6 +134,31 @@ def load_datasets(datapath, train_subset, flattened=False, overlapped=True):
 
     return trainset, labeled_set
 
+def load_datasets2(datapath, train_subset, flattened=False, overlapped=True):
+    """
+    Load Horoma datasets from specified data directory.
+
+    :type datapath: str
+    :type flattened: bool
+    :type train_subset: str
+    """
+
+    print("Loading datasets from ({}) ...".format(datapath), end=' ')
+    start_time = time()
+    if overlapped:
+        unlabeled_trainset = OriginalHoromaDataset(datapath, split="train_overlapped", subset=train_subset, flattened=flattened)
+        labeled_trainset = OriginalHoromaDataset(datapath, split="train_labeled_overlapped", flattened=flattened)
+        labeled_validset = OriginalHoromaDataset(datapath, split="valid_overlapped", flattened=flattened)
+
+    else:
+        unlabeled_trainset = OriginalHoromaDataset(datapath, split="train", subset=train_subset, flattened=flattened)
+        labeled_trainset = OriginalHoromaDataset(datapath, split="train_labeled", flattened=flattened)
+        labeled_validset = OriginalHoromaDataset(datapath, split="valid", flattened=flattened)
+
+    print("Done in {:.2f} sec".format(time() - start_time))
+
+    return unlabeled_trainset, labeled_trainset, labeled_validset
+
 
 def assign_labels_to_clusters(model, data, labels_true):
     """

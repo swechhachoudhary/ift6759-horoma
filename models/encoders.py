@@ -151,8 +151,7 @@ class CVAE(nn.Module):
             nn.ReLU(),
             nn.Conv2d(16, 16, kernel_size=4, stride=2, padding=1),  # b, 16,4,4
             nn.BatchNorm2d(16),
-            nn.ReLU(),
-
+            nn.ReLU()
         )
         self.embedding_mu = nn.Linear(16 * 4 * 4, self.latent_dim)
         self.embedding_sigma = nn.Linear(16 * 4 * 4, self.latent_dim)
@@ -235,6 +234,7 @@ class CVAE(nn.Module):
     
     def _calculate_own_loss(self):
         return False
+        
 
 
 class CAE(nn.Module):

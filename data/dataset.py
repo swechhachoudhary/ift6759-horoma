@@ -41,7 +41,7 @@ class OriginalHoromaDataset(Dataset):
         filename_y = os.path.join(data_dir, "{}_y.txt".format(split))
 
         self.targets = None
-        if os.path.exists(filename_y) and not split.startswith("train"):
+        if os.path.exists(filename_y):
             pre_targets = np.loadtxt(filename_y, 'U2')
 
             if subset is None:

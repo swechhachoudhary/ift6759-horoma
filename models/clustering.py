@@ -1,8 +1,70 @@
+from models.encoders import *
 from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 import torch
+import numpy as np
 
+class DAMICClustering(nn.Module):
+    """
+        Clustering network for DAMIC
+        Each cluster is reprensented by an autoencoder
+        A convolutional network give us p(c=i|x:theta)
+    """
+    def __init__(self, n_clusters, seed):
+        self.n_clusters = n_clusters
+        self.autoencoders = np.array([])
+        self.autoencoder_loss_function = getattr(nn, "MSELoss")()
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        for i in range(n_clusters):
+            encoding_model = CVAE(latent_dim=10).to(device)
+            self.autoencoders = np.append(self.autoencoders, np.array([encoding_model]))
+        self.clustering_network = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),  # input is b, 3, 32, 32
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=4, stride=2, padding=1),  # input is b, 3, 32, 32
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.Conv2d(64, 32, kernel_size=3, stride=1, padding=1),  # b, 32, 8,8
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, kernel_size=4, stride=2, padding=1),  # b, 32, 8,8
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.Conv2d(32, 16, kernel_size=3, stride=1, padding=1),  # b, 16,4,4
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.Conv2d(16, 16, kernel_size=4, stride=2, padding=1),  # b, 16,4,4
+            nn.BatchNorm2d(16),
+            nn.ReLU()
+            nn.Linear(16 * 4 * 4, self.latent_dim)
+            nn.softmax()
+        )
+        # Todo : initialize network parameters
+            
+    def train(self, data):
+        if type(data) is torch.Tensor:
+            data = data.detach().cpu().numpy()
+        self.kmeans.fit(data)
+        return self.kmeans
 
+    def predict_cluster(self, data):
+        if type(data) is torch.Tensor:
+            data = data.detach().cpu().numpy()
+        return self.kmeans.predict(data)
+    
+    def forward(self, x):
+        clustering_network_output = self.clustering_network(x)
+        autoencoders_loss = np.array(self.n_clusters)
+        for i in range(self.n_clusters):
+            encoded_decoded_x = self.autoencoders[i](x)
+            current_loss = self.loss_fct(encoded_decoded_x, x)
+            autoencoders_loss[i] = np.exp(-current_loss)
+        clustering_network_loss = np.exp(clustering_network_output) / np.sum(np.exp(clustering_network_output))
+        encoder_and_network_loss = np.log(np.sum(clustering_network_loss * autoencoders_loss))
+        return clustering_network_output, encoder_and_network_loss
+
+    
 class KMeansClustering:
     """clustering with K-means"""
     def __init__(self, n_clusters, seed):
