@@ -39,6 +39,16 @@ def encode_dataset(model, data, batch_size, device):
             tensors.append(model.encode(inputs))
     return torch.cat(tensors, dim=0)
 
+def encode_dataset_unlabeled(model, data, batch_size, device):
+    full_loader = DataLoader(data, batch_size=batch_size)
+    model.eval()
+    tensors = []
+    with torch.no_grad():
+        for batch_idx, inputs in enumerate(full_loader):
+            inputs = inputs[0].to(device)
+            tensors.append(model.encode(inputs))
+    return torch.cat(tensors, dim=0)
+
 
 def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
     """Train one epoch for model."""
@@ -109,7 +119,8 @@ def train_network(model, train_loader, test_loader, optimizer, n_epochs, device,
     for epoch in range(n_epochs):
         scheduler.step()
         train_loss = _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment)
-        valid_loss = _test(model, test_loader, epoch, device, experiment)
+        if test_loader != None:
+            valid_loss = _test(model, test_loader, epoch, device, experiment)
 
         try:
             if valid_loss < best_loss:

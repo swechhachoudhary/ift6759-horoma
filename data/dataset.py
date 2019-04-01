@@ -25,12 +25,16 @@ class OriginalHoromaDataset(Dataset):
 
         if split == "train":
             self.nb_exemples = 152000
+        elif split == "train_labeled":
+            self.nb_exemples = 228
         elif split == "valid":
             self.nb_exemples = 252
         elif split == "test":
             self.nb_exemples = 498
         elif split == "train_overlapped":
             self.nb_exemples = 548720
+        elif split == "train_labeled_overlapped":
+            self.nb_exemples = 635
         elif split == "valid_overlapped":
             self.nb_exemples = 696
         else:
@@ -166,27 +170,6 @@ class HoromaDataset(Dataset):
 
             # get valid labels
             self.targets = self.get_targets([filename_y])
-        # filename_y = os.path.join(data_dir, "{}_y.txt".format(split))
-
-        # self.targets = None
-        # if os.path.exists(filename_y) and not split.startswith("train"):
-        #     pre_targets = np.loadtxt(filename_y, 'U2')
-
-        #     if subset is None:
-        #         pre_targets = pre_targets[skip: None]
-        #     else:
-        #         pre_targets = pre_targets[skip: skip + subset]
-
-        #     self.map_labels = np.unique(pre_targets)
-        #     self.targets = np.asarray(
-        #         [np.where(self.map_labels == t)[0][0] for t in pre_targets])
-
-        # self.data = np.memmap(filename_x, dtype=datatype, mode="r", shape=(
-        #     self.nb_exemples, nb_channels, height, width))
-        # if subset is None:
-        #     self.data = self.data[skip: None]
-        # else:
-        #     self.data = self.data[skip: skip + subset]
 
         if flattened:
             self.data = self.data.reshape(len(self.data), -1)
@@ -261,27 +244,3 @@ if __name__ == "__main__":
         data_dir='./../data/horoma',
         split='valid'
     )
-
-    # dataset = FullDataset(dataset)
-
-    # loader = DataLoader(dataset, shuffle=False, batch_size=100)
-
-    # splitter = SplitDataset(.9)
-
-    # train, valid = splitter(dataset)
-
-    # print(len(train_dataset))
-    # print(type(train_dataset[0]))
-    # print(train_dataset[0].size())
-    # # train_dataset[0].save("sample", "JPEG")
-
-    # print("No. of images in train dataset: ", len(train_dataset))
-    # print("No. of images in valid dataset: ", len(valid_dataset))
-    # print(train_dataset.train_labels[0])
-    # print(train_dataset.train_labels[0])
-    # img = functional.to_pil_image(valid_dataset[0][0])
-
-    # label = valid_dataset.targets[0]
-    # print("label: ", valid_dataset.id_to_str[int(label)])
-    # img.show()
-    # img.save("Sample", "JPEG")

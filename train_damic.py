@@ -29,45 +29,80 @@ def main(datapath, encoding_model, batch_size, n_epochs, lr, flattened, device, 
     """
     unlabeled_train, labeled_train, labeled_valid = load_datasets2(datapath, train_subset=train_subset,
                                    flattened=flattened, overlapped=overlapped)
-    train_label_indices, valid_indices = get_split_indices(labeled.targets, overlapped=overlapped)
 
     print("Shape of unlabeled training set: ", unlabeled_train.data.shape)
     print("Shape of labeled training set: ", labeled_train.data.shape)
     print("Shape of labeled valid set: ", labeled_valid.data.shape)
+    
+    damic_model = DAMICClustering(17).to(device)
 
     # ===== START PRE-TRAINING AS SHOWN IN DAMIC PAPER
+    print("== Start DAMIC pre-training")
     # Train a single autoencoder for the entire dataset
     if train_encoder:
         # Train and apply encoding model
+        print("Start training of pre-train auto-encoder...")
         encoded_unlabeled_train, encoding_model = encoding_model.fit(data=unlabeled_train, batch_size=batch_size, n_epochs=n_epochs,
                                                        lr=lr, device=device, experiment=experiment)
+        print("Done")
     else:
         # Load encoding model and apply encoding
+        print("Load pre-train auto-encoder...")
         encoding_model.load_state_dict(torch.load(path_to_model)["model"])
-        encoded_unlabeled_train = encode_dataset(encoding_model, unlabeled_train, batch_size, device)
+        print("Done")
+        print("Start encoding of unlabeled dataset...")
+        encoded_unlabeled_train = encode_dataset_unlabeled(encoding_model, unlabeled_train, batch_size, device)
+        print("Done")
     
     # Apply a k-means algorithm in the embedded space
-    encoded_labeled_train = encoding_model.encode(labeled_train[0].to(device))
-    encoded_labeled_valid = encoding_model.encode(labeled_valid[0].to(device))
+    print("Start encoding of labeled dataset...")
+    #encoded_labeled_train = encoding_model.encode([i[0].to(device) for i in labeled_train])
+    encoded_labeled_train = encode_dataset_unlabeled(encoding_model, labeled_train, batch_size, device)
+    print("Done")
+    print("Start encoding of labeled dataset...")
+    #encoded_labeled_valid = encoding_model.encode(labeled_valid.data.to(device))
+    encoded_labeled_valid = encode_dataset_unlabeled(encoding_model, labeled_valid, batch_size, device)
+    print("Done")
+    print("Start kmean training on unlabeled...")
     clustering_model.train(encoded_unlabeled_train)
+    print("Done")
     cluster_labels = assign_labels_to_clusters(clustering_model, encoded_labeled_train, labeled_train.targets)
     _, accuracy, f1 = eval_model_predictions(clustering_model, encoded_labeled_valid, labeled_valid.targets, cluster_labels)
     experiment.log_metric('accuracy', accuracy)
     experiment.log_metric('f1-score', f1)
 
+    # For each unlabeled data, we get the class predicted by the cluster
+    unlabeled_target_pred_by_cluster = clustering_model.predict_cluster(encoded_unlabeled_train)
+    
     # Use the k-means clustering to initialize the network parameters
+    # Train each auto encoder of each cluster on his own data class
+    tensor_unla_train = torch.Tensor(unlabeled_train.data)
+    tensor_unla_target_pred_by_cluster = torch.Tensor(unlabeled_target_pred_by_cluster)
+    numpy_unla_train = tensor_unla_train.cpu().numpy()
+    numpy_unla_target_pred_by_cluster = tensor_unla_target_pred_by_cluster.cpu().numpy()
     
+    for i in range(17):
+        print("Start training of auto encoder for cluster ...")
+        indexes_of_class_i = np.where(np.isin(numpy_unla_target_pred_by_cluster,[i]))
+        data_of_class_i = numpy_unla_train[indexes_of_class_i]
+        _, damic_model.autoencoders[i] = damic_model.autoencoders[i].fit(data=data_of_class_i, batch_size=batch_size, n_epochs=n_epochs,
+                                                       lr=lr, device=device, experiment=experiment)
+        print("Done")
     
+    print("== DAMIC Pre-training done!")
     # ===== END OF PRE-TRAINING
     
     # ===== BEGIN REAL TRAINING
+    # Put all the data through the conv network
     # TODO
 
+    # Get the final loss and backpropagate with it (- sum loss etc..)
+    # TODO
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--", type=str, default=Constants.DATAPATH,
+    parser.add_argument("--datapath", type=str, default=Constants.DATAPATH,
                         help="Path to dataset folder")
     parser.add_argument("--encoder_path", type=str, default=None)
     parser.add_argument("--config", type=str, default="CONV_AE", help="To select configuration from config.json")

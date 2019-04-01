@@ -3,6 +3,7 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 import torch
 import numpy as np
+import torch.nn as nn
 
 class DAMICClustering(nn.Module):
     """
@@ -10,10 +11,10 @@ class DAMICClustering(nn.Module):
         Each cluster is reprensented by an autoencoder
         A convolutional network give us p(c=i|x:theta)
     """
-    def __init__(self, n_clusters, seed):
+    def __init__(self, n_clusters):
+        super().__init__()
         self.n_clusters = n_clusters
         self.autoencoders = np.array([])
-        self.autoencoder_loss_function = getattr(nn, "MSELoss")()
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         for i in range(n_clusters):
             encoding_model = CVAE(latent_dim=10).to(device)
@@ -36,22 +37,32 @@ class DAMICClustering(nn.Module):
             nn.ReLU(),
             nn.Conv2d(16, 16, kernel_size=4, stride=2, padding=1),  # b, 16,4,4
             nn.BatchNorm2d(16),
-            nn.ReLU()
-            nn.Linear(16 * 4 * 4, self.latent_dim)
-            nn.softmax()
+            nn.ReLU(),
+            nn.Linear(16 * 4 * 4, 17),
+            nn.Softmax()
         )
-        # Todo : initialize network parameters
+        
+    def init_autoencoder(self, data, index):
+        """ using data, we will train the auto encoder for cluster index """
+        print("not implemented yet")
             
     def train(self, data):
+        print("not implemented yet")
+        """
         if type(data) is torch.Tensor:
             data = data.detach().cpu().numpy()
         self.kmeans.fit(data)
         return self.kmeans
+        """
 
     def predict_cluster(self, data):
+        # TODO : final hard clustering is made by ĉ = argmax p(c|x,theta) see p3
+        print("not implemented yet")
+        """
         if type(data) is torch.Tensor:
             data = data.detach().cpu().numpy()
         return self.kmeans.predict(data)
+        """
     
     def forward(self, x):
         clustering_network_output = self.clustering_network(x)
