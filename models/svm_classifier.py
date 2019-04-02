@@ -18,7 +18,6 @@ class SVMClassifier:
         train_y: target class of image, size is (n_samples)
         """
         train_X = train_X.numpy()
-        print(train_X.shape, train_y.shape)
         self.clf.fit(train_X, train_y)
         y_pred = self.clf.predict(train_X)
 

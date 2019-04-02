@@ -5,7 +5,7 @@ from time import time
 from models.encoders import *
 from models.svm_classifier import SVMClassifier
 from utils.model_utils import encode_dataset
-from utils.utils import compute_metrics  # (y_true, y_pred)
+from utils.utils import compute_metrics, __compute_metrics
 from utils.constants import Constants
 from data.dataset import HoromaDataset
 import torch
@@ -20,36 +20,50 @@ def main(datapath, encoding_model, batch_size, device, train_split, valid_split,
     valid_data = HoromaDataset(
         datapath, split=valid_split, flattened=flattened)
 
+    print("Loading model....\n")
     # load the best model
-    encoding_model.load_state_dict(torch.load(path_to_model)["model"])
+    encoding_model.load_state_dict(torch.load(
+        path_to_model, map_location=device)["model"])
 
     # extract latent representation of train_labeled data
     train_enc = encode_dataset(
-        encoding_model, train_labeled, batch_size, device)
+        encoding_model, train_labeled, batch_size, device, is_unlabeled=False)
+    print("Train labeled data encoding complete.\n")
 
     # extract latent representation of validation data
-    valid_enc = encode_dataset(encoding_model, valid_data, batch_size, device)
+    valid_enc = encode_dataset(
+        encoding_model, valid_data, batch_size, device, is_unlabeled=False)
+    print("validation data encoding complete.\n")
 
     start_time = time()
 
     svm_classifier = SVMClassifier()
+    print("Traing SVM classifier...\n")
     pred_train_y = svm_classifier.train_classifier(
         train_enc, train_labeled.targets)
 
-    train_accuracy, train_f1 = compute_metrics(
+    print("Computing metrics for train data\n")
+    train_accuracy, train_f1, __train_f1 = __compute_metrics(
         train_labeled.targets, pred_train_y)
 
+    print("Prediction for validation data. \n")
     pred_valid_y = svm_classifier.validate_classifier(
-        valid_enc, valid_data.targets)
+        valid_enc)
 
-    valid_accuracy, valid_f1 = compute_metrics(
+    print("Computing metrics for validation data\n")
+    valid_accuracy, valid_f1, __valid_f1 = __compute_metrics(
         valid_data.targets, pred_valid_y)
 
     print("Done in {:.2f} sec.".format(time() - start_time))
     print(
-        "Train | Accuracy: {:.2f} - F1: {:.2f}".format(train_accuracy * 100, train_f1 * 100))
+        "Train : Accuracy: {:.2f} | F1: {:.2f}".format(train_accuracy * 100, train_f1 * 100))
     print(
-        "Validation | Accuracy: {:.2f} - F1: {:.2f}".format(valid_accuracy * 100, valid_f1 * 100))
+        "Train : F1 score for each class: {}".format(__train_f1 * 100))
+    print(
+        "Validation : Accuracy: {:.2f} | F1: {:.2f}".format(valid_accuracy * 100, valid_f1 * 100))
+    print(
+        "Validation : F1 score for each class: {}".format(__valid_f1 * 100))
+
     experiment.log_metric('Train accuracy', train_accuracy)
     experiment.log_metric('Train f1-score', train_f1)
     experiment.log_metric('Validation accuracy', valid_accuracy)
