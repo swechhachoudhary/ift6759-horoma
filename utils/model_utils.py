@@ -31,14 +31,19 @@ def loss_function(recon_x, x, mu, logvar):
     return MSE + KLD
 
 
-def encode_dataset(model, data, batch_size, device):
+def encode_dataset(model, data, batch_size, device, is_unlabeled=True):
     full_loader = DataLoader(data, batch_size=batch_size)
     model.eval()
     tensors = []
     with torch.no_grad():
-        for batch_idx, inputs in enumerate(full_loader):
-            inputs = inputs.to(device)
-            tensors.append(model.encode(inputs))
+        if is_unlabeled:
+            for batch_idx, inputs in enumerate(full_loader):
+                inputs = inputs.to(device)
+                tensors.append(model.encode(inputs))
+        else:
+            for batch_idx, (inputs, labels) in enumerate(full_loader):
+                inputs = inputs.to(device)
+                tensors.append(model.encode(inputs))
     return torch.cat(tensors, dim=0)
 
 

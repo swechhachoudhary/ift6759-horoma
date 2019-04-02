@@ -157,6 +157,13 @@ def compute_metrics(y_true, y_pred):
     return accuracy, f1
 
 
+def __compute_metrics(y_true, y_pred):
+    accuracy = accuracy_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred, average="weighted")
+    _f1 = f1_score(y_true, y_pred, average=None)
+    return accuracy, f1, _f1
+
+
 def eval_model_predictions(model, x, y_true, cluster_labels):
     """
     Predict labels and compare to true labels to compute the accuracy.
