@@ -17,7 +17,7 @@ class SVMClassifier:
         train_X: low dim representation of images, size is (n_samples, dim)
         train_y: target class of image, size is (n_samples)
         """
-        train_X = train_X.numpy()
+        train_X = train_X.cpu().numpy()
         self.clf.fit(train_X, train_y)
         y_pred = self.clf.predict(train_X)
 
@@ -28,7 +28,7 @@ class SVMClassifier:
         valid_X: low dim representation of images, size is (n_samples, dim)
         valid_y: target class of image, size is (n_samples)
         """
-        valid_X = valid_X.numpy()
+        valid_X = valid_X.cpu().numpy()
         y_pred = self.clf.predict(valid_X)
 
         return y_pred

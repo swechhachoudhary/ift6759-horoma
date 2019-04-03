@@ -143,3 +143,111 @@ def train_network(model, train_loader, test_loader, optimizer, n_epochs, device,
 
     # Return best model
     return best_model
+
+
+def loop_over_unlabeled_data(data, batch_size):
+    data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
+    while True:
+        for batch in iter(data_loader):
+            yield batch
+
+
+def loop_over_labeled_data(data, batch_size):
+    data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
+    while True:
+        for batch in iter(data_loader):
+            yield batch
+
+
+def _train_one_epoch_unlabeled(model, train_data, optimizer, batch_size, n_unlabeled_batch, epoch, device, experiment):
+    """Train one epoch for model."""
+    model.train()
+
+    running_loss = 0.0
+    criterion = nn.MSELoss(reduction='sum')
+
+    for batch_idx, inputs in enumerate(loop_over_unlabeled_data(train_data, batch_size)):
+
+        if batch_idx < n_unlabeled_batch:
+            inputs = inputs.to(device)
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, inputs)
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item()
+            if batch_idx % 10 == 0:
+                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx,
+                                                                               n_unlabeled_batch,
+                                                                               100. * batch_idx /
+                                                                               n_unlabeled_batch,
+                                                                               loss.item() / len(inputs)))
+        else:
+            break
+    train_loss = running_loss / len(train_data)
+    experiment.log_metric("Train loss", train_loss, step=epoch)
+    return train_loss
+
+
+def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_loader, train_lab_loader, valid_loader,
+                                  n_epochs, lr_unsup, lr_sup, device, n_labeled_batch, n_unlabeled_batch, patience, experiment):
+    best_loss = np.inf
+    best_acc = 0.0
+    best_f1 = 0.0
+    key = experiment.get_key()
+    best_model = None
+
+    n_iter_unlab = 0
+    n_iter_lab = 0
+
+    param_unsup = [
+        {'params': encoding_model.parameters()},
+        {'params': classifier_model.parameters()}
+    ]
+    param_sup = [
+        {'params': encoding_model.parameters(), 'lr': 1e-4},
+        {'params': classifier_model.parameters(), 'lr': lr_sup}
+    ]
+    optimizer_unsupervised = torch.optim.Adam(param_unsup, lr=lr_unsup)
+
+    optimizer_supervised = torch.optim.Adam(param_sup)
+
+    # scheduler = torch.optim.lr_scheduler.StepLR(
+    #     optimizer, step_size=2, gamma=0.5)
+    for epoch in range(n_epochs):
+        # scheduler.step()
+        while n_iter_unlab < n_unlabeled_batch:
+            n_iter_unlab += 1
+            _train_one_epoch_unlabeled()
+        n_iter_unlab = 0
+        while n_iter_lab < n_labeled_batch:
+            n_iter_lab += 1
+            _train_one_epoch_labeled()
+        n_iter_lab = 0
+
+        # Validation
+        _test
+        train_loss = _train_one_epoch(
+            model, train_loader, optimizer, epoch, device, experiment)
+        valid_loss = _test(model, test_loader, epoch, device, experiment)
+
+        try:
+            if valid_loss < best_loss:
+                torch.save({
+                    "epoch": epoch,
+                    "optimizer": optimizer.state_dict(),
+                    "model": model.state_dict(),
+                    "loss": valid_loss
+                }, "experiment_models/" + str(key) + '.pth')
+                best_loss = valid_loss
+                best_model = deepcopy(model)  # Keep best model thus far
+        except FileNotFoundError as e:
+            print(
+                "Directory for logging experiments does not exist. Launch script from repository root.")
+            raise e
+
+        print("Training loss after {} epochs: {:.6f}".format(epoch, train_loss))
+        print("Validation loss after {} epochs: {:.6f}".format(epoch, valid_loss))
+
+    # Return best model
+    return best_model

@@ -29,14 +29,16 @@ def main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr, d
     train_labeled = HoromaDataset(datapath, split=train_labeled_split)
     valid_data = HoromaDataset(datapath, split=valid_split)
 
-    train_unlabeled_loader = DataLoader(train_unlabeled, batch_size=batch_size, shuffle=True)
-    train_labeled_loader = DataLoader(train_labeled, batch_size=batch_size, shuffle=True)
-    valid_loader = DataLoader(valid_data, batch_size=batch_size)
+    # train_unlabeled_loader = loop_over_unlabeled_data(train_unlabeled, batch_size)
+    # train_labeled_loader = loop_over_labeled_data(train_labeled, batch_size)
+    # valid_loader = DataLoader(valid_data, batch_size=batch_size)
 
-    if encode:
-        # Train and apply encoding model
-        train_enc, encoding_model = encoding_model.fit(train, valid_data, batch_size=batch_size, n_epochs=n_epochs,
-                                                       lr=lr, device=device, experiment=experiment)
+    n_labeled_batch = len(train_labeled) / batch_size
+    n_unlabeled_batch = n_labeled_batch
+
+    # Train and apply encoding model
+    train_enc, encoding_model = encoding_model.fit(train, valid_data, batch_size=batch_size, n_epochs=n_epochs,
+                                                   lr=lr, device=device, experiment=experiment)
 
     # train network
     best_loss = np.inf
