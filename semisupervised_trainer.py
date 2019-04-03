@@ -8,10 +8,11 @@ from utils.utils import load_datasets
 from utils.constants import Constants
 from data.dataset import HoromaDataset
 import torch
+from models.mlp_classifier import MLPClassifier
 
 
-def main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, flattened, device, train_split, valid_split, train_labeled_split,
-         experiment, encode, cluster, train_subset=None, path_to_model=None):
+def main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr, flattened, device, train_split, valid_split, train_labeled_split,
+         experiment, path_to_model=None):
     """
     :param datapath: path to the directory containing the samples
     :param clustering_model: which clustering model to use [kmeans, gmm].
@@ -29,42 +30,91 @@ def main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, f
     :param path_to_model: path to the directory containing saved models.
 
     """
-    train = HoromaDataset(datapath, split=train_split, subset=train_subset,
-                          flattened=flattened)
-    labeled = HoromaDataset(datapath, split=train_labeled_split, subset=train_subset,
-                            flattened=flattened)
+    train_unlabeled = HoromaDataset(datapath, split=train_split, flattened=flattened)
+    train_labeled = HoromaDataset(
+        datapath, split=train_labeled_split, flattened=flattened)
     valid_data = HoromaDataset(
-        datapath, split=valid_split, subset=train_subset, flattened=flattened)
+        datapath, split=valid_split, flattened=flattened)
 
-    train_label_indices = labeled.targets
-    valid_indices = valid_data.targets
-    # train_label_indices, valid_indices = get_split_indices(
-    #     labeled.targets, overlapped=overlapped)
-
-    print("Shape of training set: ", train.data.shape)
-    print("Shape of validation set: ", valid_data.data.shape)
-    # print("Shape of labeled training set: ",
-    #       labeled.data[train_label_indices].shape)
-    # print("Shape of validation dataset: ", labeled.data[valid_indices].shape)
+    train_unlabeled_loader = DataLoader(train_unlabeled, batch_size=batch_size, shuffle=True)
+    train_labeled_loader = DataLoader(train_labeled, batch_size=batch_size, shuffle=True)
+    valid_loader = DataLoader(valid_data, batch_size=batch_size)
 
     if encode:
         # Train and apply encoding model
         train_enc, encoding_model = encoding_model.fit(train, valid_data, batch_size=batch_size, n_epochs=n_epochs,
                                                        lr=lr, device=device, experiment=experiment)
-    else:
-        encoding_model.load_state_dict(torch.load(path_to_model)["model"])
-        train_enc = encode_dataset(encoding_model, train, batch_size, device)
-    if cluster:
-        train_labeled_enc = encoding_model.encode(
-            labeled[train_label_indices][0].to(device))
-        valid_enc = encoding_model.encode(labeled[valid_indices][0].to(device))
 
-        # Train and apply clustering model
-        clustering_model.train(train_enc)
-        cluster_labels = assign_labels_to_clusters(clustering_model, train_labeled_enc,
-                                                   labeled.targets[train_label_indices])
-        _, accuracy, f1 = eval_model_predictions(clustering_model, valid_enc, labeled.targets[valid_indices],
-                                                 cluster_labels)
+    # train network
+    best_loss = np.inf
+    key = experiment.get_key()
+    best_model = None
+    parameters = [
+        {'params': encoding_model.parameters()},
+        {'params': classifier_model.parameters(), 'lr': 1e-3}
+    ]
+    optimizer = torch.optim.Adam(parameters, lr=lr)
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer, step_size=2, gamma=0.5)
+    for epoch in range(n_epochs):
+        scheduler.step()
+        # train_loss = _train_one_epoch(
+        #     model, train_loader, optimizer, epoch, device, experiment)
+            """Train one epoch for model."""
+        encoding_model.train()
+        classifier_model.train()
+
+        running_loss = 0.0
+        optimizer.zero_grad()
+        for batch_idx, inputs in enumerate(train_loader):
+            inputs = inputs.to(device)
+
+            outputs = encoding_model(inputs)
+            criterion = nn.MSELoss(reduction='sum')
+            loss = criterion(outputs, inputs)
+            running_loss += loss
+
+        for batch_idx, (inputs, labels) in enumerate(train_labeled_loader):
+            inputs = inputs.to(device)
+            train_enc = encode_dataset(
+                encoding_model, train_labeled, batch_size, device)
+            outputs = classifier_model()
+            criterion = nn.MSELoss(reduction='sum')
+            loss = criterion(outputs, inputs)
+            running_loss += loss
+        loss.backward()
+        optimizer.step()
+
+        if batch_idx % 10 == 0:
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(inputs),
+                                                                           len(train_loader) *
+                                                                           len(inputs),
+                                                                           100. * batch_idx /
+                                                                           len(train_loader),
+                                                                           loss.item() / len(inputs)))
+
+        train_loss = running_loss / len(train_loader.dataset)
+        experiment.log_metric("Train loss", train_loss, step=epoch)
+        valid_loss = _test(model, test_loader, epoch, device, experiment)
+
+        try:
+            if valid_loss < best_loss:
+                torch.save({
+                    "epoch": epoch,
+                    "optimizer": optimizer.state_dict(),
+                    "model": model.state_dict(),
+                    "loss": valid_loss
+                }, "experiment_models/" + str(key) + '.pth')
+                best_loss = valid_loss
+                best_model = deepcopy(model)  # Keep best model thus far
+        except FileNotFoundError as e:
+            print(
+                "Directory for logging experiments does not exist. Launch script from repository root.")
+            raise e
+
+        print("Training loss after {} epochs: {:.6f}".format(epoch, train_loss))
+        print("Validation loss after {} epochs: {:.6f}".format(epoch, valid_loss))
+
         experiment.log_metric('accuracy', accuracy)
         experiment.log_metric('f1-score', f1)
 
@@ -92,20 +142,15 @@ if __name__ == '__main__':
     with open(Constants.CONFIG_PATH, 'r') as f:
         configuration = json.load(f)[config_key]
 
-    # Parse configuration file
-    clustering_model = configuration['cluster_model']
     encoding_model = configuration['enc_model']
     batch_size = configuration['batch_size']
     seed = configuration['seed']
     n_epochs = configuration['n_epochs']
     lr = configuration['lr']
-    n_clusters = configuration['n_clusters']
-    # train_subset = configuration['train_subset']
     train_split = configuration['train_split']
     valid_split = configuration['valid_split']
     train_labeled_split = configuration['train_labeled_split']
     encode = configuration['encode']
-    cluster = configuration['cluster']
     latent_dim = configuration['latent_dim']
     flattened = False  # Default
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -119,25 +164,16 @@ if __name__ == '__main__':
 
     # Set up Comet Experiment tracking  # Replace this with appropriate comet
     # workspaces
-#     experiment = OfflineExperiment(
-#         "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="swechhas_experiments")
+    experiment = OfflineExperiment(
+        "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="swechhas_experiments")
 
     # Set up Comet Experiment tracking
-    experiment = OfflineExperiment(project_name='general',
-                                   workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
-                                   offline_directory="experiments")
+    # experiment = OfflineExperiment(project_name='general',
+    #                                workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
+    #                                offline_directory="experiments")
     experiment.set_name(
-        name=args.config + "_dim={}_overlapped={}".format(latent_dim, train_split))
+        name=args.config + "_dim={}_split={}".format(latent_dim, train_split))
     experiment.log_parameters(configuration)
-
-    # Initialize necessary objects
-    if clustering_model == 'kmeans':
-        clustering_model = KMeansClustering(n_clusters, seed)
-    elif clustering_model == 'gmm':
-        clustering_model = GMMClustering(n_clusters, seed)
-    else:
-        print('No clustering model specified. Using Kmeans.')
-        clustering_model = KMeansClustering(n_clusters, seed)
 
     if encoding_model == 'pca':
         encoding_model = PCAEncoder(seed)
@@ -160,7 +196,9 @@ if __name__ == '__main__':
     else:
         print('No encoding model specified. Using PCA.')
         encoding_model = PCAEncoder(seed)
+    if classifier_model == "MLPClassifier":
+        classifier_model = MLPClassifier()
 
     # Initiate experiment
-    main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, flattened, device, train_split, valid_split, train_labeled_split,
-         experiment, encode, cluster, path_to_model=path_to_model)
+    main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr, flattened, device, train_split, valid_split, train_labeled_split,
+         experiment, path_to_model=path_to_model)

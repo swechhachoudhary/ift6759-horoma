@@ -5,28 +5,38 @@ from time import time
 from models.encoders import *
 from models.svm_classifier import SVMClassifier
 from utils.model_utils import encode_dataset
-from utils.utils import compute_metrics, __compute_metrics
+from utils.utils import compute_metrics, __compute_metrics, plot_historgrams, plot_confusion_matrix
 from utils.constants import Constants
 from data.dataset import HoromaDataset
 import torch
 
 
 def main(datapath, encoding_model, batch_size, device, train_split, valid_split, train_labeled_split,
-         experiment, encode, path_to_model=None):
+         experiment, path_to_model=None):
 
-    train = HoromaDataset(datapath, split=train_split, flattened=flattened)
+    full_dataset = HoromaDataset(datapath, split=train_split, flattened=flattened)
     train_labeled = HoromaDataset(
         datapath, split=train_labeled_split, flattened=flattened)
+    # Validation data(labeled) for the supervised task(Classification)
     valid_data = HoromaDataset(
         datapath, split=valid_split, flattened=flattened)
 
-    print("Loading model....\n")
-    # load the best model
-    encoding_model.load_state_dict(torch.load(
-        path_to_model, map_location=device)["model"])
+    # split the full_dataset(labeled and unlabeled train data) into train and valid for autoencoder pre-training
+    n_train = int(0.95 * len(full_dataset))
+    n_valid = len(full_dataset) - n_train
+    train_dataset, valid_dataset = data.random_split(train_labeled, [n_train, n_valid])
+
+    # print("Loading model....\n")
+    # # load the best model
+    # encoding_model.load_state_dict(torch.load(
+    #     path_to_model, map_location=device)["model"])
+
+    # Train and apply encoding model
+    train_enc, encoding_model = encoding_model.fit(train_dataset, valid_dataset, batch_size=batch_size, n_epochs=n_epochs,
+                                                   lr=lr, device=device, experiment=experiment)
 
     # extract latent representation of train_labeled data
-    train_enc = encode_dataset(
+    train_labeled_enc = encode_dataset(
         encoding_model, train_labeled, batch_size, device, is_unlabeled=False)
     print("Train labeled data encoding complete.\n")
 
@@ -37,10 +47,11 @@ def main(datapath, encoding_model, batch_size, device, train_split, valid_split,
 
     start_time = time()
 
+    # Train SVM classifier
     svm_classifier = SVMClassifier()
     print("Traing SVM classifier...\n")
     pred_train_y = svm_classifier.train_classifier(
-        train_enc, train_labeled.targets)
+        train_labeled_enc, train_labeled.targets)
 
     print("Computing metrics for train data\n")
     train_accuracy, train_f1, __train_f1 = __compute_metrics(
@@ -68,6 +79,19 @@ def main(datapath, encoding_model, batch_size, device, train_split, valid_split,
     experiment.log_metric('Train f1-score', train_f1)
     experiment.log_metric('Validation accuracy', valid_accuracy)
     experiment.log_metric('Validation f1-score', valid_f1)
+
+    list_of_data = [pred_train_y, pred_valid_y]
+    label_list = ["Train", "Validation"]
+    plot_historgrams(list_of_data, label_list, valid_data.str_labels)
+
+    # Plot non-normalized confusion matrix
+    plot_confusion_matrix(train_labeled.targets, pred_train_y, classes=np.arange(17),
+                          title='Confusion matrix for Train, without normalization')
+    # validation data
+    plot_confusion_matrix(valid_data.targets, pred_valid_y, classes=np.arange(17),
+                          title='Confusion matrix for Validation, without normalization')
+
+    plt.show()
 
 if __name__ == '__main__':
 
@@ -142,4 +166,4 @@ if __name__ == '__main__':
 
     # Initiate experiment
     main(datapath, encoding_model, batch_size, device, train_split, valid_split,
-         train_labeled_split, experiment, encode, path_to_model=path_to_model)
+         train_labeled_split, experiment, path_to_model=path_to_model)

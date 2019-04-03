@@ -8,7 +8,7 @@ class MLPClassifier(nn.Module):
     MLP classifier for multiclass classification
     """
 
-    def __init__(self, n_class, latent_dim, hidden_size=60, n_layers=2):
+    def __init__(self, latent_dim=10, hidden_size=60, n_layers=2, n_class=17):
         super(MLPClassifier, self).__init__()
         self.n_layers = n_layers
         n_channels = [latent_dim] + [hidden_size] * (n_layers - 1) + [n_class]

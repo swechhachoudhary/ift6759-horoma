@@ -5,7 +5,9 @@ import torch
 from PIL import Image
 from tempfile import mkdtemp
 from torchvision.transforms import functional
+from torch.utils import data
 from torch.utils.data import Dataset
+import matplotlib.pyplot as plt
 
 
 class OriginalHoromaDataset(Dataset):
@@ -201,26 +203,26 @@ class HoromaDataset(Dataset):
 
     def get_targets(self, list_of_filename):
         targets = []
+        if os.path.exists(list_of_filename[0]):
+            pre_targets = np.loadtxt(list_of_filename[0], 'U2')
+
+            self.str_labels = np.unique(pre_targets)
+
+            self.str_to_id = dict(
+                zip(self.str_labels, range(len(self.str_labels))))
+            self.id_to_str = dict((v, k)
+                                  for k, v in self.str_to_id.items())
 
         for filename_y in list_of_filename:
-            if os.path.exists(filename_y):
-                pre_targets = np.loadtxt(filename_y, 'U2')
-
-                self.str_labels = np.unique(pre_targets)
-
-                self.str_to_id = dict(
-                    zip(self.str_labels, range(len(self.str_labels))))
-                self.id_to_str = dict((v, k)
-                                      for k, v in self.str_to_id.items())
-
-                targets += [self.str_to_id[_str]
-                            for _str in pre_targets if _str in self.str_to_id]
+            pre_targets = np.loadtxt(filename_y, 'U2')
+            targets += [self.str_to_id[_str]
+                        for _str in pre_targets if _str in self.str_to_id]
         return np.asarray(targets)
 
 if __name__ == "__main__":
-    valid_all = HoromaDataset(
+    valid = HoromaDataset(
         data_dir='./../data/horoma',
-        split='valid_all'
+        split='valid'
     )
 
     train_labeled = HoromaDataset(
@@ -228,16 +230,38 @@ if __name__ == "__main__":
         split='train_labeled'
     )
 
-    print(len(valid_all))
-    print(len(valid_all.targets))
+    print(len(valid))
+    print(len(valid.targets))
     print(len(train_labeled))
-    i = np.random.randint(0, len(train_labeled))
-    print(i)
-    print(train_labeled[i][0].size(), train_labeled[i][1])
-    print(train_labeled[0][0].size(), train_labeled[0][1])
 
-    img = Image.fromarray(
-        (255 * train_labeled[i][0]).numpy().astype(np.uint8), 'RGB')
-    img.show()
-    label = train_labeled[i][1]
-    print("label: ", train_labeled.id_to_str[int(label)])
+    # i = np.random.randint(0, len(train_labeled))
+    # print(i)
+    # print(train_labeled[i][0].size(), train_labeled[i][1])
+    # print(train_labeled[0][0].size(), train_labeled[0][1])
+
+    # img = Image.fromarray(
+    #     (255 * train_labeled[i][0]).numpy().astype(np.uint8), 'RGB')
+    # img.show()
+    # label = train_labeled[i][1]
+    # print("label: ", train_labeled.id_to_str[int(label)])
+
+    # hist, bins = np.histogram(train_labeled.targets,
+    #                           bins=np.arange(len(train_labeled.str_labels)))
+    # print("Train hist: {},\n bins: {}".format(hist, bins))
+    # hist, bins = np.histogram(valid.targets,
+    #                           bins=np.arange(len(valid.str_labels)))
+    # print("Validation hist: {},\n bins: {}".format(hist, bins))
+
+    # plt.figure()
+    # plt.hist(train_labeled.targets, bins=np.arange(
+    #     len(train_labeled.str_labels)))
+    # plt.title("Histogram of class labels for train labeled data")
+    # plt.savefig("train_hist.png")
+    # plt.close()
+
+    # plt.figure()
+    # plt.hist(valid.targets, bins=np.arange(
+    #     len(valid.str_labels)))
+    # plt.title("Histogram of class labels for validation labeled data")
+    # plt.savefig("valid_hist.png")
+    # plt.close()
