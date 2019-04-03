@@ -28,14 +28,30 @@
     "cluster": true
   },
   "DAMIC": {
-    "enc_model": "cvae",
-    "train_encoder": false,
-    "batch_size": 128,
+    "autoencoder_pretrain": {
+        "enc_model": "cvae",
+        "batch_size": 128,
+        "n_epochs": 20,
+        "lr": 1e-3,
+        "n_clusters": 21,
+        "latent_dim": 10,
+        "encoder_path": "experiment_models/cvae_base.pth",
+        "train_encoder": false
+    },
+    "damic_conv_net_pretrain": {
+        "lr": 1e-3,
+        "n_epochs": 10
+    },
+    "damic_autoencoders_pretrain": {
+        "batch_size": 128,
+        "n_epochs": 20,
+        "lr": 1e-3        
+    },
+    "damic_train": {
+        "n_epochs": 1,
+        "lr": 1e-3
+    },
     "seed": 1234,
-    "n_epochs": 1,
-    "lr": 1e-3,
-    "n_clusters": 21,
-    "latent_dim": 10,
     "train_subset": 100,
     "overlapped": false
   }
