@@ -35,29 +35,7 @@ def main(datapath, configuration, config_key):
                                                                                                   damic_autoencoders_pretrain_config,
                                                                                                   experiment, seed)
 
-    print("== Start DAMIC training ...!")
-    damic_train_config = configuration['damic_train']
-    pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
-    clust_network_params = list(damic_model.clustering_network.parameters()) + list(damic_model.output_layer_conv_net.parameters())
-    autoencoders_params = list()
-    for i in range(17):
-        autoencoders_params = autoencoders_params + list(damic_model.autoencoders[i].parameters())
-    damic_parameters = clust_network_params + autoencoders_params
-    lr = damic_train_config["lr"]
-    n_epochs = damic_train_config["n_epochs"]
-    optimizer = torch.optim.Adam(damic_parameters, lr=lr)
-    damic_model = train_network(damic_model,
-                               pretrain_dataset_with_label,
-                               None,
-                               optimizer,
-                               n_epochs,
-                               device,
-                               experiment,
-                               train_classifier=False,
-                               train_damic=True)
-
-    print("== DAMIC training done!")
-    torch.save(damic_model, Constants.PATH_TO_MODEL + "DAMIC_MODEL" + str(experiment.get_key()) + '.pth')
+    execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_unla_target_pred_by_cluster, device, experiment)
     
 def _set_torch_seed(seed):
     np.random.seed(seed)

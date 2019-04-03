@@ -137,3 +137,41 @@ def execute_damic_pre_training(datapath, damic_model, train_subset, overlapped, 
 
     print("== DAMIC Pre-training done!")
     return damic_model, numpy_unla_train, numpy_unla_target_pred_by_cluster
+
+
+def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_unla_target_pred_by_cluster, device, experiment):
+    """
+    See 'Deep clustering based on a mixture of autoencoders' paper
+    We simultaneously train all the auto-encoders part of DAMIC as well as the Convolutional clustering network.
+    
+    :param damic_model: the model we want to do the pre-training on
+    :param configuration: dictionnary containing all the keys/values part of DAMIC from a config file
+    :param numpy_unla_train: numpy array of the unlabeled training dataset
+    :param numpy_unla_target_pred_by_cluster: numpy array with the targets for each sample of the unlabeled traning dataset
+    :param device: cuda (training is done on gpu) or cpu
+    :param experiment: comet-ml experiment to save training results
+    """
+    
+    print("== Start DAMIC training ...!")
+    damic_train_config = configuration['damic_train']
+    pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
+    clust_network_params = list(damic_model.clustering_network.parameters()) + list(damic_model.output_layer_conv_net.parameters())
+    autoencoders_params = list()
+    for i in range(17):
+        autoencoders_params = autoencoders_params + list(damic_model.autoencoders[i].parameters())
+    damic_parameters = clust_network_params + autoencoders_params
+    lr = damic_train_config["lr"]
+    n_epochs = damic_train_config["n_epochs"]
+    optimizer = torch.optim.Adam(damic_parameters, lr=lr)
+    damic_model = train_network(damic_model,
+                               pretrain_dataset_with_label,
+                               None,
+                               optimizer,
+                               n_epochs,
+                               device,
+                               experiment,
+                               train_classifier=False,
+                               train_damic=True)
+
+    print("== DAMIC training done!")
+    torch.save(damic_model, Constants.PATH_TO_MODEL + "DAMIC_MODEL" + str(experiment.get_key()) + '.pth')
