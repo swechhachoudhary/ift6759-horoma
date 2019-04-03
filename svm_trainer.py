@@ -114,6 +114,8 @@ if __name__ == '__main__':
     encoding_model = configuration['enc_model']
     batch_size = configuration['batch_size']
     seed = configuration['seed']
+    n_epochs = configuration['n_epochs']
+    lr = configuration['lr']
     train_split = configuration['train_split']
     valid_split = configuration['valid_split']
     train_labeled_split = configuration['train_labeled_split']
