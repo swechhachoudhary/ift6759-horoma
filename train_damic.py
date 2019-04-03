@@ -4,17 +4,17 @@ import argparse
 from models.encoders import *
 from models.clustering import *
 from utils.utils import *
+from utils.damic_utils import *
 from utils.constants import Constants
 import torch
 from data.dataset import LocalHoromaDataset
-from torch.utils.data import DataLoader
 
-def main(datapath, encoding_model, batch_size, n_epochs, lr, flattened, device, overlapped,
+def main(datapath, encoding_model, clustering_model, batch_size, n_epochs, lr, flattened, device, overlapped,
          experiment, train_encoder, train_subset=None, path_to_model=None):
     """
     :param datapath: path to the directory containing the samples
-    :param clustering_model: which clustering model to use [kmeans, gmm].
-    :param encoding_model: which encoding model to use, convolutional, variational or simple autoencoders.
+    :param encoding_model: which encoding model to use for the pre-training of DAMIC
+    :param clustering_model: clustering model used for the pre-training of DAMIC
     :param batch_size: batch size
     :param n_epochs: number of epochs
     :param lr: learning rate
@@ -22,94 +22,18 @@ def main(datapath, encoding_model, batch_size, n_epochs, lr, flattened, device, 
     :param device: use CUDA device if available else CPU .
     :param overlapped: boolean, if True use the overlapped pixel patches.
     :param experiment: track experiment
-    :param encode: boolean, if True, train and apply encoding model.
-    :param cluster: boolean, if True, train and apply clustering model.
-    :param train_subset: How many elements will be used. Default: all.
-    :param path_to_model: path to the directory containing saved models.
-
-    """
-    unlabeled_train, labeled_train, labeled_valid = load_datasets2(datapath, train_subset=train_subset,
-                                   flattened=flattened, overlapped=overlapped)
-
-    print("Shape of unlabeled training set: ", unlabeled_train.data.shape)
-    print("Shape of labeled training set: ", labeled_train.data.shape)
-    print("Shape of labeled valid set: ", labeled_valid.data.shape)
-    
+    :param train_encoder: if True, an auto-encoder is trained on the unlabeled data for DAMIC pre-training
+    :param train_subset: whether of not we use a subset for the dataset specified in datapath
+    :param path_to_model: if train_encoder is False, then we load an autoencoder from there
+    """   
     damic_model = DAMICClustering(17).to(device)
+    damic_model, numpy_unla_train, numpy_unla_target_pred_by_cluster = execute_damic_pre_training(datapath, damic_model, encoding_model, 
+                                                                                                  train_encoder, clustering_model,
+                                                                                                  batch_size, n_epochs, lr, flattened,
+                                                                                                  device, overlapped, experiment,
+                                                                                                  train_subset, path_to_model)
 
-    # ===== START PRE-TRAINING AS SHOWN IN DAMIC PAPER
-    print("== Start DAMIC pre-training ...")
-    # Train a single autoencoder for the entire dataset
-    if train_encoder:
-        # Train and apply encoding model
-        print("Start training of pre-train auto-encoder...")
-        encoded_unlabeled_train, encoding_model = encoding_model.fit(data=unlabeled_train, batch_size=batch_size, n_epochs=n_epochs,
-                                                       lr=lr, device=device, experiment=experiment)
-        print("Done")
-    else:
-        # Load encoding model and apply encoding
-        print("Load pre-train auto-encoder...")
-        encoding_model.load_state_dict(torch.load(path_to_model)["model"])
-        print("Done")
-        print("Start encoding of unlabeled dataset...")
-        encoded_unlabeled_train = encode_dataset_unlabeled(encoding_model, unlabeled_train, batch_size, device)
-        print("Done")
-    
-    # Apply a k-means algorithm in the embedded space
-    print("Start encoding of labeled dataset...")
-    encoded_labeled_train = encode_dataset_unlabeled(encoding_model, labeled_train, batch_size, device)
-    print("Done")
-    print("Start encoding of labeled dataset...")
-    encoded_labeled_valid = encode_dataset_unlabeled(encoding_model, labeled_valid, batch_size, device)
-    print("Done")
-    print("Start kmean training on unlabeled...")
-    clustering_model.train(encoded_unlabeled_train)
-    print("Done")
-    cluster_labels = assign_labels_to_clusters(clustering_model, encoded_labeled_train, labeled_train.targets)
-    _, accuracy, f1 = eval_model_predictions(clustering_model, encoded_labeled_valid, labeled_valid.targets, cluster_labels)
-    experiment.log_metric('accuracy', accuracy)
-    experiment.log_metric('f1-score', f1)
-
-    # For each unlabeled data, we get the class predicted by the cluster
-    unlabeled_target_pred_by_cluster = clustering_model.predict_cluster(encoded_unlabeled_train)
-    
-    # Use the k-means clustering to initialize the network parameters
-    tensor_unla_train = torch.Tensor(unlabeled_train.data)
-    tensor_unla_target_pred_by_cluster = torch.Tensor(unlabeled_target_pred_by_cluster)
-    numpy_unla_train = tensor_unla_train.cpu().numpy()
-    numpy_unla_target_pred_by_cluster = tensor_unla_target_pred_by_cluster.cpu().numpy()
-
-    print("Start pre-training of clustering convolutional model...")
-    pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
-    clust_network_params = list(damic_model.clustering_network.parameters()) + list(damic_model.output_layer_conv_net.parameters())
-    optimizer = torch.optim.Adam(clust_network_params, lr=lr)
-    damic_model = train_network(damic_model,
-                                pretrain_dataset_with_label,
-                                None,
-                               optimizer,
-                               10,
-                               device,
-                               experiment,
-                               train_classifier=True)
-    print("Done")
-
-    # Train each auto encoder of each cluster on his own data class
-    for i in range(17):
-        print("Start pre-training of auto encoder for cluster ...")
-        indexes_of_class_i = np.where(np.isin(numpy_unla_target_pred_by_cluster,[i]))
-        data_of_class_i = numpy_unla_train[indexes_of_class_i]
-        _, damic_model.autoencoders[i] = damic_model.autoencoders[i].fit(data=data_of_class_i, batch_size=batch_size, n_epochs=n_epochs,
-                                                       lr=lr, device=device, experiment=experiment)
-        print("Done")
-  
-    print("== DAMIC Pre-training done!")
-    # ===== END OF PRE-TRAINING
-    
-    # ===== BEGIN REAL TRAINING
     print("== Start DAMIC training ...!")
-    # TODO : get all the new labels predicted after the training of the clustering conv. network and use it to initialize LocalHoromaData
-    # Put all the data through the conv network
-    # TODO TODO : in numpy_unla_target_pred_by_cluster replace all value inf to 0 by 0 and sup to 16 by 16
     pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
     clust_network_params = list(damic_model.clustering_network.parameters()) + list(damic_model.output_layer_conv_net.parameters())
     autoencoders_params = list()
@@ -127,8 +51,8 @@ def main(datapath, encoding_model, batch_size, n_epochs, lr, flattened, device, 
                                train_classifier=False,
                                train_damic=True)
 
-
     print("== DAMIC training done!")
+    torch.save(damic_model, Constants.PATH_TO_MODEL + "DAMIC_MODEL" + str(experiment.get_key()) + '.pth')
 
 if __name__ == '__main__':
 
@@ -189,5 +113,5 @@ if __name__ == '__main__':
         encoding_model = CVAE(seed)
 
     # Initiate experiment
-    main(datapath, encoding_model, batch_size, n_epochs, lr, flattened, device, overlapped,
+    main(datapath, encoding_model, clustering_model, batch_size, n_epochs, lr, flattened, device, overlapped,
          experiment, train_encoder, train_subset, path_to_model)

@@ -36,7 +36,7 @@
     "lr": 1e-3,
     "n_clusters": 21,
     "latent_dim": 10,
-    "train_subset": null,
+    "train_subset": 100,
     "overlapped": false
   }
 }

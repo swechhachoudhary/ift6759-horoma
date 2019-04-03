@@ -134,13 +134,15 @@ def load_datasets(datapath, train_subset, flattened=False, overlapped=True):
 
     return trainset, labeled_set
 
-def load_datasets2(datapath, train_subset, flattened=False, overlapped=True):
+def load_original_horoma_datasets(datapath, train_subset, flattened=False, overlapped=True):
     """
-    Load Horoma datasets from specified data directory.
+    Load Original Horoma datasets from specified data directory.
+    Return unlabeled, labeled and validation sets
 
     :type datapath: str
     :type flattened: bool
     :type train_subset: str
+    :type overlapped: bool
     """
 
     print("Loading datasets from ({}) ...".format(datapath), end=' ')

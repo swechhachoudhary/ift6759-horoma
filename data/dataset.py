@@ -8,20 +8,20 @@ from torchvision.transforms import functional
 from torch.utils.data import Dataset
 
 class LocalHoromaDataset(Dataset):
-    """ The data is not loaded from a file """
+    """
+    The data is not loaded from a file but given as parameters instead
+    This dataset is use for the pretraining of the convolution clustering network
+    Since this pretraining is supervised, we need a dataset who can handle targets
+    """
 
     def __init__(self, data, targets):
         """
         Args:
-            data_dir: Path to the directory containing the samples.
-            split: Which split to use. [train, valid, test]
-            subset: How many elements will be used. Default: all.
-            skip: How many element to skip before taking the subset.
-            flattened: If True return the images in a flatten format.
+            data : numpy array (number_of_sample, 3, 32, 32)
+            targets : numpy array (number_of_sample, 1)
         """
         self.data = data
         self.targets = targets
-        
 
     def __len__(self):
         return len(self.data)

@@ -10,7 +10,8 @@ class DAMICClustering(nn.Module):
     """
         Clustering network for DAMIC
         Each cluster is reprensented by an autoencoder
-        A convolutional network give us p(c=i|x:theta)
+        A convolutional network assign one input to a specific autoencoder
+        See 'Deep clustering based on a mixture of autoencoders' by Chazan, Gannot and Goldberger
     """
     def __init__(self, n_clusters):
         super().__init__()
@@ -50,52 +51,15 @@ class DAMICClustering(nn.Module):
 
     def train_damic(self, input):
         output_cluster_network = self.train_clustering_network(input)
-        #input_reconstruction_of_each_encoders = np.array([])
         input_reconstruction_of_each_encoders = torch.FloatTensor(17, 3, 32, 32).zero_()
         for i in range(self.n_clusters):
             encoded_decoded_x, _, _ = self.autoencoders[i](input)
             input_reconstruction_of_each_encoders[i] = encoded_decoded_x
-            #input_reconstruction_of_each_encoders = np.append(input_reconstruction_of_each_encoders, encoded_decoded_x)
-            #current_loss = self.loss_fct(encoded_decoded_x, x)
-            #autoencoders_loss[i] = np.exp(-current_loss)
         return output_cluster_network, input_reconstruction_of_each_encoders
         
-    def init_autoencoder(self, data, index):
-        """ using data, we will train the auto encoder for cluster index """
-        print("not implemented yet")
-            
-    def train(self, data):
-        print("not implemented")
-        """
-        if type(data) is torch.Tensor:
-            data = data.detach().cpu().numpy()
-        self.kmeans.fit(data)
-        return self.kmeans
-        """
-
-    def predict_cluster(self, data):
-        # TODO : final hard clustering is made by ĉ = argmax p(c|x,theta) see p3
-        print("not implemented")
-        """
-        if type(data) is torch.Tensor:
-            data = data.detach().cpu().numpy()
-        return self.kmeans.predict(data)
-        """
-    
     def forward(self, x):
         print("Warning : forward should not be called for DAMICClustering")
         print("Instead call train_clustering_network or train_damic")
-        """
-        clustering_network_output = self.clustering_network(x)
-        autoencoders_loss = np.array(self.n_clusters)
-        for i in range(self.n_clusters):
-            encoded_decoded_x = self.autoencoders[i](x)
-            current_loss = self.loss_fct(encoded_decoded_x, x)
-            autoencoders_loss[i] = np.exp(-current_loss)
-        clustering_network_loss = np.exp(clustering_network_output) / np.sum(np.exp(clustering_network_output))
-        encoder_and_network_loss = np.log(np.sum(clustering_network_loss * autoencoders_loss))
-        return clustering_network_output, encoder_and_network_loss
-"""
     
 class KMeansClustering:
     """clustering with K-means"""
