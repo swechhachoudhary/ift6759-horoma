@@ -9,6 +9,7 @@ from utils.utils import compute_metrics, __compute_metrics, plot_historgrams, pl
 from utils.constants import Constants
 from data.dataset import HoromaDataset
 import torch
+from torch.utils import data
 
 
 def main(datapath, encoding_model, batch_size, device, train_split, valid_split, train_labeled_split,
