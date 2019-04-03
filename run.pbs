@@ -3,8 +3,8 @@
 
 #PBS -l feature=k80
 #PBS -l nodes=1:gpus=1
-#PBS -l walltime=10:00:00
+#PBS -l walltime=00:00:30
 
 cd "${PBS_O_WORKDIR}"
 
-s_exec python train.py --config CVAE_BASE
+s_exec python svm_trainer.py --config CAE_BASE --encoder_path ./experiment_models/best_model1.pth
