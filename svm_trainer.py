@@ -92,7 +92,6 @@ def main(datapath, encoding_model, batch_size, device, train_split, valid_split,
     plot_confusion_matrix(valid_data.targets, pred_valid_y, classes=np.arange(17),
                           title='Confusion matrix for Validation, without normalization')
 
-    plt.show()
 
 if __name__ == '__main__':
 
