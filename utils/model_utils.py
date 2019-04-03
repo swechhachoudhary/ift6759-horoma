@@ -49,7 +49,8 @@ def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
     running_loss = 0.0
 
     for batch_idx, inputs in enumerate(train_loader):
-        inputs = inputs.to(device)
+        # Check if its a tuple or not if yes do inputs[0] and if not do inputs normal
+        inputs = inputs[0].to(device)
         optimizer.zero_grad()
         if model.is_variational:
             pred, mu, logvar = model(inputs)
@@ -172,7 +173,8 @@ def _test(model, test_loader, epoch, device, experiment):
     experiment.log_metric("Validation loss", test_loss, step=epoch)
     return test_loss
 
-def train_network(model, train_loader, test_loader, optimizer, n_epochs, device, experiment, train_classifier=False, train_damic=False):
+def train_network(model, train_loader, test_loader, optimizer, n_epochs, device, experiment, train_classifier=False, train_damic=False,
+                 folder_save_model="experiment_models/", pth_filename_save_model=""):
     best_loss = np.inf
     key = experiment.get_key()
     best_model = None
@@ -191,12 +193,16 @@ def train_network(model, train_loader, test_loader, optimizer, n_epochs, device,
             valid_loss = -1
         try:
             if valid_loss < best_loss:
+                if pth_filename_save_model == "":
+                    pth_filename = folder_save_model + str(key) + '.pth'
+                else:
+                    pth_filename = folder_save_model + pth_filename_save_model + '.pth'
                 torch.save({
                     "epoch": epoch,
                     "optimizer": optimizer.state_dict(),
                     "model": model.state_dict(),
                     "loss": valid_loss
-                }, "experiment_models/" + str(key) + '.pth')
+                }, pth_filename)
                 best_loss = valid_loss
                 best_model = deepcopy(model)  # Keep best model thus far
         except FileNotFoundError as e:

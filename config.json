@@ -36,7 +36,7 @@
         "n_clusters": 21,
         "latent_dim": 10,
         "encoder_path": "experiment_models/cvae_base.pth",
-        "train_encoder": false
+        "train_encoder": true
     },
     "damic_conv_net_pretrain": {
         "batch_size": 128,

@@ -126,12 +126,14 @@ class CVAE(nn.Module):
     :param latent_dim: dimension of latent-space representation.
 
     """
-    def __init__(self, input_dim=3072, latent_dim=2):
+    def __init__(self, input_dim=3072, latent_dim=2, folder_save_model="experiment_models/", pth_filename_save_model=""):
         self.latent_dim = latent_dim
         self.input_dim = input_dim
         self.is_variational = True
         self.calculate_own_loss = False
-
+        self.folder_save_model = folder_save_model
+        self.pth_filename_save_model = pth_filename_save_model
+        
         super().__init__()
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),  # input is b, 3, 32, 32
@@ -229,7 +231,8 @@ class CVAE(nn.Module):
         train_loader, valid_loader = get_ae_dataloaders(data, batch_size, split=0.8)
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
-        best_model = train_network(self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
+        best_model = train_network(self, train_loader, valid_loader, optimizer, n_epochs, device, experiment,
+                                  folder_save_model=self.folder_save_model, pth_filename_save_model=self.pth_filename_save_model)
         return encode_dataset(self, data, batch_size, device), best_model
     
     def _calculate_own_loss(self):

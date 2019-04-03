@@ -1,4 +1,5 @@
 import torch
+import datetime
 from models.encoders import *
 from models.clustering import *
 from utils.utils import *
@@ -36,7 +37,11 @@ def get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_tra
 
 def _get_encoding_model(encoding_model_name, latent_dim, device, seed):
     if encoding_model_name == "cvae":
-        encoding_model = CVAE(latent_dim=latent_dim).to(device)
+        now = datetime.datetime.now()
+        pth_filename = "autoencoder_pretrain_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
+        encoding_model = CVAE(latent_dim=latent_dim,
+                              folder_save_model="damic_models/",
+                              pth_filename_save_model=pth_filename).to(device)
     elif encoding_model_name == "convae":
         encoding_model = ConvAE(latent_dim=latent_dim).to(device)
     else:
