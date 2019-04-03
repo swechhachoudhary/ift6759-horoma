@@ -165,5 +165,5 @@ if __name__ == '__main__':
         encoding_model = PCAEncoder(seed)
 
     # Initiate experiment
-    main(datapath, encoding_model, batch_size, device, train_split, valid_split,
-         train_labeled_split, experiment, path_to_model=path_to_model)
+    main(datapath, encoding_model, batch_size, n_epochs, lr, device, train_split, valid_split, train_labeled_split,
+         experiment, path_to_model=path_to_model)
