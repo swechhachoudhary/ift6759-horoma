@@ -12,7 +12,7 @@ import torch
 from torch.utils import data
 
 
-def main(datapath, encoding_model, batch_size, device, train_split, valid_split, train_labeled_split,
+def main(datapath, encoding_model, batch_size, n_epochs, lr, device, train_split, valid_split, train_labeled_split,
          experiment, path_to_model=None):
 
     full_dataset = HoromaDataset(datapath, split=train_split, flattened=flattened)
@@ -25,7 +25,7 @@ def main(datapath, encoding_model, batch_size, device, train_split, valid_split,
     # split the full_dataset(labeled and unlabeled train data) into train and valid for autoencoder pre-training
     n_train = int(0.90 * len(full_dataset))
     n_valid = len(full_dataset) - n_train
-    train_dataset, valid_dataset = data.random_split(train_labeled, [n_train, n_valid])
+    train_dataset, valid_dataset = data.random_split(full_dataset, [n_train, n_valid])
 
     # print("Loading model....\n")
     # # load the best model
