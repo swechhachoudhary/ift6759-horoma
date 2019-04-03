@@ -23,7 +23,7 @@ def main(datapath, encoding_model, batch_size, device, train_split, valid_split,
         datapath, split=valid_split, flattened=flattened)
 
     # split the full_dataset(labeled and unlabeled train data) into train and valid for autoencoder pre-training
-    n_train = int(0.95 * len(full_dataset))
+    n_train = int(0.90 * len(full_dataset))
     n_valid = len(full_dataset) - n_train
     train_dataset, valid_dataset = data.random_split(train_labeled, [n_train, n_valid])
 
