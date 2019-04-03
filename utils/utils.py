@@ -158,7 +158,6 @@ def load_original_horoma_datasets(datapath, train_subset, flattened=False, overl
         labeled_validset = OriginalHoromaDataset(datapath, split="valid", flattened=flattened)
 
     print("Done in {:.2f} sec".format(time() - start_time))
-
     return unlabeled_trainset, labeled_trainset, labeled_validset
 
 

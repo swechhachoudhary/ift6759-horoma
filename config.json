@@ -39,6 +39,7 @@
         "train_encoder": false
     },
     "damic_conv_net_pretrain": {
+        "batch_size": 128,
         "lr": 1e-3,
         "n_epochs": 10
     },
@@ -48,11 +49,12 @@
         "lr": 1e-3        
     },
     "damic_train": {
+        "batch_size": 128,
         "n_epochs": 1,
         "lr": 1e-3
     },
     "seed": 1234,
-    "train_subset": 100,
+    "train_subset": 300,
     "overlapped": false
   }
 }

@@ -82,19 +82,22 @@ def _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, e
 
     for batch_idx, data in enumerate(train_loader):
         inputs, labels = data
+        labels = labels.long()
+        labels = labels.squeeze()
+
         inputs = inputs.to(device)
         labels = labels.to(device)
-        labels = labels.long()
-        if labels[0] > -1 and labels[0] < 17:
-            optimizer.zero_grad()
-            inputs = inputs.unsqueeze(0)
-            outputs = model.train_clustering_network(inputs)
-            criterion = nn.CrossEntropyLoss()
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+        labels[labels<0] = 0
+        labels[labels>16] = 16
 
-            running_loss += loss.item()
+        optimizer.zero_grad()
+        outputs = model.train_clustering_network(inputs)
+        criterion = nn.CrossEntropyLoss()
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item()
 
     train_loss = running_loss / len(train_loader)
     experiment.log_metric("Conv classifier train loss", train_loss, step=epoch)
@@ -108,32 +111,35 @@ def _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experi
 
     for batch_idx, data in enumerate(train_loader):
         inputs, labels = data
+        current_batch_size = inputs.shape[0]
         inputs = inputs.to(device)
         labels = labels.to(device)
         labels = labels.long()
-        if labels[0] > -1 and labels[0] < 17:
-            optimizer.zero_grad()
-            inputs = inputs.unsqueeze(0)
+        labels = labels.squeeze()
+        labels[labels<0] = 0
+        labels[labels>16] = 16
+        
+        optimizer.zero_grad()
 
-            outputs, ae_reconstruction = model.train_damic(inputs)
-            criterion_ae = nn.MSELoss()
+        outputs, ae_reconstruction = model.train_damic(inputs, current_batch_size)
+        criterion_ae = nn.MSELoss()
 
-            loss_autoencoders = torch.FloatTensor(17).zero_().to(device)
-            for i in range(17):
-                loss_autoencoder = criterion_ae(inputs, ae_reconstruction[i].to(device))
-                loss_autoencoders[i] = -(loss_autoencoder/2)
+        loss_autoencoders = torch.FloatTensor(17).zero_().to(device)
+        for i in range(17):
+            loss_autoencoder = criterion_ae(inputs, ae_reconstruction[i].to(device))
+            loss_autoencoders[i] = -(loss_autoencoder/2.0)
 
-            # Calculate loss given the formula (3) p2 from 'Deep clustering based on a mixture of autoencoders paper'
-            exp_loss_autoencoders = loss_autoencoders.exp()
-            total_loss_per_class = outputs * loss_autoencoders
-            total_loss = total_loss_per_class.sum()
-            total_loss_log = total_loss.log()
+        # Calculate loss given the formula (3) p2 from 'Deep clustering based on a mixture of autoencoders paper'
+        exp_loss_autoencoders = loss_autoencoders.exp()
+        total_loss_per_class = outputs * loss_autoencoders
+        total_loss = total_loss_per_class.sum()
+        total_loss_log = total_loss.log()
 
-            # Simultaneously train all the autoencoders and the convolutional network
-            total_loss_log.backward()
-            optimizer.step()
+        # Simultaneously train all the autoencoders and the convolutional network
+        total_loss_log.backward()
+        optimizer.step()
 
-            running_loss += total_loss_log.item()
+        running_loss += total_loss_log.item()
 
     train_loss = running_loss / len(train_loader)
     experiment.log_metric("DAMIC train loss", train_loss, step=epoch)

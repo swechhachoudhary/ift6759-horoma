@@ -114,12 +114,16 @@ def execute_damic_pre_training(datapath, damic_model, train_subset, overlapped, 
 
     # Use the k-means clustering to initialize the clustering network parameters
     print("Start pre-training of clustering convolutional model...")
-    pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
-    clust_network_params = list(damic_model.clustering_network.parameters()) + list(damic_model.output_layer_conv_net.parameters())
     lr = conv_net_pretrain_config["lr"]
+    batch_size = conv_net_pretrain_config["batch_size"]
     n_epoch = conv_net_pretrain_config["n_epochs"]
+    pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
+    
+    pretrain_dataset_with_label_loader = DataLoader(pretrain_dataset_with_label, batch_size=batch_size)
+    
+    clust_network_params = list(damic_model.clustering_network.parameters()) + list(damic_model.output_layer_conv_net.parameters())
     optimizer = torch.optim.Adam(clust_network_params, lr=lr)
-    damic_model = train_network(damic_model, pretrain_dataset_with_label, None, optimizer, n_epoch, device, experiment,
+    damic_model = train_network(damic_model, pretrain_dataset_with_label_loader, None, optimizer, n_epoch, device, experiment,
                                 train_classifier=True)
     print("Done")
 
@@ -154,17 +158,19 @@ def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_u
     
     print("== Start DAMIC training ...!")
     damic_train_config = configuration['damic_train']
+    lr = damic_train_config["lr"]
+    n_epochs = damic_train_config["n_epochs"]
+    batch_size = damic_train_config["batch_size"]
     pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
+    pretrain_dataset_with_label_loader = DataLoader(pretrain_dataset_with_label, batch_size=batch_size)
     clust_network_params = list(damic_model.clustering_network.parameters()) + list(damic_model.output_layer_conv_net.parameters())
     autoencoders_params = list()
     for i in range(17):
         autoencoders_params = autoencoders_params + list(damic_model.autoencoders[i].parameters())
     damic_parameters = clust_network_params + autoencoders_params
-    lr = damic_train_config["lr"]
-    n_epochs = damic_train_config["n_epochs"]
     optimizer = torch.optim.Adam(damic_parameters, lr=lr)
     damic_model = train_network(damic_model,
-                               pretrain_dataset_with_label,
+                               pretrain_dataset_with_label_loader,
                                None,
                                optimizer,
                                n_epochs,

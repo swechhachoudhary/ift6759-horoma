@@ -49,9 +49,9 @@ class DAMICClustering(nn.Module):
         output = self.output_layer_conv_net(output)
         return F.softmax(output, dim=1)
 
-    def train_damic(self, input):
+    def train_damic(self, input, batch_size):
         output_cluster_network = self.train_clustering_network(input)
-        input_reconstruction_of_each_encoders = torch.FloatTensor(17, 3, 32, 32).zero_()
+        input_reconstruction_of_each_encoders = torch.FloatTensor(17, batch_size, 3, 32, 32).zero_()
         for i in range(self.n_clusters):
             encoded_decoded_x, _, _ = self.autoencoders[i](input)
             input_reconstruction_of_each_encoders[i] = encoded_decoded_x
