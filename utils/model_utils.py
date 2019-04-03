@@ -82,6 +82,125 @@ def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
     experiment.log_metric("Train loss", train_loss, step=epoch)
     return train_loss
 
+def _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, experiment):
+    """Train one epoch for model."""
+    model.clustering_network.train()
+    model.output_layer_conv_net.train()
+    running_loss = 0.0
+
+    for batch_idx, data in enumerate(train_loader):
+        # get the inputs
+        inputs, labels = data
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        labels = labels.long()
+        if labels[0] > -1 and labels[0] < 17:
+            #print("Labels labels")
+            #print(labels)
+            #print("Labels labels shape")
+            #print(labels.shape)
+            #label_vector = torch.LongTensor(17).zero_()
+            #label_vector[labels[0].item()] = 1
+            #label_vector = label_vector.to(device)
+            #label_vector = label_vector.unsqueeze(0)
+            #print("Vector labels")
+            #print(label_vector)
+            #print("Vector labels shape")
+            #print(label_vector.shape)
+            # zero the parameter gradients
+            optimizer.zero_grad()
+
+            # forward + backward + optimize
+            #print("inputs shape before")
+            #print(inputs.shape)
+            inputs = inputs.unsqueeze(0)
+            #print("inputs shape after")
+            #print(inputs.shape)
+            outputs = model.train_clustering_network(inputs)
+            #print("outputs")
+            #print(outputs)
+            #print("SHAPE")
+            #print(outputs.shape)
+            criterion = nn.CrossEntropyLoss()
+            #print("First row labels")
+            #print(labels[0])
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            # print statistics
+            running_loss += loss.item()
+            """
+            if batch_idx % 10 == 0:
+                print('[%d, %5d] loss: %.3f' %
+                      (epoch + 1, batch_idx + 1, running_loss / 10))
+            """
+
+    train_loss = running_loss / len(train_loader)
+    experiment.log_metric("Conv classifier train loss", train_loss, step=epoch)
+    print('Finished Training')
+    return train_loss
+
+def _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experiment):
+    """Train one epoch for model."""
+    model.clustering_network.train()
+    model.output_layer_conv_net.train()
+    running_loss = 0.0
+
+    for batch_idx, data in enumerate(train_loader):
+        # get the inputs
+        inputs, labels = data
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        labels = labels.long()
+        if labels[0] > -1 and labels[0] < 17:
+            optimizer.zero_grad()
+            inputs = inputs.unsqueeze(0)
+
+            outputs, ae_reconstruction = model.train_damic(inputs)
+            #criterion_conv_net = nn.CrossEntropyLoss()
+            criterion_ae = nn.MSELoss()
+
+            #loss_conv_net = criterion_conv_net(outputs, labels)
+            #print("LOSS CONV NET")
+            #print(loss_conv_net)
+            loss_autoencoders = torch.FloatTensor(17).zero_().to(device)
+            for i in range(17):
+                loss_autoencoder = criterion_ae(inputs, ae_reconstruction[i].to(device))
+                #print("LOSS AUTO ENCODERS")
+                #print(loss_autoencoder)
+                loss_autoencoders[i] = -(loss_autoencoder/2)
+                #loss_autoencoders = np.append(loss_autoencoders, -(loss_autoencoder/2))
+            #print("FINAL LOSS AE")
+            #print(loss_autoencoders)
+            exp_loss_autoencoders = loss_autoencoders.exp()
+            #print("EXP AE")
+            #print(exp_loss_autoencoders)
+            total_loss_per_class = outputs * loss_autoencoders
+            #total_loss_per_class = loss_conv_net * loss_autoencoders
+            #print("Total loss per class")
+            #print(total_loss_per_class)
+            total_loss = total_loss_per_class.sum()
+            #print("Total loss sum")
+            #print(total_loss)
+            total_loss_log = total_loss.log()
+            #print("Total loss log result")
+            #print(total_loss_log)
+            # Simultaneously train all the autoencoders and the convolutional network
+            total_loss_log.backward()
+            optimizer.step()
+
+            # print statistics
+            running_loss += total_loss_log.item()
+            """
+            if batch_idx % 10 == 0:
+                print('[%d, %5d] loss: %.3f' %
+                      (epoch + 1, batch_idx + 1, running_loss / 1))
+            """
+
+    train_loss = running_loss / len(train_loader)
+    experiment.log_metric("DAMIC train loss", train_loss, step=epoch)
+    return train_loss
 
 def _test(model, test_loader, epoch, device, experiment):
     """ Compute reconstruction loss of model over given dataset. """
@@ -110,18 +229,25 @@ def _test(model, test_loader, epoch, device, experiment):
     experiment.log_metric("Validation loss", test_loss, step=epoch)
     return test_loss
 
-
-def train_network(model, train_loader, test_loader, optimizer, n_epochs, device, experiment):
+def train_network(model, train_loader, test_loader, optimizer, n_epochs, device, experiment, train_classifier=False, train_damic=False):
     best_loss = np.inf
     key = experiment.get_key()
     best_model = None
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.5)
     for epoch in range(n_epochs):
         scheduler.step()
-        train_loss = _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment)
+        if train_damic:
+            train_loss = _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experiment)
+            print("train loss is")
+            print(train_loss)
+        elif train_classifier:
+            train_loss = _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, experiment)
+        else:
+            train_loss = _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment)
         if test_loader != None:
             valid_loss = _test(model, test_loader, epoch, device, experiment)
-
+        else:
+            valid_loss = -1
         try:
             if valid_loss < best_loss:
                 torch.save({

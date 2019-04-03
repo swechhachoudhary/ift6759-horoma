@@ -6,7 +6,8 @@ from models.clustering import *
 from utils.utils import *
 from utils.constants import Constants
 import torch
-
+from data.dataset import LocalHoromaDataset
+from torch.utils.data import DataLoader
 
 def main(datapath, encoding_model, batch_size, n_epochs, lr, flattened, device, overlapped,
          experiment, train_encoder, train_subset=None, path_to_model=None):
@@ -37,7 +38,7 @@ def main(datapath, encoding_model, batch_size, n_epochs, lr, flattened, device, 
     damic_model = DAMICClustering(17).to(device)
 
     # ===== START PRE-TRAINING AS SHOWN IN DAMIC PAPER
-    print("== Start DAMIC pre-training")
+    print("== Start DAMIC pre-training ...")
     # Train a single autoencoder for the entire dataset
     if train_encoder:
         # Train and apply encoding model
@@ -56,11 +57,9 @@ def main(datapath, encoding_model, batch_size, n_epochs, lr, flattened, device, 
     
     # Apply a k-means algorithm in the embedded space
     print("Start encoding of labeled dataset...")
-    #encoded_labeled_train = encoding_model.encode([i[0].to(device) for i in labeled_train])
     encoded_labeled_train = encode_dataset_unlabeled(encoding_model, labeled_train, batch_size, device)
     print("Done")
     print("Start encoding of labeled dataset...")
-    #encoded_labeled_valid = encoding_model.encode(labeled_valid.data.to(device))
     encoded_labeled_valid = encode_dataset_unlabeled(encoding_model, labeled_valid, batch_size, device)
     print("Done")
     print("Start kmean training on unlabeled...")
@@ -75,29 +74,61 @@ def main(datapath, encoding_model, batch_size, n_epochs, lr, flattened, device, 
     unlabeled_target_pred_by_cluster = clustering_model.predict_cluster(encoded_unlabeled_train)
     
     # Use the k-means clustering to initialize the network parameters
-    # Train each auto encoder of each cluster on his own data class
     tensor_unla_train = torch.Tensor(unlabeled_train.data)
     tensor_unla_target_pred_by_cluster = torch.Tensor(unlabeled_target_pred_by_cluster)
     numpy_unla_train = tensor_unla_train.cpu().numpy()
     numpy_unla_target_pred_by_cluster = tensor_unla_target_pred_by_cluster.cpu().numpy()
-    
+
+    print("Start pre-training of clustering convolutional model...")
+    pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
+    clust_network_params = list(damic_model.clustering_network.parameters()) + list(damic_model.output_layer_conv_net.parameters())
+    optimizer = torch.optim.Adam(clust_network_params, lr=lr)
+    damic_model = train_network(damic_model,
+                                pretrain_dataset_with_label,
+                                None,
+                               optimizer,
+                               10,
+                               device,
+                               experiment,
+                               train_classifier=True)
+    print("Done")
+
+    # Train each auto encoder of each cluster on his own data class
     for i in range(17):
-        print("Start training of auto encoder for cluster ...")
+        print("Start pre-training of auto encoder for cluster ...")
         indexes_of_class_i = np.where(np.isin(numpy_unla_target_pred_by_cluster,[i]))
         data_of_class_i = numpy_unla_train[indexes_of_class_i]
         _, damic_model.autoencoders[i] = damic_model.autoencoders[i].fit(data=data_of_class_i, batch_size=batch_size, n_epochs=n_epochs,
                                                        lr=lr, device=device, experiment=experiment)
         print("Done")
-    
+  
     print("== DAMIC Pre-training done!")
     # ===== END OF PRE-TRAINING
     
     # ===== BEGIN REAL TRAINING
+    print("== Start DAMIC training ...!")
+    # TODO : get all the new labels predicted after the training of the clustering conv. network and use it to initialize LocalHoromaData
     # Put all the data through the conv network
-    # TODO
+    # TODO TODO : in numpy_unla_target_pred_by_cluster replace all value inf to 0 by 0 and sup to 16 by 16
+    pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
+    clust_network_params = list(damic_model.clustering_network.parameters()) + list(damic_model.output_layer_conv_net.parameters())
+    autoencoders_params = list()
+    for i in range(17):
+        autoencoders_params = autoencoders_params + list(damic_model.autoencoders[i].parameters())
+    damic_parameters = clust_network_params + autoencoders_params
+    optimizer = torch.optim.Adam(damic_parameters, lr=lr)
+    damic_model = train_network(damic_model,
+                               pretrain_dataset_with_label,
+                               None,
+                               optimizer,
+                               1,
+                               device,
+                               experiment,
+                               train_classifier=False,
+                               train_damic=True)
 
-    # Get the final loss and backpropagate with it (- sum loss etc..)
-    # TODO
+
+    print("== DAMIC training done!")
 
 if __name__ == '__main__':
 

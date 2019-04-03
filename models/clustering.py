@@ -4,6 +4,7 @@ from sklearn.mixture import GaussianMixture
 import torch
 import numpy as np
 import torch.nn as nn
+import torch.nn.functional as F
 
 class DAMICClustering(nn.Module):
     """
@@ -37,17 +38,34 @@ class DAMICClustering(nn.Module):
             nn.ReLU(),
             nn.Conv2d(16, 16, kernel_size=4, stride=2, padding=1),  # b, 16,4,4
             nn.BatchNorm2d(16),
-            nn.ReLU(),
-            nn.Linear(16 * 4 * 4, 17),
-            nn.Softmax()
+            nn.ReLU()
         )
+        self.output_layer_conv_net = nn.Linear(16 * 4 * 4, 17)
+
+    def train_clustering_network(self, input):
+        output = self.clustering_network(input)
+        output = output.view(-1, 16 * 4 * 4)
+        output = self.output_layer_conv_net(output)
+        return F.softmax(output, dim=1)
+
+    def train_damic(self, input):
+        output_cluster_network = self.train_clustering_network(input)
+        #input_reconstruction_of_each_encoders = np.array([])
+        input_reconstruction_of_each_encoders = torch.FloatTensor(17, 3, 32, 32).zero_()
+        for i in range(self.n_clusters):
+            encoded_decoded_x, _, _ = self.autoencoders[i](input)
+            input_reconstruction_of_each_encoders[i] = encoded_decoded_x
+            #input_reconstruction_of_each_encoders = np.append(input_reconstruction_of_each_encoders, encoded_decoded_x)
+            #current_loss = self.loss_fct(encoded_decoded_x, x)
+            #autoencoders_loss[i] = np.exp(-current_loss)
+        return output_cluster_network, input_reconstruction_of_each_encoders
         
     def init_autoencoder(self, data, index):
         """ using data, we will train the auto encoder for cluster index """
         print("not implemented yet")
             
     def train(self, data):
-        print("not implemented yet")
+        print("not implemented")
         """
         if type(data) is torch.Tensor:
             data = data.detach().cpu().numpy()
@@ -57,7 +75,7 @@ class DAMICClustering(nn.Module):
 
     def predict_cluster(self, data):
         # TODO : final hard clustering is made by ĉ = argmax p(c|x,theta) see p3
-        print("not implemented yet")
+        print("not implemented")
         """
         if type(data) is torch.Tensor:
             data = data.detach().cpu().numpy()
@@ -65,6 +83,9 @@ class DAMICClustering(nn.Module):
         """
     
     def forward(self, x):
+        print("Warning : forward should not be called for DAMICClustering")
+        print("Instead call train_clustering_network or train_damic")
+        """
         clustering_network_output = self.clustering_network(x)
         autoencoders_loss = np.array(self.n_clusters)
         for i in range(self.n_clusters):
@@ -74,7 +95,7 @@ class DAMICClustering(nn.Module):
         clustering_network_loss = np.exp(clustering_network_output) / np.sum(np.exp(clustering_network_output))
         encoder_and_network_loss = np.log(np.sum(clustering_network_loss * autoencoders_loss))
         return clustering_network_output, encoder_and_network_loss
-
+"""
     
 class KMeansClustering:
     """clustering with K-means"""

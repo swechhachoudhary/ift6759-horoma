@@ -32,7 +32,7 @@
     "train_encoder": false,
     "batch_size": 128,
     "seed": 1234,
-    "n_epochs": 10,
+    "n_epochs": 1,
     "lr": 1e-3,
     "n_clusters": 21,
     "latent_dim": 10,

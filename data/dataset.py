@@ -7,6 +7,29 @@ from tempfile import mkdtemp
 from torchvision.transforms import functional
 from torch.utils.data import Dataset
 
+class LocalHoromaDataset(Dataset):
+    """ The data is not loaded from a file """
+
+    def __init__(self, data, targets):
+        """
+        Args:
+            data_dir: Path to the directory containing the samples.
+            split: Which split to use. [train, valid, test]
+            subset: How many elements will be used. Default: all.
+            skip: How many element to skip before taking the subset.
+            flattened: If True return the images in a flatten format.
+        """
+        self.data = data
+        self.targets = targets
+        
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        return torch.Tensor(self.data[index]) / 255, torch.Tensor([self.targets[index]])
+
+
 class OriginalHoromaDataset(Dataset):
 
     def __init__(self, data_dir, split="train", subset=None, skip=0, flattened=False, transform=None):
