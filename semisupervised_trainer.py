@@ -11,30 +11,23 @@ import torch
 from models.mlp_classifier import MLPClassifier
 
 
-def main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr, flattened, device, train_split, valid_split, train_labeled_split,
+def main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr, device,
+         train_unlabeled_split, valid_split, train_labeled_split,
          experiment, path_to_model=None):
     """
     :param datapath: path to the directory containing the samples
-    :param clustering_model: which clustering model to use [kmeans, gmm].
+    :param classifier_model: which classifier model to use
     :param encoding_model: which encoding model to use, convolutional, variational or simple autoencoders.
     :param batch_size: batch size
     :param n_epochs: number of epochs
     :param lr: learning rate
-    :param flattened: If True return the images in a flatten format.
     :param device: use CUDA device if available else CPU .
-    :param overlapped: boolean, if True use the overlapped pixel patches.
     :param experiment: track experiment
-    :param encode: boolean, if True, train and apply encoding model.
-    :param cluster: boolean, if True, train and apply clustering model.
-    :param train_subset: How many elements will be used. Default: all.
     :param path_to_model: path to the directory containing saved models.
-
     """
-    train_unlabeled = HoromaDataset(datapath, split=train_split, flattened=flattened)
-    train_labeled = HoromaDataset(
-        datapath, split=train_labeled_split, flattened=flattened)
-    valid_data = HoromaDataset(
-        datapath, split=valid_split, flattened=flattened)
+    train_unlabeled = HoromaDataset(datapath, split=train_unlabeled_split)
+    train_labeled = HoromaDataset(datapath, split=train_labeled_split)
+    valid_data = HoromaDataset(datapath, split=valid_split)
 
     train_unlabeled_loader = DataLoader(train_unlabeled, batch_size=batch_size, shuffle=True)
     train_labeled_loader = DataLoader(train_labeled, batch_size=batch_size, shuffle=True)
