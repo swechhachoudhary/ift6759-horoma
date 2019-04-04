@@ -44,10 +44,20 @@ class DAMICClustering(nn.Module):
         self.output_layer_conv_net = nn.Linear(16 * 4 * 4, 17)
 
     def train_clustering_network(self, input):
+        self.clustering_network.train()
+        self.output_layer_conv_net.train()
         output = self.clustering_network(input)
         output = output.view(-1, 16 * 4 * 4)
         output = self.output_layer_conv_net(output)
         return F.softmax(output, dim=1)
+    
+    def test_clustering_network(self, inputs):
+        self.clustering_network.eval()
+        self.output_layer_conv_net.eval()
+        output = self.clustering_network(inputs)
+        output = output.view(-1, 16 * 4 * 4)
+        output = self.output_layer_conv_net(output)
+        return F.softmax(output, dim=1)        
 
     def train_damic(self, input, batch_size):
         output_cluster_network = self.train_clustering_network(input)

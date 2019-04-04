@@ -5,6 +5,7 @@ from models.clustering import *
 from utils.utils import *
 from utils.constants import Constants
 from comet_ml import OfflineExperiment
+from torch.utils.data import ConcatDataset
 from data.dataset import LocalHoromaDataset
 
 def get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_train, unlabeled_train, labeled_train,
@@ -12,10 +13,10 @@ def get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_tra
     # Apply a clustering model algorithm on an embedded space provided by the encoding_model
     # Return a class prediction for each sample within encoded_unlabeled_train
     print("Start encoding of labeled dataset...")
-    encoded_labeled_train = encode_dataset(encoding_model, labeled_train, batch_size, device, for_pre_training=True)
+    encoded_labeled_train = encode_dataset(encoding_model, labeled_train, batch_size, device)
     print("Done")
     print("Start encoding of labeled dataset...")
-    encoded_labeled_valid = encode_dataset(encoding_model, labeled_valid, batch_size, device, for_pre_training=True)
+    encoded_labeled_valid = encode_dataset(encoding_model, labeled_valid, batch_size, device)
     print("Done")
     print("Start kmean training on unlabeled...")
     clustering_model.train(encoded_unlabeled_train)
@@ -55,28 +56,35 @@ def _get_clustering_model(n_clusters, seed):
 
 
 def _initialize_damic_conv_clustering_net_weights(damic_model, conv_net_pretrain_config, numpy_unla_train,
-                                                  numpy_unla_target_pred_by_cluster, device, experiment):
+                                                  numpy_unla_target_pred_by_cluster, labeled_train_and_valid, device, experiment):
     print("Start pre-training of clustering convolutional model...")
     lr = conv_net_pretrain_config["lr"]
     batch_size = conv_net_pretrain_config["batch_size"]
     n_epoch = conv_net_pretrain_config["n_epochs"]
     pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
     
-    pretrain_dataset_with_label_loader = DataLoader(pretrain_dataset_with_label, batch_size=batch_size)
+    pretrain_dataset_predicted_label_loader = DataLoader(pretrain_dataset_with_label, batch_size=batch_size)
+    valid_and_train_real_label_loader = DataLoader(labeled_train_and_valid, batch_size=batch_size)
     
     clust_network_params = list(damic_model.clustering_network.parameters()) + list(damic_model.output_layer_conv_net.parameters())
     optimizer = torch.optim.Adam(clust_network_params, lr=lr)
     print("Done")
-    return train_network(damic_model, pretrain_dataset_with_label_loader, None, optimizer, n_epoch, device, experiment,
-                                train_classifier=True)
 
+    # Used to save the convolutional network model at the end of the pre training
+    now = datetime.datetime.now()
+    pth_filename = "conv_net_pretrain_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
+    return train_network(damic_model, pretrain_dataset_predicted_label_loader, valid_and_train_real_label_loader, optimizer, n_epoch,
+                         device, experiment, train_classifier=True, folder_save_model="damic_models/", pth_filename_save_model=pth_filename)
+ 
 
 def _get_class_predictions_for_damic_pretraining(datapath, train_subset, overlapped, ae_pretrain_config, device, experiment, seed):
-    unlabeled_train, labeled_train, labeled_valid = load_original_horoma_datasets(datapath, train_subset=train_subset,
-                                                                                  overlapped=overlapped)
+    unlabeled_train, labeled_train, labeled_valid, labeled_train_and_valid = load_original_horoma_datasets(datapath, 
+                                                                                                           train_subset=train_subset, 
+                                                                                                           overlapped=overlapped)
     print("Shape of unlabeled training set: ", unlabeled_train.data.shape)
     print("Shape of labeled training set: ", labeled_train.data.shape)
     print("Shape of labeled valid set: ", labeled_valid.data.shape)
+    print("Shape of labeled train and valid set: ", labeled_train_and_valid.data.shape)
     
     latent_dim = ae_pretrain_config["latent_dim"]
     encoding_model = _get_encoding_model(ae_pretrain_config["enc_model"], latent_dim, device, seed)
@@ -98,17 +106,20 @@ def _get_class_predictions_for_damic_pretraining(datapath, train_subset, overlap
         encoding_model.load_state_dict(torch.load(path_to_model)["model"])
         print("Done")
         print("Start encoding of unlabeled dataset...")
-        encoded_unlabeled_train = encode_dataset(encoding_model, unlabeled_train, batch_size, device, for_pre_training=True)
+        encoded_unlabeled_train = encode_dataset(encoding_model, unlabeled_train, batch_size, device)
         print("Done")
-        
-    return get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_train, unlabeled_train, labeled_train, labeled_valid,
-                                batch_size, device, experiment)    
+    
+    a, b = get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_train, unlabeled_train, labeled_train, labeled_valid,
+                                batch_size, device, experiment)
+    return a, b, labeled_train_and_valid    
 
 def _initialize_damic_autoencoders_weights(damic_model, damic_autoencoders_pretrain_config, numpy_unla_train, 
                                            numpy_unla_target_pred_by_cluster, device, experiment):
     lr = damic_autoencoders_pretrain_config["lr"]
     n_epochs = damic_autoencoders_pretrain_config["n_epochs"]
     batch_size = damic_autoencoders_pretrain_config["batch_size"]
+    now = datetime.datetime.now()
+    pth_filename = "autoencoders_pretrain_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
     for i in range(17):
         print("Start pre-training of auto encoder for cluster ...")
         indexes_of_class_i = np.where(np.isin(numpy_unla_target_pred_by_cluster,[i]))
@@ -116,6 +127,11 @@ def _initialize_damic_autoencoders_weights(damic_model, damic_autoencoders_pretr
         _, damic_model.autoencoders[i] = damic_model.autoencoders[i].fit(data=data_of_class_i, batch_size=batch_size, n_epochs=n_epochs,
                                                        lr=lr, device=device, experiment=experiment)
         print("Done")
+    now = datetime.datetime.now()
+    pth_filename = "damic_models/autoencoders_pretrain_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
+    torch.save({
+        "model": damic_model.state_dict(),
+    }, pth_filename + ".pth")
     return damic_model
 
 def execute_damic_pre_training(datapath, damic_model, train_subset, overlapped, ae_pretrain_config, conv_net_pretrain_config,
@@ -146,24 +162,36 @@ def execute_damic_pre_training(datapath, damic_model, train_subset, overlapped, 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     print("== Start DAMIC pre-training ...")
-    numpy_unla_train, numpy_unla_target_pred_by_cluster = _get_class_predictions_for_damic_pretraining(datapath, train_subset, 
-                                                           overlapped, ae_pretrain_config, 
-                                                           device, experiment, seed)
+    numpy_unla_train, numpy_unla_target_pred_by_cluster, labeled_train_and_valid = \
+                                            _get_class_predictions_for_damic_pretraining(datapath, train_subset, overlapped,
+                                                                                         ae_pretrain_config, device, experiment, seed)
 
-
+    
+    
     # Use the k-means clustering to initialize the clustering network parameters
-    damic_model = _initialize_damic_conv_clustering_net_weights(damic_model, conv_net_pretrain_config, numpy_unla_train, 
-                                                                numpy_unla_target_pred_by_cluster, device, experiment)
+    # If no model path is specified for the pretraining, we train it from scratch, otherwise we load it
+    conv_net_pretrain_path = conv_net_pretrain_config["conv_net_pretrain_path"]
+    if conv_net_pretrain_path == "":
+        damic_model = _initialize_damic_conv_clustering_net_weights(damic_model, conv_net_pretrain_config, numpy_unla_train, 
+                                                                numpy_unla_target_pred_by_cluster, labeled_train_and_valid, device, 
+                                                                    experiment)
+    else:
+        damic_model.load_state_dict(torch.load(conv_net_pretrain_path)["model"])
 
     # Train each auto encoder of each cluster on his own data class
-    damic_model = _initialize_damic_autoencoders_weights(damic_model, damic_autoencoders_pretrain_config, numpy_unla_train, 
-                                           numpy_unla_target_pred_by_cluster, device, experiment)
-    
+    autoencoders_pretrain_path = damic_autoencoders_pretrain_config["autoencoders_pretrain_path"]
+    if autoencoders_pretrain_path == "":
+        damic_model = _initialize_damic_autoencoders_weights(damic_model, damic_autoencoders_pretrain_config, numpy_unla_train, 
+                                               numpy_unla_target_pred_by_cluster, device, experiment)
+    else:
+        damic_model.load_state_dict(torch.load(autoencoders_pretrain_path)["model"])
+
     print("== DAMIC Pre-training done!")
-    return damic_model, numpy_unla_train, numpy_unla_target_pred_by_cluster
+    return damic_model, numpy_unla_train, numpy_unla_target_pred_by_cluster, labeled_train_and_valid
 
 
-def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_unla_target_pred_by_cluster, device, experiment):
+def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_unla_target_pred_by_cluster, labeled_train_and_valid,
+                           device, experiment):
     """
     See 'Deep clustering based on a mixture of autoencoders' paper
     We simultaneously train all the auto-encoders part of DAMIC as well as the Convolutional clustering network.
@@ -181,9 +209,14 @@ def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_u
     lr = damic_train_config["lr"]
     n_epochs = damic_train_config["n_epochs"]
     batch_size = damic_train_config["batch_size"]
+    damic_train_path = damic_train_config["damic_train_path"]
+    
+    if damic_train_path != "":
+        damic_model.load_state_dict(torch.load(damic_train_path)["model"])
     
     pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
     pretrain_dataset_with_label_loader = DataLoader(pretrain_dataset_with_label, batch_size=batch_size)
+    valid_and_train_real_label_loader = DataLoader(labeled_train_and_valid, batch_size=batch_size)
     
     clust_network_params = list(damic_model.clustering_network.parameters()) + list(damic_model.output_layer_conv_net.parameters())
     autoencoders_params = list()
@@ -192,15 +225,16 @@ def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_u
     damic_parameters = clust_network_params + autoencoders_params
     
     optimizer = torch.optim.Adam(damic_parameters, lr=lr)
+    now = datetime.datetime.now()
+    pth_filename = "damic_train_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
     damic_model = train_network(damic_model,
                                pretrain_dataset_with_label_loader,
-                               None,
+                               valid_and_train_real_label_loader,
                                optimizer,
                                n_epochs,
                                device,
                                experiment,
                                train_classifier=False,
-                               train_damic=True)
+                               train_damic=True, folder_save_model="damic_models/", pth_filename_save_model=pth_filename)
 
     print("== DAMIC training done!")
-    torch.save(damic_model, Constants.PATH_TO_MODEL + "DAMIC_MODEL" + str(experiment.get_key()) + '.pth')

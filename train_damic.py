@@ -29,13 +29,13 @@ def main(datapath, configuration, config_key):
     damic_autoencoders_pretrain_config = configuration['damic_autoencoders_pretrain']
     train_subset = configuration['train_subset']
     overlapped = configuration['overlapped']
-    damic_model, numpy_unla_train, numpy_unla_target_pred_by_cluster = execute_damic_pre_training(datapath, damic_model, train_subset,
-                                                                                                  overlapped, ae_pretrain_config,
-                                                                                                  conv_net_pretrain_config,
-                                                                                                  damic_autoencoders_pretrain_config,
-                                                                                                  experiment, seed)
 
-    execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_unla_target_pred_by_cluster, device, experiment)
+    damic_model, numpy_unla_train, numpy_unla_target_pred_by_cluster, labeled_train_and_valid = \
+                                execute_damic_pre_training(datapath, damic_model, train_subset, overlapped, ae_pretrain_config,
+                                                           conv_net_pretrain_config,damic_autoencoders_pretrain_config,experiment, seed)
+
+    execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_unla_target_pred_by_cluster, labeled_train_and_valid, device,
+                           experiment)
     
 def _set_torch_seed(seed):
     np.random.seed(seed)
@@ -47,7 +47,7 @@ def _set_torch_seed(seed):
 def _set_comet_experiment(configuration, config_key):
     experiment = OfflineExperiment(project_name='general',
                                    workspace='benjaminbenoit',
-                                   offline_directory="experiments")
+                                   offline_directory="damic_comet_experiences")
     experiment.set_name(config_key)
     experiment.log_parameters(configuration)
     return experiment

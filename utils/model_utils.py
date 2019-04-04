@@ -29,16 +29,15 @@ def loss_function(recon_x, x, mu, logvar):
     return MSE + KLD
 
 
-def encode_dataset(model, data, batch_size, device, for_pre_training=False):
+def encode_dataset(model, data, batch_size, device):
     full_loader = DataLoader(data, batch_size=batch_size)
     model.eval()
     tensors = []
     with torch.no_grad():
         for batch_idx, inputs in enumerate(full_loader):
-            if for_pre_training:
-                inputs = inputs[0].to(device)
-            else:
-                inputs = inputs.to(device)
+            if isinstance(inputs, (tuple, list)):
+                inputs = inputs[0]
+            inputs = inputs.to(device)
             tensors.append(model.encode(inputs))
     return torch.cat(tensors, dim=0)
 
@@ -49,8 +48,9 @@ def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
     running_loss = 0.0
 
     for batch_idx, inputs in enumerate(train_loader):
-        # Check if its a tuple or not if yes do inputs[0] and if not do inputs normal
-        inputs = inputs[0].to(device)
+        if isinstance(inputs, (tuple, list)):
+            inputs = inputs[0]
+        inputs = inputs.to(device)
         optimizer.zero_grad()
         if model.is_variational:
             pred, mu, logvar = model(inputs)
@@ -99,6 +99,11 @@ def _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, e
         optimizer.step()
 
         running_loss += loss.item()
+        if batch_idx % 10 == 0:
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(inputs),
+                                                                           len(train_loader) * len(inputs),
+                                                                           100. * batch_idx / len(train_loader),
+                                                                           loss.item() / len(inputs)))
 
     train_loss = running_loss / len(train_loader)
     experiment.log_metric("Conv classifier train loss", train_loss, step=epoch)
@@ -155,7 +160,10 @@ def _test(model, test_loader, epoch, device, experiment):
 
     with torch.no_grad():
         for inputs in test_loader:
+            if isinstance(inputs, (tuple, list)):
+                inputs = inputs[0]
             inputs = inputs.to(device)
+            # ConvAe is variational
             if model.is_variational:
                 output, mu, logvar = model(inputs)
                 if model.calculate_own_loss:
@@ -173,6 +181,28 @@ def _test(model, test_loader, epoch, device, experiment):
     experiment.log_metric("Validation loss", test_loss, step=epoch)
     return test_loss
 
+def _test_classifier(model, test_loader, epoch, device, experiment):
+    """ Compute cross entropy loss over given datase """
+    model.eval()
+
+    test_loss = 0
+    test_size = 0
+
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs = inputs.to(device)
+            labels = labels.long()
+            labels = labels.squeeze()
+            labels = labels.to(device)
+            outputs = model.test_clustering_network(inputs)
+            criterion = nn.CrossEntropyLoss()
+            test_loss += criterion(outputs, labels).item()
+            test_size += len(inputs)
+
+    test_loss /= test_size
+    experiment.log_metric("Validation loss", test_loss, step=epoch)
+    return test_loss
+
 def train_network(model, train_loader, test_loader, optimizer, n_epochs, device, experiment, train_classifier=False, train_damic=False,
                  folder_save_model="experiment_models/", pth_filename_save_model=""):
     best_loss = np.inf
@@ -183,14 +213,14 @@ def train_network(model, train_loader, test_loader, optimizer, n_epochs, device,
         scheduler.step()
         if train_damic:
             train_loss = _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experiment)
+            valid_loss = _test_classifier(model, test_loader, epoch, device, experiment)
         elif train_classifier:
             train_loss = _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, experiment)
+            valid_loss = _test_classifier(model, test_loader, epoch, device, experiment)
         else:
             train_loss = _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment)
-        if test_loader != None:
             valid_loss = _test(model, test_loader, epoch, device, experiment)
-        else:
-            valid_loss = -1
+
         try:
             if valid_loss < best_loss:
                 if pth_filename_save_model == "":
