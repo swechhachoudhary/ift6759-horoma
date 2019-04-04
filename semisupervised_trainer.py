@@ -13,7 +13,7 @@ from models.mlp_classifier import MLPClassifier
 
 
 def main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr_unsup, lr_sup, device,
-         train_unlabeled_split, valid_split, train_labeled_split, patience
+         train_unlabeled_split, valid_split, train_labeled_split, patience,
          experiment, path_to_model=None):
     """
     :param datapath: path to the directory containing the samples
