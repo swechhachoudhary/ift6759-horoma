@@ -5,7 +5,7 @@
     "classifier_model": "MLPClassifier",
     "batch_size": 32,
     "seed": 1234,
-    "n_epochs": 40,
+    "n_epochs": 60,
     "lr": 1e-3,
     "lr_unsup": 1e-3,
     "lr_sup": 1e-3,
