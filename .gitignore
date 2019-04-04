@@ -10,6 +10,8 @@ __pycache__/
 
 # All the experiments
 experiments/*
+damic_models/*
+damic_comet_experiences/*
 
 # All pycache
 models/__pycache__/*

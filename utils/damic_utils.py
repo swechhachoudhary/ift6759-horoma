@@ -236,5 +236,37 @@ def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_u
                                experiment,
                                train_classifier=False,
                                train_damic=True, folder_save_model="damic_models/", pth_filename_save_model=pth_filename)
-
+    
     print("== DAMIC training done!")
+    return damic_model
+
+def get_accuracy_f1_scores_from_damic_model(damic_model, labeled_train_and_valid, device):
+    """
+    Predict labels and compare to true labels to compute the accuracy and F1 score.
+    """
+    print("Evaluating DAMIC model ...")   
+    start_time = time()
+    
+    valid_and_train_real_label_loader = DataLoader(labeled_train_and_valid, batch_size=len(labeled_train_and_valid))
+    damic_model.clustering_network.eval()
+    damic_model.output_layer_conv_net.eval()
+
+    with torch.no_grad():
+        for inputs, labels in valid_and_train_real_label_loader:
+            inputs = inputs.to(device)
+            labels = labels.long()
+            labels = labels.squeeze()
+            print("Accuracy predictions")
+            damic_predictions = damic_model.test_clustering_network(inputs)
+            _, damic_predictions = damic_predictions.max(1)          
+            print("DAMIC predictions results")
+            print(damic_predictions)
+            print("Expected results")
+            print(labels)
+
+    accuracy, f1 = compute_metrics(labels, damic_predictions.cpu())
+
+    print(
+        "Done in {:.2f} sec | Accuracy: {:.2f} - F1: {:.2f}".format(time() - start_time, accuracy * 100, f1 * 100))
+
+    return damic_predictions, accuracy, f1

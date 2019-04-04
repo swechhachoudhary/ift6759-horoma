@@ -34,8 +34,14 @@ def main(datapath, configuration, config_key):
                                 execute_damic_pre_training(datapath, damic_model, train_subset, overlapped, ae_pretrain_config,
                                                            conv_net_pretrain_config,damic_autoencoders_pretrain_config,experiment, seed)
 
-    execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_unla_target_pred_by_cluster, labeled_train_and_valid, device,
-                           experiment)
+    damic_model = execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_unla_target_pred_by_cluster, 
+                                         labeled_train_and_valid, device, experiment)
+    
+    _, accuracy, f1 = get_accuracy_f1_scores_from_damic_model(damic_model, labeled_train_and_valid, device)
+    
+    experiment.log_metric('accuracy', accuracy)
+    experiment.log_metric('f1-score', f1)
+
     
 def _set_torch_seed(seed):
     np.random.seed(seed)

@@ -113,46 +113,81 @@ def _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experi
     """Train one epoch for the whole Damic model (Convolutional clustering network + Autoencoders)"""
     model.clustering_network.train()
     model.output_layer_conv_net.train()
-    running_loss = 0.0
+    for i in range(17):
+        model.autoencoders[i].train()
 
+    running_loss = 0.0
+    print("====== TRAINING DAMIC")
     for batch_idx, data in enumerate(train_loader):
-        inputs, labels = data
+        inputs, _ = data
         current_batch_size = inputs.shape[0]
         inputs = inputs.to(device)
-        labels = labels.to(device)
-        labels = labels.long()
-        labels = labels.squeeze()
-        labels[labels<0] = 0
-        labels[labels>16] = 16
         
         optimizer.zero_grad()
 
-        outputs, ae_reconstruction = model.train_damic(inputs, current_batch_size)
+        conv_net_class_predictions, ae_reconstruction = model.train_damic(inputs, current_batch_size)
         criterion_ae = nn.MSELoss()
 
-        loss_autoencoders = torch.FloatTensor(17).zero_().to(device)
+        loss_autoencoders = torch.FloatTensor(17, len(inputs)).zero_().to(device)
+        #print("Shape of inputs")
+        #print(inputs.shape)
+        #print("Shape of conv net class predictions")
+        #print(conv_net_class_predictions.shape)
+        #print("Shape of autoencoders loss")
+        #print(loss_autoencoders.shape)
+        #print("Shape of ae reconstruction")
+        #print(ae_reconstruction.shape)
         for i in range(17):
             loss_autoencoder = criterion_ae(inputs, ae_reconstruction[i].to(device))
             loss_autoencoders[i] = -(loss_autoencoder/2.0)
 
+        loss_autoencoders = loss_autoencoders.transpose(0,1)
+        #print("========= Loss from conv net for input 1")
+        #print(conv_net_class_predictions.shape)
+        #print(conv_net_class_predictions[0])
+        
+        #print("========= Loss from each autoencoder for input 1")
+        #print(loss_autoencoders.shape)
+        #print(loss_autoencoders[1])
+      
         # Calculate loss given the formula (3) p2 from 'Deep clustering based on a mixture of autoencoders paper'
         exp_loss_autoencoders = loss_autoencoders.exp()
-        total_loss_per_class = outputs * loss_autoencoders
-        total_loss = total_loss_per_class.sum()
+        #print("========= Loss from each autoencoder for input 1 after EXP")
+        #print(exp_loss_autoencoders[1])
+        total_loss_per_class = conv_net_class_predictions * exp_loss_autoencoders
+        #print("========= Total loss per class shape : convnet * loss_autoencoder")
+        #print(total_loss_per_class.shape)
+        #print(total_loss_per_class[1])
+        total_loss = total_loss_per_class.sum(dim=1)
+        #print("========= Total loss for each input")
+        #print(total_loss.shape)
+        #print(total_loss)
         total_loss_log = total_loss.log()
-
+        #print("========= Total loss log for each input")
+        #print(total_loss_log.shape)
+        #print(total_loss_log)
+        total_loss_log_sum = total_loss_log.sum()
+        #print("========= Total loss log sum")
+        #print(total_loss_log_sum.shape)
+        #print(total_loss_log_sum)
+        
         # Simultaneously train all the autoencoders and the convolutional network
-        total_loss_log.backward()
+        total_loss_log_sum.backward()
         optimizer.step()
 
-        running_loss += total_loss_log.item()
+        running_loss += total_loss_log_sum.item()
+        #print("Running loss")
+        #print(running_loss)
+        #print("*****************************")
+        #print("*****************************")
+        #print("")
 
     train_loss = running_loss / len(train_loader)
     experiment.log_metric("DAMIC train loss", train_loss, step=epoch)
     return train_loss
 
 def _test(model, test_loader, epoch, device, experiment):
-    """ Compute reconstruction loss of model over given dataset. """
+    """ Compute reconstruction loss of model over given dataset. Model is an autoencoder"""
     model.eval()
 
     test_loss = 0
@@ -183,7 +218,8 @@ def _test(model, test_loader, epoch, device, experiment):
 
 def _test_classifier(model, test_loader, epoch, device, experiment):
     """ Compute cross entropy loss over given datase """
-    model.eval()
+    model.clustering_network.eval()
+    model.output_layer_conv_net.eval()
 
     test_loss = 0
     test_size = 0
