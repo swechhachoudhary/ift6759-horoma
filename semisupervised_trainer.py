@@ -31,12 +31,12 @@ def main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr_un
     valid_data = HoromaDataset(datapath, split=valid_split)
     valid_loader = DataLoader(valid_data, batch_size=batch_size)
 
-    n_labeled_batch = len(train_labeled) / batch_size
+    n_labeled_batch = len(train_labeled) // batch_size
     n_unlabeled_batch = n_labeled_batch
 
-    best_model = train_semi_supervised_network(encoding_model, classifier_model, train_unlabeled, train_labeled, valid_loader,
-                                               n_epochs, batch_size, lr_unsup, lr_sup, device, n_labeled_batch, n_unlabeled_batch,
-                                               patience, experiment)
+    train_semi_supervised_network(encoding_model, classifier_model, train_unlabeled, train_labeled, valid_loader,
+                                  n_epochs, batch_size, lr_unsup, lr_sup, device, n_labeled_batch, n_unlabeled_batch,
+                                  patience, experiment)
 
 
 if __name__ == '__main__':
