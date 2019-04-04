@@ -307,11 +307,14 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
 
     lr_unsup_encoder = lr_unsup * (len(train_lab_data) / len(train_unlab_data))
     param_unsup = [
-        {'params': encoding_model.parameters(), 'lr': lr_unsup_encoder},
-        {'params': classifier_model.parameters(), 'lr': lr_unsup}
+        {'params': encoding_model.encoder.parameters(), 'lr': lr_unsup_encoder},
+        {'params': encoding_model.embedding.parameters(), 'lr': lr_unsup_encoder},
+        {'params': encoding_model.decode_embedding.parameters(), 'lr': lr_unsup},
+        {'params': encoding_model.decoder.parameters(), 'lr': lr_unsup}
     ]
     param_sup = [
-        {'params': encoding_model.parameters(), 'lr': lr_sup},
+        {'params': encoding_model.encoder.parameters(), 'lr': lr_sup / 1.5},
+        {'params': encoding_model.embedding.parameters(), 'lr': lr_sup / 1.5},
         {'params': classifier_model.parameters(), 'lr': lr_sup}
     ]
 
