@@ -190,6 +190,7 @@ def _train_one_epoch_unlabeled(model, train_data, optimizer, batch_size, n_unlab
     train_loss = running_loss / n_total
     experiment.log_metric("Autoencoder train loss", train_loss, step=epoch)
     print("Autoencoder Training loss after {} epochs: {:.6f}".format(epoch, train_loss))
+    return model
 
 
 def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optimizer, batch_size, n_labeled_batch, epoch, device, experiment):
@@ -240,7 +241,7 @@ def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optim
     experiment.log_metric('Train f1-score', train_f1, step=epoch)
     print("Classifier Train loss after {} epochs: {:.6f}".format(epoch, train_loss))
     print("Epoch {}: Supervised Train accuracy {:.3f}| f1-score {:.3f}".format(epoch, train_accuracy, train_f1))
-    return train_accuracy, train_f1
+    return encoding_model, classifier_model, train_accuracy, train_f1
 
 
 def _test_semisupervised(encoding_model, classifier_model, test_loader, epoch, device, experiment):
@@ -321,12 +322,12 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
     for epoch in range(n_epochs):
         # scheduler.step()
 
-        _train_one_epoch_unlabeled(encoding_model, train_unlab_data, optimizer_unsupervised,
-                                   batch_size, n_unlabeled_batch, epoch, device, experiment)
+        encoding_model = _train_one_epoch_unlabeled(encoding_model, train_unlab_data, optimizer_unsupervised,
+                                                    batch_size, n_unlabeled_batch, epoch, device, experiment)
 
-        train_accuracy, train_f1 = _train_one_epoch_labeled(encoding_model, classifier_model, train_lab_data,
-                                                            optimizer_supervised, batch_size, n_labeled_batch,
-                                                            epoch, device, experiment)
+        encoding_model, classifier_model, train_accuracy, train_f1 = _train_one_epoch_labeled(encoding_model, classifier_model, train_lab_data,
+                                                                                              optimizer_supervised, batch_size, n_labeled_batch,
+                                                                                              epoch, device, experiment)
 
         valid_true_labels, valid_pred_labels, valid_accuracy, valid_f1 = _test_semisupervised(encoding_model, classifier_model,
                                                                                               valid_loader, epoch, device, experiment)
