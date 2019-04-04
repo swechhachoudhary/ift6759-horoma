@@ -209,7 +209,7 @@ def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optim
 
         if batch_idx < n_labeled_batch:
             inputs = inputs.to(device)
-            targets = targets.to(device)
+            targets = targets.to(device).long()
             optimizer.zero_grad()
             # encode the inputs
             inp_encodings = encoding_model.encode(inputs)
@@ -262,7 +262,7 @@ def _test_semisupervised(encoding_model, classifier_model, test_loader, epoch, d
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(test_loader):
             inputs = inputs.to(device)
-            targets = targets.to(device)
+            targets = targets.to(device).long()
             out_decoder = encoding_model(inputs)
             # encoder ouput (latent representation)
             inp_encodings = encoding_model.encode(inputs)
