@@ -15,6 +15,7 @@ class MLPClassifier(nn.Module):
 
         self.layers = nn.ModuleList(
             [nn.Linear(n_channels[i], n_channels[i + 1]) for i in range(n_layers)])
+        self._weight_init()
 
     def _weight_init(self,):
         for layer in self.layers:

@@ -4,6 +4,7 @@ from copy import deepcopy
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
+from utils.utils import __compute_metrics, plot_confusion_matrix
 
 
 def get_ae_dataloaders(traindata, valid_data, batch_size=32):
@@ -165,6 +166,7 @@ def _train_one_epoch_unlabeled(model, train_data, optimizer, batch_size, n_unlab
 
     running_loss = 0.0
     criterion = nn.MSELoss(reduction='sum')
+    n_total = 0.0
 
     for batch_idx, inputs in enumerate(loop_over_unlabeled_data(train_data, batch_size)):
 
@@ -176,6 +178,7 @@ def _train_one_epoch_unlabeled(model, train_data, optimizer, batch_size, n_unlab
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
+            n_total += len(inputs)
             if batch_idx % 10 == 0:
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx,
                                                                                n_unlabeled_batch,
@@ -184,30 +187,131 @@ def _train_one_epoch_unlabeled(model, train_data, optimizer, batch_size, n_unlab
                                                                                loss.item() / len(inputs)))
         else:
             break
-    train_loss = running_loss / len(train_data)
-    experiment.log_metric("Train loss", train_loss, step=epoch)
-    return train_loss
+    train_loss = running_loss / n_total
+    experiment.log_metric("Autoencoder train loss", train_loss, step=epoch)
+    print("Autoencoder Training loss after {} epochs: {:.6f}".format(epoch, train_loss))
 
 
-def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_loader, train_lab_loader, valid_loader,
-                                  n_epochs, lr_unsup, lr_sup, device, n_labeled_batch, n_unlabeled_batch, patience, experiment):
-    best_loss = np.inf
+def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optimizer, batch_size, n_labeled_batch, epoch, device, experiment):
+    """Train one epoch for model."""
+    encoding_model.train()
+    classifier_model.train()
+
+    running_loss = 0.0
+    criterion = nn.CrossEntropyLoss(reduction="sum")
+    n_total = 0.0
+
+    pred_labels = []
+    true_labels = []
+
+    for batch_idx, (inputs, targets) in enumerate(loop_over_labeled_data(train_data, batch_size)):
+
+        if batch_idx < n_labeled_batch:
+            inputs = inputs.to(device)
+            optimizer.zero_grad()
+            # encode the inputs
+            inp_encodings = encoding_model.encode(inputs)
+            outputs = classifier_model(inp_encodings)
+            loss = criterion(outputs, targets)
+            loss.backward()
+            optimizer.step()
+            true_labels.append(targets)
+            pred_labels.append(torch.argmax(outputs, dim=1))
+            running_loss += loss.item()
+            n_total += len(inputs)
+            if batch_idx % 10 == 0:
+                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx,
+                                                                               n_labeled_batch,
+                                                                               100. * batch_idx /
+                                                                               n_labeled_batch,
+                                                                               loss.item() / len(inputs)))
+        else:
+            break
+    train_loss = running_loss / n_total
+
+    true_labels = torch.stack(true_labels, dim=0).cpu().numpy()
+    pred_labels = torch.stack(pred_labels, dim=0).cpu().numpy()
+
+    train_accuracy, train_f1, __train_f1 = __compute_metrics(
+        true_labels, pred_labels)
+
+    experiment.log_metric("Classifier train loss", train_loss, step=epoch)
+    experiment.log_metric('Train accuracy', train_accuracy, step=epoch)
+    experiment.log_metric('Train f1-score', train_f1, step=epoch)
+    print("Classifier Train loss after {} epochs: {:.6f}".format(epoch, train_loss))
+    print("Epoch {}: Supervised Train accuracy {:.3f}| f1-score {:.3f}".format(epoch, train_accuracy, train_f1))
+    return train_accuracy, train_f1
+
+
+def _test_semisupervised(encoding_model, classifier_model, test_loader, epoch, device, experiment):
+    """ Compute reconstruction loss of model over given dataset. """
+    encoding_model.eval()
+    classifier_model.eval()
+
+    test_unsup_loss = 0.0
+    test_sup_loss = 0.0
+
+    unsup_criterion = nn.MSELoss(reduction='sum')
+    classification_criterion = nn.CrossEntropyLoss(reduction="sum")
+
+    pred_labels = []
+    true_labels = []
+
+    with torch.no_grad():
+        for batch_idx, (inputs, targets) in enumerate(test_loader):
+            inputs = inputs.to(device)
+
+            out_decoder = encoding_model(inputs)
+            # encoder ouput (latent representation)
+            inp_encodings = encoding_model.encode(inputs)
+            pred_targets = classifier_model(inp_encodings)
+
+            test_unsup_loss += unsup_criterion(out_decoder, inputs).item()
+            test_sup_loss += classification_criterion(pred_targets, targets).item()
+
+            true_labels.append(targets)
+            pred_labels.append(torch.argmax(pred_targets, dim=1))
+
+    test_unsup_loss /= len(test_loader.dataset)
+    test_sup_loss /= len(test_loader.dataset)
+
+    true_labels = torch.stack(true_labels, dim=0).cpu().numpy()
+    pred_labels = torch.stack(pred_labels, dim=0).cpu().numpy()
+
+    valid_accuracy, valid_f1, __valid_f1 = __compute_metrics(
+        true_labels, pred_labels)
+
+    experiment.log_metric("Autoencoder Validation loss", test_unsup_loss, step=epoch)
+    experiment.log_metric("Supervised Validation loss", test_sup_loss, step=epoch)
+
+    experiment.log_metric('Validation accuracy', valid_accuracy, step=epoch)
+    experiment.log_metric('Validation f1-score', valid_f1, step=epoch)
+
+    print("Supervised Validation loss after {} epochs: {:.6f}".format(epoch, test_sup_loss))
+    print("Epoch {}: Supervised Validation accuracy {:.3f}| f1-score {:.3f}".format(epoch, valid_accuracy, valid_f1))
+
+    return true_labels, pred_labels, valid_accuracy, valid_f1
+
+
+def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_data, train_lab_data, valid_loader,
+                                  n_epochs, batch_size, lr_unsup, lr_sup, device, n_labeled_batch, n_unlabeled_batch, patience, experiment):
+
     best_acc = 0.0
     best_f1 = 0.0
+    k = 0
     key = experiment.get_key()
     best_model = None
 
-    n_iter_unlab = 0
-    n_iter_lab = 0
-
+    lr_unsup_encoder = lr_unsup * (len(train_lab_data) / len(train_unlab_data))
     param_unsup = [
-        {'params': encoding_model.parameters()},
-        {'params': classifier_model.parameters()}
+        {'params': encoding_model.parameters(), 'lr': lr_unsup_encoder},
+        {'params': classifier_model.parameters(), 'lr': lr_unsup}
     ]
     param_sup = [
-        {'params': encoding_model.parameters(), 'lr': 1e-4},
+        {'params': encoding_model.parameters(), 'lr': lr_sup},
         {'params': classifier_model.parameters(), 'lr': lr_sup}
     ]
+
     optimizer_unsupervised = torch.optim.Adam(param_unsup, lr=lr_unsup)
 
     optimizer_supervised = torch.optim.Adam(param_sup)
@@ -216,38 +320,44 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
     #     optimizer, step_size=2, gamma=0.5)
     for epoch in range(n_epochs):
         # scheduler.step()
-        while n_iter_unlab < n_unlabeled_batch:
-            n_iter_unlab += 1
-            _train_one_epoch_unlabeled()
-        n_iter_unlab = 0
-        while n_iter_lab < n_labeled_batch:
-            n_iter_lab += 1
-            _train_one_epoch_labeled()
-        n_iter_lab = 0
 
-        # Validation
-        _test
-        train_loss = _train_one_epoch(
-            model, train_loader, optimizer, epoch, device, experiment)
-        valid_loss = _test(model, test_loader, epoch, device, experiment)
+        _train_one_epoch_unlabeled(encoding_model, train_unlab_data, optimizer_unsupervised,
+                                   batch_size, n_unlabeled_batch, epoch, device, experiment)
+
+        train_accuracy, train_f1 = _train_one_epoch_labeled(encoding_model, classifier_model, train_lab_data,
+                                                            optimizer_supervised, batch_size, n_labeled_batch,
+                                                            epoch, device, experiment)
+
+        valid_true_labels, valid_pred_labels, valid_accuracy, valid_f1 = _test_semisupervised(encoding_model, classifier_model,
+                                                                                              valid_loader, epoch, device, experiment)
 
         try:
-            if valid_loss < best_loss:
+            if valid_accuracy > best_acc and valid_f1 > best_f1:
+                best_acc = valid_accuracy
+                best_f1 = valid_f1
+                print("Saving best model....")
                 torch.save({
                     "epoch": epoch,
                     "optimizer": optimizer.state_dict(),
                     "model": model.state_dict(),
-                    "loss": valid_loss
+                    "best_acc": valid_accuracy,
+                    "best_f1": valid_f1,
+                    "train_acc": train_accuracy,
+                    "train_f1": train_f1,
                 }, "experiment_models/" + str(key) + '.pth')
-                best_loss = valid_loss
+
                 best_model = deepcopy(model)  # Keep best model thus far
+                plot_confusion_matrix(valid_true_labels, valid_pred_labels, classes=np.arange(17),
+                                      title='Confusion matrix for Validation')
+            elif k < patience:
+                k += 1
+            else:
+                pritn("Early stopping......")
+                break
         except FileNotFoundError as e:
             print(
                 "Directory for logging experiments does not exist. Launch script from repository root.")
             raise e
-
-        print("Training loss after {} epochs: {:.6f}".format(epoch, train_loss))
-        print("Validation loss after {} epochs: {:.6f}".format(epoch, valid_loss))
 
     # Return best model
     return best_model
