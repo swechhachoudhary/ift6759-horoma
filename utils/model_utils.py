@@ -209,6 +209,7 @@ def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optim
 
         if batch_idx < n_labeled_batch:
             inputs = inputs.to(device)
+            targets = targets.to(device)
             optimizer.zero_grad()
             # encode the inputs
             inp_encodings = encoding_model.encode(inputs)
@@ -230,8 +231,8 @@ def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optim
             break
     train_loss = running_loss / n_total
 
-    true_labels = torch.stack(true_labels, dim=0).cpu().numpy()
-    pred_labels = torch.stack(pred_labels, dim=0).cpu().numpy()
+    true_labels = torch.stack(true_labels, dim=0).cpu().detach().numpy()
+    pred_labels = torch.stack(pred_labels, dim=0).cpu().detach().numpy()
 
     train_accuracy, train_f1, __train_f1 = __compute_metrics(
         true_labels, pred_labels)
@@ -261,7 +262,7 @@ def _test_semisupervised(encoding_model, classifier_model, test_loader, epoch, d
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(test_loader):
             inputs = inputs.to(device)
-
+            targets = targets.to(device)
             out_decoder = encoding_model(inputs)
             # encoder ouput (latent representation)
             inp_encodings = encoding_model.encode(inputs)
@@ -276,8 +277,8 @@ def _test_semisupervised(encoding_model, classifier_model, test_loader, epoch, d
     test_unsup_loss /= len(test_loader.dataset)
     test_sup_loss /= len(test_loader.dataset)
 
-    true_labels = torch.stack(true_labels, dim=0).cpu().numpy()
-    pred_labels = torch.stack(pred_labels, dim=0).cpu().numpy()
+    true_labels = torch.stack(true_labels, dim=0).cpu().detach().numpy()
+    pred_labels = torch.stack(pred_labels, dim=0).cpu().detach().numpy()
 
     valid_accuracy, valid_f1, __valid_f1 = __compute_metrics(
         true_labels, pred_labels)
