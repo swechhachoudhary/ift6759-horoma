@@ -111,7 +111,7 @@ if __name__ == '__main__':
         encoding_model = PCAEncoder(seed)
 
     if classifier_model == "MLPClassifier":
-        classifier_model = MLPClassifier()
+        classifier_model = MLPClassifier().to(device)
 
     # Initiate experiment
     main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr_unsup, lr_sup, device,
