@@ -85,7 +85,7 @@ if __name__ == '__main__':
         "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="swechhas_experiments")
 
     experiment.set_name(
-        name=args.config + "_dim={}_split={}".format(latent_dim, train_split))
+        name=args.config + "_dim={}_split={}".format(latent_dim, train_unlabeled_split))
     experiment.log_parameters(configuration)
 
     if encoding_model == 'pca':
@@ -115,5 +115,5 @@ if __name__ == '__main__':
 
     # Initiate experiment
     main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr_unsup, lr_sup, device,
-         train_unlabeled_split, valid_split, train_labeled_split, patience
+         train_unlabeled_split, valid_split, train_labeled_split, patience,
          experiment, path_to_model=path_to_model)
