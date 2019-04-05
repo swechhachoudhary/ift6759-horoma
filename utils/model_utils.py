@@ -313,8 +313,8 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
         {'params': encoding_model.decoder.parameters(), 'lr': lr_unsup}
     ]
     param_sup = [
-        {'params': encoding_model.encoder.parameters(), 'lr': lr_sup / 1.5},
-        {'params': encoding_model.embedding.parameters(), 'lr': lr_sup / 1.5},
+        {'params': encoding_model.encoder.parameters(), 'lr': lr_sup},
+        {'params': encoding_model.embedding.parameters(), 'lr': lr_sup},
         {'params': classifier_model.parameters(), 'lr': lr_sup}
     ]
 
@@ -327,8 +327,8 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
     for epoch in range(n_epochs):
         # scheduler.step()
 
-        encoding_model = _train_one_epoch_unlabeled(encoding_model, train_unlab_data, optimizer_unsupervised,
-                                                    batch_size, n_unlabeled_batch, epoch, device, experiment)
+        # encoding_model = _train_one_epoch_unlabeled(encoding_model, train_unlab_data, optimizer_unsupervised,
+        #                                             batch_size, n_unlabeled_batch, epoch, device, experiment)
 
         encoding_model, classifier_model, train_accuracy, train_f1 = _train_one_epoch_labeled(encoding_model, classifier_model, train_lab_data,
                                                                                               optimizer_supervised, batch_size, n_labeled_batch,
