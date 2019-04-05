@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import math
 import torch.nn.functional as F
 
 
@@ -11,6 +12,7 @@ class MLPClassifier(nn.Module):
     def __init__(self, latent_dim=10, hidden_size=60, n_layers=2, n_class=17):
         super(MLPClassifier, self).__init__()
         self.n_layers = n_layers
+        self.hidden_size = hidden_size
         n_channels = [latent_dim] + [hidden_size] * (n_layers - 1) + [n_class]
 
         self.layers = nn.ModuleList(
@@ -18,9 +20,12 @@ class MLPClassifier(nn.Module):
         self._weight_init()
 
     def _weight_init(self,):
-        for layer in self.layers:
-            nn.init.constant_(layer.weight, 0.0)
-            nn.init.constant_(layer.bias, 0.0)
+        k = math.sqrt(1. / self.hidden_size)
+        for i in len(self.layers) - 1:
+            nn.init.uniform_(self.layers[i].weight, -k, k)
+            nn.init.constant_(self.layers[i].bias, 0.0)
+        nn.init.uniform_(self.layers[-1].weight, -0.1, 0.1)
+        nn.init.constant_(self.layers[-1].bias, 0.0)
 
     def forward(self, inputs):
 
