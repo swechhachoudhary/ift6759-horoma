@@ -1,15 +1,18 @@
 import numpy as np
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, SubsetRandomSampler
 from copy import deepcopy
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
 
 
-def get_ae_dataloaders(traindata, valid_data, batch_size=32):
+def get_ae_dataloaders(traindata, batch_size, split):
     """get dataloaders for train and valid sets"""
-    train_loader = DataLoader(traindata, batch_size=batch_size, shuffle=True)
-    valid_loader = DataLoader(valid_data, batch_size=batch_size)
+    indices = list(range(len(traindata)))
+    np.random.shuffle(indices)
+    n_train = int(split * len(indices))
+    train_loader = DataLoader(traindata, batch_size=batch_size, sampler=SubsetRandomSampler(indices[:n_train]))
+    valid_loader = DataLoader(traindata, batch_size=batch_size, sampler=SubsetRandomSampler(indices[n_train:]))
 
     return train_loader, valid_loader
 
@@ -175,8 +178,9 @@ def _test(model, test_loader, epoch, device, experiment):
                 output = model(inputs)
                 criterion = nn.MSELoss(reduction='sum')
                 test_loss += criterion(output, inputs).item()
+                test_size += len(inputs)
 
-    test_loss /= len(test_loader.dataset)
+    test_loss /= test_size
     experiment.log_metric("Validation loss", test_loss, step=epoch)
     return test_loss
 

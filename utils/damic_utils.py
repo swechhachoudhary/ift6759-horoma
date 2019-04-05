@@ -5,7 +5,7 @@ from models.clustering import *
 from utils.utils import *
 from utils.constants import Constants
 from comet_ml import OfflineExperiment
-from torch.utils.data import ConcatDataset
+from torch.utils.data import DataLoader
 from data.dataset import LocalHoromaDataset
 
 def get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_train, unlabeled_train, labeled_train,
@@ -119,7 +119,7 @@ def _initialize_damic_autoencoders_weights(damic_model, damic_autoencoders_pretr
     batch_size = damic_autoencoders_pretrain_config["batch_size"]
     now = datetime.datetime.now()
     pth_filename = "autoencoders_pretrain_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
-    
+
     # Didn't do a loop because it seems encapsulating the auto encoders into an array led into issues with optimizing the parameters
     _, damic_model.ae1 = damic_model.ae1.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster,[0]))],
                                              batch_size=batch_size, n_epochs=n_epochs,lr=lr, device=device, experiment=experiment)

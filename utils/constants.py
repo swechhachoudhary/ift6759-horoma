@@ -5,3 +5,4 @@ class Constants:
     DATAPATH = "./data/horoma"
     CONFIG_PATH = './new_config.json'
     PATH_TO_MODEL = 'final_models/'
+    DAMIC_CONFIG_PATH = './config.json'

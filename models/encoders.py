@@ -244,8 +244,7 @@ class CVAE(nn.Module):
         :param experiment: for tracking comet experiment
 
         """
-        train_loader, valid_loader = get_ae_dataloaders(
-            data, batch_size, split=0.8)
+        train_loader, valid_loader = get_ae_dataloaders(data, batch_size, split=0.8)
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
         best_model = train_network(self, train_loader, valid_loader, optimizer, n_epochs, device, experiment,

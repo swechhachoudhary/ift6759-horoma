@@ -60,14 +60,14 @@ def _set_comet_experiment(configuration, config_key):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--datapath", type=str, default=Constants.DATAPATH,
+    parser.add_argument("--datapath", type=str, default=Constants._DATAPATH,
                         help="Path to dataset folder")
     parser.add_argument("--config", type=str, default="DAMIC", help="To select configuration from config.json")
     args = parser.parse_args()
     config_key = args.config
     datapath = args.datapath
 
-    with open(Constants.CONFIG_PATH, 'r') as f:
+    with open(Constants.DAMIC_CONFIG_PATH, 'r') as f:
         configuration = json.load(f)[config_key]
 
     # Initiate experiment
