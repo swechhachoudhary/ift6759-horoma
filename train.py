@@ -123,9 +123,13 @@ if __name__ == '__main__':
 #         "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="swechhas_experiments")
 
     # Set up Comet Experiment tracking
-    experiment = OfflineExperiment(project_name='general',
-                                   workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
-                                   offline_directory="experiments")
+    # experiment = OfflineExperiment(project_name='general',
+    #                                workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
+    #                                offline_directory="experiments")
+
+    experiment = OfflineExperiment(api_key="DvpWDWvvUWn6QRvULmqUAwzkk",offline_directory="experiments_tn"
+                        project_name="ali", workspace="timothynest")
+
     experiment.set_name(
         name=args.config + "_dim={}_overlapped={}".format(latent_dim, train_split))
     experiment.log_parameters(configuration)

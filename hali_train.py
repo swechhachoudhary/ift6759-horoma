@@ -1,5 +1,11 @@
-eps = 1e-12
 
+
+
+
+
+
+
+eps = 1e-12
 ld  = 10
 num_epochs = 10000
 global backup_disc;
@@ -25,9 +31,7 @@ def runloop_g(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g):
 
     zv = Variable(z).cuda()
 
-    z1 = torch.FloatTensor(batch_size, Z1dim, 32, 32).normal_(0, 1)
 
-    z1v = Variable(z1).cuda()
 
     encoded1 = Gz1(imgs)
 
