@@ -126,7 +126,8 @@ __MACOSX/
 run.pbs
 .autoenv_leave.zsh
 .autoenv.zsh
-
+models_*/*
+images_*/*
 block1/
 
 .DS_Store
