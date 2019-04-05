@@ -74,7 +74,7 @@ def initialize_ali(configs,data):
         optim_d = OptMirrorAdam(Disc.parameters(),lr=configs['lr_d'],betas=(0.5, .999),weight_decay=0,amsgrad =configs['amsgrad'])
         optim_g = OptMirrorAdam(gen,configs['lr_g'], betas=(0.5, .999), weight_decay=0,amsgrad =configs['amsgrad'])
    
-    train_loader = DataLoader(data[:100], batch_size=BS, shuffle=True)
+    train_loader = DataLoader(data, batch_size=BS, shuffle=True)
 
     return Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda
 
