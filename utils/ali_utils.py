@@ -25,13 +25,19 @@ def initialize_ali(configs,data):
     IMAGE_PATH = configs['IMAGE_PATH']
     MODEL_PATH = configs['MODEL_PATH']
 
+    if not os.path.exists(IMAGE_PATH):
+        print('mkdir ', IMAGE_PATH)
+        os.mkdir(IMAGE_PATH)
+    if not os.path.exists(MODEL_PATH):
+        print('mkdir ', MODEL_PATH)
+        os.mkdir(MODEL_PATH)
+
     Zdim = configs['Zdim']
-    zd1  = configs['z1dim']
     BS   = configs['batch_size'] 
 
     Gx = ali.GeneratorX(zd=Zdim, ch=3)
 
-    Gz = ali.GeneratorZ(zd=Zdim,ch = 3,zd1 = zd1)
+    Gz = ali.GeneratorZ(zd=Zdim,ch = 3)
 
 
     Disc = ali.Discriminator(ch=3, zd= Zdim)
@@ -68,10 +74,96 @@ def initialize_ali(configs,data):
         optim_d = OptMirrorAdam(Disc.parameters(),lr=configs['lr_d'],betas=(0.5, .999),weight_decay=0,amsgrad =configs['amsgrad'])
         optim_g = OptMirrorAdam(gen,configs['lr_g'], betas=(0.5, .999), weight_decay=0,amsgrad =configs['amsgrad'])
    
-    train_loader = DataLoader(data, batch_size=BS, shuffle=True)
+    train_loader = DataLoader(data[:100], batch_size=BS, shuffle=True)
 
     return Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda
 
+
+
+def train_epoch_ali(Gz,Gx,Disc, optim_d,optim_g, loader,epoch,cuda,configs):
+    """
+    Trains model for a single epoch
+    :param model: the model created under src/algorithms
+    :param optimizer: pytorch optim
+    :param loader: the training set loader
+    :param include_subsamples: whether to train the principal ode_network with sub samples of the signal
+    
+    :return: training loss, accuracy, large (for next epoch)
+    """
+
+    ncritic = configs['n_critic']
+    cnt = 0
+    gcnt = 0
+    df = 0
+    dt = 0
+    dl = 0
+    gl = 0
+
+    for i, (imgs) in enumerate(loader):
+     
+        loss_d = runloop_d_ali(imgs,Gx,Gz,Disc,optim_d,cuda,configs)
+        
+        if i%ncritic==0 or not is_critic:
+            loss_g,d_true,d_fake = runloop_g_ali(imgs,Gx,Gz,Disc,optim_g,cuda,configs) 
+
+            gl = gl + loss_g
+            df = df +d_fake.item()
+            dt = dt + d_true.data.mean().item()
+            gcnt = gcnt+1
+
+        cnt = cnt+1
+        dl = dl+loss_d
+        
+    g_loss = gl/gcnt
+    d_loss = dl/cnt 
+
+    d_true  = dt/gcnt
+    d_false =  df/gcnt    
+
+    # generate fake images
+
+    # saveimages(Gx1,Gx2,Gz1,Gz2,z_pred1,z_pred2)
+    # test(Gx1,Gx2,Gz1,Gz2,epoch,True)
+    # test(Gx1,Gx2,Gz1,Gz2,epoch,False)
+ 
+
+
+    return g_loss,d_loss,d_true,d_false
+def training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred):
+    """
+     Runs training loop
+    :param model: the model created under src/algorithms
+    :param optimizer: pytorch optim
+    :param train_loader: the training set loader
+    :param valid_loader: the validation set loader
+    :param hyperparameters_dict: stores save location of model
+    
+    :return: [(train_losses,train_accuracy)(valid_losses,valid_accuracy)]
+    """
+
+    # Index starts at 1 for reporting purposes
+    
+    Zdim = configs['Zdim']
+    for epoch in range(1, configs['n_epochs'] + 1):
+
+        g_loss,d_loss,d_true,d_false = train_epoch_ali(
+            Gz,Gx,Disc, optim_d,optim_g, train_loader,epoch,cuda,configs
+        )
+
+
+        # saveimages_hali(Gx1,Gx2,Gz1,Gz2,z_pred1,z_pred2,configs['IMAGE_PATH'])
+        # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,True,configs['IMAGE_PATH'])
+        # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,False,configs['IMAGE_PATH'])
+
+        save_models_ali(Gz,Gx,Disc,configs['MODEL_PATH'],epoch)
+        sys.stdout.write("\r[%5d / %5d]: G: %.4f D: %.4f D(x,Gz(x)): %.4f D(Gx(z),z): %.4f" % (epoch,configs['n_epochs'],g_loss,d_loss,d_true,d_false))
+        
+        experiment.log_metric('g_loss', g_loss)
+        experiment.log_metric('d_loss', d_loss)
+        experiment.log_metric('d_true', d_true)
+        experiment.log_metric('d_fake', d_false)
+
+        print()     
 
 def runloop_g_ali(imgs,Gx,Gz,Disc,optim_g,cuda,configs):
     softplus = nn.Softplus()
@@ -112,7 +204,7 @@ def runloop_g_ali(imgs,Gx,Gz,Disc,optim_g,cuda,configs):
     loss_g,d_fake,d_true = optim_g.step(g_closure)
     return loss_g, d_true,d_fake
 
-def runloop_d_ali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs):
+def runloop_d_ali(imgs,Gx,Gz,Disc,optim_d,cuda,configs):
     softplus = nn.Softplus()
     Zdim = configs['Zdim']
 
@@ -151,6 +243,12 @@ def runloop_d_ali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs):
     loss_d = optim_d.step(d_closure)
 
     return loss_d
+
+
+
+
+
+
 
 
 
@@ -312,6 +410,8 @@ def runloop_d_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs):
     loss_d = optim_d.step(d_closure)
 
     return loss_d
+
+
     
 def train_epoch_hali(Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, loader,epoch,cuda,configs):
     """
@@ -616,7 +716,14 @@ def save_models_hali(Gz1,Gz2,Gx1,Gx2,Disc,MODEL_PATH,epoch):
     torch.save(Disc.state_dict(),
                os.path.join(MODEL_PATH, 'Disc-%d.pth'  % (epoch+1)))
 
-
+def save_models_ali(Gz,Gx,Disc,MODEL_PATH,epoch):
+    torch.save(Gx.state_dict(),
+               os.path.join(MODEL_PATH, 'Gx-%d.pth' % (epoch+1)))
+    torch.save(Gz.state_dict(),
+               os.path.join(MODEL_PATH, 'Gz-%d.pth' % (epoch+1)))
+    torch.save(Disc.state_dict(),
+               os.path.join(MODEL_PATH, 'Dict-%d.pth'  % (epoch+1)))
+ 
 
 
 

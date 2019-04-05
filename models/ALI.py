@@ -75,10 +75,10 @@ class Discriminator(nn.Module):
         
     def forward(self,x_input,z_input):   
         eps = 1e-12
-        noise = Variable((torch.Tensor(x_input.size()).normal_(0, 0.1 * (num_epochs - epoch) / num_epochs))).cuda()
+        noise = Variable((torch.Tensor(x_input.size()).normal_(0, 0.1 * 0.01))).cuda()
         
         dx_out = self.Dx(x_input+noise)
-        noise = Variable((torch.Tensor(dx_out.size()).normal_(0, 0.1 * (num_epochs - epoch) / num_epochs))).cuda()
+        noise = Variable((torch.Tensor(dx_out.size()).normal_(0, 0.1 * 0.01))).cuda()
         
         d_out = self.Dxz(torch.cat((dx_out, z_input+noise), dim=1))+eps
        

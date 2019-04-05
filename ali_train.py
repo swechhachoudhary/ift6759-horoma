@@ -55,7 +55,7 @@ def main(datapath, clustering_model, encoding_model, configs, train_split, valid
             training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred1,z_pred2)
         else: #default to ALI
             Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda = initialize_ali(configs,train)
-            training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment)                    
+            training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred)                    
     # else:
     #     if encoding_model =="hali":
     #     else: #default to ALI
