@@ -41,18 +41,18 @@
     "damic_conv_net_pretrain": {
         "batch_size": 128,
         "lr": 1e-3,
-        "n_epochs": 3,
+        "n_epochs": 4,
         "conv_net_pretrain_path": ""
     },
     "damic_autoencoders_pretrain": {
         "batch_size": 128,
-        "n_epochs": 3,
+        "n_epochs": 4,
         "lr": 1e-3,
         "autoencoders_pretrain_path": ""
     },
     "damic_train": {
         "batch_size": 128,
-        "n_epochs": 4,
+        "n_epochs": 6,
         "lr": 1e-3,
         "damic_train_path": ""
     },

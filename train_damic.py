@@ -41,7 +41,6 @@ def main(datapath, configuration, config_key):
     
     experiment.log_metric('accuracy', accuracy)
     experiment.log_metric('f1-score', f1)
-
     
 def _set_torch_seed(seed):
     np.random.seed(seed)
