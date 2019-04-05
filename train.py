@@ -82,14 +82,16 @@ if __name__ == '__main__':
                         help="Path to dataset folder")
     parser.add_argument("--encoder_path", type=str, default=None)
 
-    parser.add_argument("--config", type=str, default="CAE_BASE",
+    parser.add_argument("--config", type=str, default="CVAE_BASE",
                         help="To select configuration from config.json")
     args = parser.parse_args()
     config_key = args.config
     datapath = args.datapath
     path_to_model = args.encoder_path
-
-    with open(Constants.CONFIG_PATH, 'r') as f:
+    print(Constants.CONFIG_PATH)
+    print(config_key)
+    print(Constants.CONFIG_PATH)
+    with open(Constants.CONFIG_PATH, "r") as f:
         configuration = json.load(f)[config_key]
 
     # Parse configuration file
@@ -123,13 +125,9 @@ if __name__ == '__main__':
 #         "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="swechhas_experiments")
 
     # Set up Comet Experiment tracking
-    # experiment = OfflineExperiment(project_name='general',
-    #                                workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
-    #                                offline_directory="experiments")
-
-    experiment = OfflineExperiment(api_key="DvpWDWvvUWn6QRvULmqUAwzkk",offline_directory="experiments_tn"
-                        project_name="ali", workspace="timothynest")
-
+    experiment = OfflineExperiment(project_name='general',
+                                   workspace='timothynest',  # Replace this with appropriate comet workspace
+                                   offline_directory="experiments")
     experiment.set_name(
         name=args.config + "_dim={}_overlapped={}".format(latent_dim, train_split))
     experiment.log_parameters(configuration)
@@ -139,6 +137,8 @@ if __name__ == '__main__':
         clustering_model = KMeansClustering(n_clusters, seed)
     elif clustering_model == 'gmm':
         clustering_model = GMMClustering(n_clusters, seed)
+    elif clustering_model =='svm':
+        clustering_model = SVMClustering(seed)
     else:
         print('No clustering model specified. Using Kmeans.')
         clustering_model = KMeansClustering(n_clusters, seed)
