@@ -2,6 +2,8 @@ import numpy as np
 from scipy.stats import kendalltau
 from sklearn.metrics import recall_score, f1_score
 
+# Note : this code comes from OM Signal block 2 baseline
+# Some changes were made to be able to use this for Horoma
 
 def scorePerformance(treeClass_pred, treeClass_true):
     """
@@ -10,14 +12,8 @@ def scorePerformance(treeClass_pred, treeClass_true):
     with an adjustment for chance level. All performances are clipped at 0.0, so that zero indicates chance
     or worse performance, and 1.0 indicates perfect performance. The individual performances are then combined by taking
     the geometric mean.
-    :param prMean_pred: 1D float32 numpy array. The predicted average P-R interval duration over the window. One row for each window.
-    :param prMean_true: 1D float32 numpy array. The true average P-R interval duration over the window. One row for each window.
-    :param rtMean_pred: 1D float32 numpy array. The predicted average R-T interval duration over the window. One row for each window.
-    :param rtMean_true: 1D float32 numpy array. The true average R-T interval duration over the window. One row for each window.
-    :param rrStd_pred: 1D float32 numpy array. The predicted R-R interval duration standard deviation over the window. One row for each window.
-    :param rrStd_true: 1D float32 numpy array. The true R-R interval duration standard deviation over the window. One row for each window.
-    :param ecgId_pred: 1D int32 numpy array. containing the predicted user ID label for each window.
-    :param ecgId_true: 1D int32 numpy array. containing the true user ID label for each window.
+    :param treeClass_pred: 1D int32 numpy array. containing the predicted tree class label
+    :param treeClass_true: 1D int32 numpy array. containing the true tree class label
     :return: The combined performance score on all tasks; 0.0 means at least one task has chance level performance or worse, 1.0 means all tasks are solved perfectly.
     The individual task performance scores are also returned
     """
@@ -74,44 +70,9 @@ def scorePerformance(treeClass_pred, treeClass_true):
         treeClassAccuracy,
         1.0 / max(1.0, numVal)
     )
-    
-    
-
-    # if np.isnan(combinedPerformanceScore):
-    #     # print(
-    #     #     combinedPerformanceScore,
-    #     #     prMeanTauRep,
-    #     #     rtMeanTauRep,
-    #     #     rrStdTauRep,
-    #     #     ecgIdAccuracyRep
-    #     # )
-    #     exit()
 
     return (
         combinedPerformanceScore,
         treeClassAccuracyRep,
         treeClassF1
-    )
-
-
-def example():
-    prMean_pred = np.random.randn(480).astype(np.float32)
-    prMean_true = (np.random.randn(480).astype(
-        np.float32) / 10.0) + prMean_pred
-
-    rtMean_pred = np.random.randn(480).astype(np.float32)
-    rtMean_true = (np.random.randn(480).astype(
-        np.float32) / 10.0) + rtMean_pred
-
-    rrStd_pred = np.random.randn(480).astype(np.float32)
-    rrStd_true = (np.random.randn(480).astype(np.float32) / 10.0) + rrStd_pred
-
-    ecgId_pred = np.random.randint(low=0, high=32, size=(480,), dtype=np.int32)
-    ecgId_true = np.random.randint(low=0, high=32, size=(480,), dtype=np.int32)
-
-    print(
-        scorePerformance(
-            prMean_true, prMean_pred, rtMean_true, rtMean_pred, rrStd_true,
-            rrStd_pred, ecgId_true, ecgId_pred
-        )
     )

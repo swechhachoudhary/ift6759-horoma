@@ -1,5 +1,4 @@
 import os
-
 import numpy as np
 import torch
 from PIL import Image
@@ -10,8 +9,8 @@ from torch.utils.data import Dataset
 class LocalHoromaDataset(Dataset):
     """
     The data is not loaded from a file but given as parameters instead
-    This dataset is for the pretraining of the convolution clustering network
-    Since this pretraining is supervised, this dataset can handle targets
+    This dataset is for Damic pretraining of the convolution clustering network
+    Since this pretraining is supervised, this dataset provide targets
     """
 
     def __init__(self, data, targets):
@@ -36,7 +35,7 @@ class OriginalHoromaDataset(Dataset):
         """
         Args:
             data_dir: Path to the directory containing the samples.
-            split: Which split to use. [train, valid, test]
+            split: Which split to use. [train, valid, train_labeled, train_overlapped, train_labeled_overlapped, valid_overlapped]
             subset: How many elements will be used. Default: all.
             skip: How many element to skip before taking the subset.
             flattened: If True return the images in a flatten format.

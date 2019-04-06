@@ -4,6 +4,8 @@ import math
 import numpy as np
 import torch.nn.functional as F
 
+# Note : this code comes from OM Signal block 2 baseline
+# Several adjustments (mainly in TransformerNet) were made to make it work for Horoma
 
 class Conv1DLinear(nn.Module):
 
@@ -229,8 +231,6 @@ class TransformerNet(nn.Module):
 
         output_modules = [
             nn.Sequential(
-                # EncoderLayer(hidden_size, inner_dim, n_heads, key_dim, val_dim, dropout=dropout, attn_flag=False),
-                # EncoderLayer(hidden_size, inner_dim, n_heads, key_dim, val_dim, dropout=dropout, attn_flag=False),
                 EncoderTaskLayer2(hidden_size, inner_dim, n_heads, key_dim, val_dim, dropout=dropout, attn_flag=False),
                 nn.Linear(hidden_size, 200),
                 nn.ReLU(),
@@ -280,12 +280,6 @@ class TransformerNet(nn.Module):
             pred = self.out(data)
 
         return pred
-    
-import torch
-import torch.nn as nn
-import numpy as np
-import torch.nn.functional as F
-
 
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
@@ -342,14 +336,6 @@ class MultiHeadAttention(nn.Module):
         sz_b, len_k, _ = k.size()
         sz_b, len_v, _ = v.size()
 
-        # print('q: ', q.size())
-        # print('k: ', k.size())
-        # print('v: ', v.size())
-
-        # print('n_head: ', self.n_head)
-        # print('d_k: ', self.d_k)
-        # print('d_v: ', self.d_v)
-
         residual = q
 
         q = self.w_qs(q).view(sz_b, len_q, n_head, d_k)
@@ -387,8 +373,6 @@ class MultiHeadTaskAttention(nn.Module):
     def forward(self, q, k, v, mask=None):
         assert type(q) == int
         assert q < self.num_embeddings
-        # q = torch.LongTensor([[q]]).expand(k.size(0), 1).to(k.device)
-        # q = self.embedding(q)
         q = (torch.ones((k.size(0), 1, self.d_model)) / self.d_model).to(k.device)
 
         return self.multihead(q, k, v, mask)

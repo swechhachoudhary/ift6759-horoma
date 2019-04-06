@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA
 
 class ConvAE(nn.Module):
     """
-    Convolutional autoencoder: composed of encoder an decoder components.
+    Convolutional autoencoder: composed of encoder and decoder components.
     Applies multiple 2D convolutions and 2D transpose convolutions, over
     the input images. each operator is followed by batch normalization and
     ReLU activations.
@@ -83,7 +83,6 @@ class ConvAE(nn.Module):
 
         :param data: the input data
         :param batch_size: batch size set in config file
-        :param seed: for reproductibililty.
         :param n_epochs: number of epochs
         :param lr: learning rate
         :param device: 'cuda' if available else 'cpu'

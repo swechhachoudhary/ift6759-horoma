@@ -10,6 +10,8 @@ import models.transformer_net as transformer_net
 import torch.nn.functional as F
 from data.dataset import OriginalHoromaDataset
 
+# Note : this code comes from OM Signal block 2 baseline
+# Some changes were made to be able to use this for Horoma
 
 def entropy_classification(x):
     return (F.log_softmax(x, dim=1) * F.softmax(x, dim=1)).sum()

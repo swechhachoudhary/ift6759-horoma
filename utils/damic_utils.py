@@ -10,8 +10,22 @@ from data.dataset import LocalHoromaDataset
 
 def get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_train, unlabeled_train, labeled_train,
                            labeled_valid, batch_size, device, experiment):
-    # Apply a clustering model algorithm on an embedded space provided by the encoding_model
-    # Return a class prediction for each sample within encoded_unlabeled_train
+    """
+    Apply a clustering model algorithm on an embedded space provided by the encoding_model
+    Return a class prediction for each sample within encoded_unlabeled_train
+
+    :param encoding_model: model used to do the encoding
+    :param clustering_model: model use to do the clustering
+    :param encoded_unlabeled_train: dataset with the unlabeled samples encoded
+    :param unlabeled_train: dataset with the unlabeled samples
+    :param labeled_train: dataset with labeled samples for training
+    :param labeled_valid: dataset with labeled samples for validation
+    :param batch_size: batch size
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :return: numpy array of the unlabeled data, numpy array with the predict class for each sample
+    """
+
     print("Start encoding of labeled dataset...")
     encoded_labeled_train = encode_dataset(encoding_model, labeled_train, batch_size, device)
     print("Done")
@@ -37,6 +51,15 @@ def get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_tra
 
 
 def _get_encoding_model(encoding_model_name, latent_dim, device, seed):
+    """
+    Train an encoding model
+
+    :param encoding_model_name: name of the encoding model being trained
+    :param latent_dim: dimension of the encoded samples
+    :param device: cpu or cuda
+    :param seed
+    :return: a trained encoding model of type encoding_model_name
+    """
     if encoding_model_name == "cvae":
         now = datetime.datetime.now()
         pth_filename = "autoencoder_pretrain_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
@@ -57,6 +80,19 @@ def _get_clustering_model(n_clusters, seed):
 
 def _initialize_damic_conv_clustering_net_weights(damic_model, conv_net_pretrain_config, numpy_unla_train,
                                                   numpy_unla_target_pred_by_cluster, labeled_train_and_valid, device, experiment):
+    """
+    Part of the pretraining for Damic is to initialize the weights for the convolutional clustering network.
+
+    :param damic_model
+    :param conv_net_pretrain_config: dictionary of configuration for the conv net pretraining
+    :param numpy_unla_train: numpy array of unlabeled samples
+    :param numpy_unla_target_pred_by_cluster: numpy array of targets for the unlabeled samples
+    :param labeled_train_and_valid: dataset composed of the labeled trained and validation set
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :return: a damic_model with his convolutional clustering network weights initialized
+    """
+
     print("Start pre-training of clustering convolutional model...")
     lr = conv_net_pretrain_config["lr"]
     batch_size = conv_net_pretrain_config["batch_size"]
@@ -77,6 +113,18 @@ def _initialize_damic_conv_clustering_net_weights(damic_model, conv_net_pretrain
  
 
 def _get_class_predictions_for_damic_pretraining(datapath, train_subset, overlapped, ae_pretrain_config, device, experiment, seed):
+    """
+    For pre-training purposes, Damic needs a first class prediction on the unlabeled samples
+
+    :param datapah
+    :param train_subset: if we use a subset of the samples
+    :param overlapped: if True, we use the overlapped dataset
+    :param ae_pretrain_config: dictionary of configuration for this step
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :return: numpy array of unlabeled samples, numpy array of target for each sample, dataset of labeled train+valid samples
+    """
+    
     unlabeled_train, labeled_train, labeled_valid, labeled_train_and_valid = load_original_horoma_datasets(datapath, 
                                                                                                            train_subset=train_subset, 
                                                                                                            overlapped=overlapped)
@@ -108,12 +156,26 @@ def _get_class_predictions_for_damic_pretraining(datapath, train_subset, overlap
         encoded_unlabeled_train = encode_dataset(encoding_model, unlabeled_train, batch_size, device)
         print("Done")
     
-    a, b = get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_train, unlabeled_train, labeled_train, labeled_valid,
+    array_unlabeled_samples, array_targets = \
+                                get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_train, unlabeled_train, 
+                                labeled_train, labeled_valid,
                                 batch_size, device, experiment)
-    return a, b, labeled_train_and_valid    
+    return array_unlabeled_samples, array_targets, labeled_train_and_valid    
 
 def _initialize_damic_autoencoders_weights(damic_model, damic_autoencoders_pretrain_config, numpy_unla_train, 
                                            numpy_unla_target_pred_by_cluster, device, experiment):
+    """
+    Part of the pretraining for Damic is to initialize the weights for each autoencoders.
+
+    :param damic_model
+    :param damic_autoencoders_pretrain_config: dictionary of configuration for this step
+    :param numpy_unla_train: numpy array of unlabeled samples
+    :param numpy_unla_target_pred_by_cluster: numpy array of targets for the unlabeled samples
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :return: a damic_model with each autoencoders weights initialized
+    """
+
     lr = damic_autoencoders_pretrain_config["lr"]
     n_epochs = damic_autoencoders_pretrain_config["n_epochs"]
     batch_size = damic_autoencoders_pretrain_config["batch_size"]
@@ -228,8 +290,10 @@ def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_u
     :param configuration: dictionnary containing all the keys/values part of DAMIC from a config file
     :param numpy_unla_train: numpy array of the unlabeled training dataset
     :param numpy_unla_target_pred_by_cluster: numpy array with the targets for each sample of the unlabeled traning dataset
+    :param labeled_train_and_valid: dataset composed of the labeled trained and validation set
     :param device: cuda (training is done on gpu) or cpu
     :param experiment: comet-ml experiment to save training results
+    :return: trained damic_model
     """
     print("== Start DAMIC training ...!")
     
@@ -268,6 +332,11 @@ def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_u
 def get_accuracy_f1_scores_from_damic_model(damic_model, labeled_train_and_valid, device):
     """
     Predict labels and compare to true labels to compute the accuracy and F1 score.
+    
+    :param damic_model: the model we want to do the pre-training on
+    :param labeled_train_and_valid: dataset composed of the labeled trained and validation set
+    :param device: cuda (training is done on gpu) or cpu
+    :return: predictions made by damic, accuracy and f1 score
     """
     print("Evaluating DAMIC model ...")   
     start_time = time()

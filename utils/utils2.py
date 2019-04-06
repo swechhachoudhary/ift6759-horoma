@@ -2,6 +2,7 @@ from collections import OrderedDict
 from pathlib import Path
 import torch
 
+# Note : this code comes from OM Signal block 2 baseline
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""

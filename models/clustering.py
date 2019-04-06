@@ -10,7 +10,7 @@ class DAMICClustering(nn.Module):
     """
         Clustering network for DAMIC
         Each cluster is reprensented by an autoencoder
-        A convolutional network assign one input to a specific autoencoder
+        A convolutional network map an input to a specific autoencoder
         See 'Deep clustering based on a mixture of autoencoders' by Chazan, Gannot and Goldberger
     """
     def __init__(self, n_clusters):
@@ -62,6 +62,7 @@ class DAMICClustering(nn.Module):
 
 
     def init_weights(self, m):
+        # Initialize weights using Kaiming algorithm
         if type(m) == nn.Conv2d or type(m) == nn.Linear or type(m) == nn.ConvTranspose2d:
             torch.nn.init.kaiming_uniform_(m.weight)
             m.bias.data.fill_(0.01)

@@ -3,6 +3,9 @@ from tqdm import tqdm
 import numpy as np
 import utils.scoring_function as scoreF
 
+# Note : this code comes from OM Signal block 2 baseline
+# Some modifications were made to make it work with Horoma
+# (For example, evaluation is made on the class of the tree now)
 
 def get_scoring_func_param_index(target_labels):
     scoring_func_param_index = [
@@ -26,29 +29,6 @@ def update_prediction_data(score_index, y, outputs, TC):
     TC = [treeClass_true, treeClass_pred]
 
     return TC
-"""
-def update_prediction_data(score_index, y, outputs, PR, RT, RR, ID):
-    score_param_index = score_index
-
-    prMean_true, prMean_pred = PR
-    rtMean_true, rtMean_pred = RT
-    rrStd_true, rrStd_pred = RR
-    ecgId_true, ecgId_pred = ID
-
-    if score_param_index[3] is not None:
-        i = score_param_index[3]
-        _, pred_classes = torch.max(outputs[i], dim=1)
-        if y is not None:
-            ecgId_true.extend(y[i].view(-1).tolist())
-        ecgId_pred.extend(pred_classes.view(-1).tolist())
-
-    PR = [prMean_true, prMean_pred]
-    RT = [rtMean_true, rtMean_pred]
-    RR = [rrStd_true, rrStd_pred]
-    ID = [ecgId_true, ecgId_pred]
-
-    return PR, RT, RR, ID
-"""
 
 def evaluate(model, device, dataloader, targets, criterion=None, weight=None):
 
@@ -61,26 +41,11 @@ def evaluate(model, device, dataloader, targets, criterion=None, weight=None):
         assert len(weight) == len(criterion)
 
     treeClass_pred, treeClass_true = None, None
-    """
-    prMean_pred, prMean_true = None, None
-    rtMean_pred, rtMean_true = None, None
-    rrStd_pred, rrStd_true = None, None
-    ecgId_pred, ecgId_true = None, None
-    """
 
     labeled = dataloader.dataset.labeled
     if score_param_index[0] is not None:
         treeClass_pred, treeClass_true = [], [] if labeled else None
-    """
-    if score_param_index[0] is not None:
-        prMean_pred, prMean_true = [], [] if labeled else None
-    if score_param_index[1] is not None:
-        rtMean_pred, rtMean_true = [], [] if labeled else None
-    if score_param_index[2] is not None:
-        rrStd_pred, rrStd_true = [], [] if labeled else None
-    if score_param_index[3] is not None:
-        ecgId_pred, ecgId_true = [], [] if labeled else None
-    """
+
     valid_loss = 0
     valid_n_iter = 0
 

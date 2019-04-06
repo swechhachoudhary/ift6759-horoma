@@ -6,6 +6,8 @@ import utils.scoring_function as scoreF
 import utils.evaluator as evaluator
 import utils.utils2 as utils2
 
+# Note : this code comes from OM Signal block 2 baseline
+# Some changes were made to be able to use this for Horoma
 
 class Trainer():
 
@@ -121,12 +123,8 @@ class Trainer():
 
             optimizer.zero_grad()
 
-            #lds = self.vat_loss(model, x_ul)
-
             if isinstance(x_ul, (list, tuple)):
                 x_ul = x_ul[0]
-            # print('')
-            # print('LDS: ', lds)
 
             x_l = x_l.reshape([x_l.shape[0],1,3072])
             outputs = model(x_l)
@@ -134,7 +132,6 @@ class Trainer():
                 outputs = [outputs]
 
             reg_loss = 0.0
-            # print('is_entropy_based: ', self.is_entropy_based)
             if self.is_entropy_based:
                 x_ul = x_ul.reshape([16,1,3072])
                 outputs_ul = model(x_ul)
@@ -144,25 +141,17 @@ class Trainer():
                     w * (0.0 if c is None else c(o))
                     for c, o, w in zip(self.entropy, outputs, self.weight)
                 ]
-                # print('supervised_reg_losses: ', supervised_reg_losses)
                 unsupervised_reg_losses = [
                     w * (0.0 if c is None else c(o))
                     for c, o, w in zip(self.entropy, outputs_ul, self.weight)
                 ]
-                # print('unsupervised_reg_losses: ', unsupervised_reg_losses)
 
-                # reg_losses = [
-                #     (a+b)/(x_ul.size(0) + x_l.size(0))
-                #     for a,b in zip(supervised_reg_losses, unsupervised_reg_losses)
-                # ]
                 reg_losses = [
                     ((a / (x_l.size(0))) + self.args.alpha * (b / (x_ul.size(0)))) / (1.0 + self.args.alpha)
                     for a, b in zip(supervised_reg_losses, unsupervised_reg_losses)
                 ]
 
-                # print('reg_losses: ', reg_losses)
                 reg_loss = sum(reg_losses)
-                # print('reg_loss: ', reg_loss)
 
             y_l[0] = y_l[0].long()
             supervised_losses = [
@@ -170,9 +159,6 @@ class Trainer():
                 for c, o, gt, w in zip(criterion, outputs, y_l, weight)
             ]
             supervised_loss = sum(supervised_losses)
-
-            # print('supervised_losses: ', supervised_losses)
-            # print('supervised_loss: ', supervised_loss)
 
             treeClass_pred, treeClass_true = None, None
             if score_param_index[0] is not None:
@@ -184,14 +170,9 @@ class Trainer():
                 treeClass_true = np.array(treeClass_true, dtype=np.int32)
             
             loss = supervised_loss + reg_loss + self.args.alpha
-            #loss = supervised_loss + reg_loss + self.args.alpha * lds
+
             loss.backward()
             optimizer.step()
-
-            #if hasattr(self.vat_loss, 'update_ema_variables'):
-                #self.vat_loss.update_ema_variables(model, self.args.ema_decay, k)
-
-            # print('loss_final: ', loss)
 
             metrics = scoreF.scorePerformance(
                 treeClass_pred, treeClass_true
@@ -211,14 +192,12 @@ class Trainer():
                     metrics[i],
                     x_l.shape[0]
                 )
-            #vat_losses.update(lds.item(), x_ul.shape[0])
 
             if k > 0 and k % self.args.chkpt_freq == 0:
                 filename = self.args.checkpoint_dir + \
                     prefix + '_{}.pt'.format(k)
                 utils2.set_path(filename)
                 utils2.save_checkpoint(model, k, filename, optimizer)
-                #utils.save_checkpoint(model, k, filename, optimizer, self.vat_loss)
 
         filename = self.args.checkpoint_dir + \
             prefix + '_{}.pt'.format(self.args.iters)
