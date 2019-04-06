@@ -57,7 +57,7 @@
         "damic_train_path": ""
     },
     "seed": 1234,
-    "train_subset": null,
+    "train_subset": 250,
     "overlapped": false
   }
 }
