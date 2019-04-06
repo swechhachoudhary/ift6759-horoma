@@ -1,4 +1,4 @@
-from utils.model_utils import *
+from utils.model_utils import get_ae_dataloaders, train_network, encode_dataset
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -131,12 +131,14 @@ class CVAE(nn.Module):
     :param latent_dim: dimension of latent-space representation.
 
     """
+    def __init__(self, input_dim=3072, latent_dim=2, folder_save_model="experiment_models/", pth_filename_save_model=""):
 
-    def __init__(self, input_dim=3072, latent_dim=2):
         self.latent_dim = latent_dim
         self.input_dim = input_dim
         self.is_variational = True
         self.calculate_own_loss = False
+        self.folder_save_model = folder_save_model
+        self.pth_filename_save_model = pth_filename_save_model
 
         super().__init__()
         self.encoder = nn.Sequential(
@@ -161,8 +163,7 @@ class CVAE(nn.Module):
             nn.ReLU(),
             nn.Conv2d(16, 16, kernel_size=4, stride=2, padding=1),  # b, 16,4,4
             nn.BatchNorm2d(16),
-            nn.ReLU(),
-
+            nn.ReLU()
         )
         self.embedding_mu = nn.Linear(16 * 4 * 4, self.latent_dim)
         self.embedding_sigma = nn.Linear(16 * 4 * 4, self.latent_dim)
@@ -243,12 +244,12 @@ class CVAE(nn.Module):
         :param experiment: for tracking comet experiment
 
         """
-        train_loader, valid_loader = get_ae_dataloaders(
-            data, batch_size, split=0.8)
+        train_loader, valid_loader = get_ae_dataloaders(data, batch_size, split=0.8)
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
-        best_model = train_network(
-            self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
+        best_model = train_network(self, train_loader, valid_loader, optimizer, n_epochs, device, experiment,
+                                   folder_save_model=self.folder_save_model, pth_filename_save_model=self.pth_filename_save_model)
+
         return encode_dataset(self, data, batch_size, device), best_model
 
     def _calculate_own_loss(self):

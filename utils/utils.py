@@ -127,6 +127,35 @@ def load_datasets(datapath, train_subset, flattened=False, split="train_all"):
 
     return dataset
 
+def load_original_horoma_datasets(datapath, train_subset, flattened=False, overlapped=True):
+    """
+    Load Original Horoma datasets from specified data directory.
+    Return unlabeled, labeled and validation sets
+
+    :type datapath: str
+    :type flattened: bool
+    :type train_subset: str
+    :type overlapped: bool
+    """
+
+    print("Loading datasets from ({}) ...".format(datapath), end=' ')
+    start_time = time()
+    if overlapped:
+        unlabeled_trainset = OriginalHoromaDataset(datapath, split="train_overlapped", subset=train_subset, flattened=flattened)
+        labeled_trainset = OriginalHoromaDataset(datapath, split="train_labeled_overlapped", flattened=flattened)
+        labeled_validset = OriginalHoromaDataset(datapath, split="valid_overlapped", flattened=flattened)
+
+    else:
+        unlabeled_trainset = OriginalHoromaDataset(datapath, split="train", subset=train_subset, flattened=flattened)
+        labeled_trainset = OriginalHoromaDataset(datapath, split="train_labeled", flattened=flattened)
+        labeled_validset = OriginalHoromaDataset(datapath, split="valid", flattened=flattened)
+        labeled_train_valid_set = OriginalHoromaDataset(datapath, split="train_labeled", flattened=flattened)
+        labeled_train_valid_set.data = np.concatenate([labeled_train_valid_set.data, labeled_validset.data])
+        labeled_train_valid_set.targets = np.concatenate([labeled_train_valid_set.targets, labeled_validset.targets])
+
+    print("Done in {:.2f} sec".format(time() - start_time))
+    return unlabeled_trainset, labeled_trainset, labeled_validset, labeled_train_valid_set
+
 
 def assign_labels_to_clusters(model, data, labels_true):
     """
