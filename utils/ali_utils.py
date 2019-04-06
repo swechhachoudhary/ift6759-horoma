@@ -42,6 +42,13 @@ def initialize_ali(configs,data):
 
     Disc = ali.Discriminator(ch=3, zd= Zdim)
 
+    if 'continue_from' in configs:
+
+        Gx.load_state_dict(torch.load(MODEL_PATH+'/Gx-'+str(configs['continue_from'])+'.pth'))    
+        Gz.load_state_dict(torch.load(MODEL_PATH+'/Gz-'+str(configs['continue_from'])+'.pth')) 
+        Disc.load_state_dict(torch.load(MODEL_PATH+'/Disc-'+str(configs['continue_from'])+'.pth'))
+
+
 
     z_pred = torch.FloatTensor(81,Zdim,1,1).normal_(0,1)
    
@@ -144,7 +151,13 @@ def training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment
     # Index starts at 1 for reporting purposes
     
     Zdim = configs['Zdim']
-    for epoch in range(1, configs['n_epochs'] + 1):
+    if 'continue_from' in configs:
+        start_epoch = configs['continue_from']+1
+        end_epoch   = start_epoch + configs['n_epochs']
+    else:
+        start_epoch = 0
+        end_epoch = configs['n_epochs']
+    for epoch in range(start_epoch, end_epoch):
 
         g_loss,d_loss,d_true,d_false = train_epoch_ali(
             Gz,Gx,Disc, optim_d,optim_g, train_loader,epoch,cuda,configs
@@ -246,12 +259,6 @@ def runloop_d_ali(imgs,Gx,Gz,Disc,optim_d,cuda,configs):
 
 
 
-
-
-
-
-
-
 def initialize_hali(configs,data):
 
 
@@ -277,6 +284,13 @@ def initialize_hali(configs,data):
 
     Disc = hali.Discriminator(ch=3, zd= Zdim,zd1 = zd1)
 
+    if 'continue_from' in configs:
+
+        Gx1.load_state_dict(torch.load(MODEL_PATH+'/Gx1-'+str(configs['continue_from'])+'.pth')) 
+        Gx2.load_state_dict(torch.load(MODEL_PATH+'/Gx2-'+str(configs['continue_from'])+'.pth')) 
+        Gz1.load_state_dict(torch.load(MODEL_PATH+'/Gz1-'+str(configs['continue_from'])+'.pth')) 
+        Gz2.load_state_dict(torch.load(MODEL_PATH+'/Gz2-'+str(configs['continue_from'])+'.pth'))
+        Disc.load_state_dict(torch.load(MODEL_PATH+'/Disc-'+str(configs['continue_from'])+'.pth'))
 
     z_pred1 = torch.FloatTensor(81,Zdim,1,1).normal_(0,1)
     z_pred2 = torch.FloatTensor(81, zd1, 16, 16).normal_(0, 1)
@@ -480,7 +494,13 @@ def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs
     # Index starts at 1 for reporting purposes
     
     Zdim = configs['Zdim']
-    for epoch in range(1, configs['n_epochs'] + 1):
+    if 'continue_from' in configs:
+        start_epoch = configs['continue_from']+1
+        end_epoch   = start_epoch + configs['n_epochs']
+    else:
+        start_epoch = 0
+        end_epoch = configs['n_epochs']
+    for epoch in range(start_epoch, end_epoch):
 
         g_loss,d_loss,d_true,d_false = train_epoch_hali(
             Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, train_loader,epoch,cuda,configs
