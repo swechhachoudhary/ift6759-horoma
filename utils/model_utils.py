@@ -18,7 +18,8 @@ def get_ae_dataloaders(traindata, batch_size, split):
 
 
 def loss_function(recon_x, x, mu, logvar):
-    MSE = F.mse_loss(recon_x.view(-1, 32 * 32 * 3), x.view(-1, 32 * 32 * 3), reduction='sum')
+    MSE = F.mse_loss(recon_x.view(-1, 32 * 32 * 3),
+                     x.view(-1, 32 * 32 * 3), reduction='sum')
 
     # see Appendix B from VAE paper:
     # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
@@ -31,7 +32,6 @@ def loss_function(recon_x, x, mu, logvar):
 
 def encode_dataset(model, data, batch_size, device):
     full_loader = DataLoader(data, batch_size=batch_size)
-    #model.eval()
     tensors = []
     with torch.no_grad():
         for batch_idx, inputs in enumerate(full_loader):
@@ -40,6 +40,7 @@ def encode_dataset(model, data, batch_size, device):
             inputs = inputs.to(device)
             tensors.append(model.encode(inputs))
     return torch.cat(tensors, dim=0)
+
 
 def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
     """Train one epoch for model."""
@@ -67,13 +68,16 @@ def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
         running_loss += loss.item()
         if batch_idx % 10 == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(inputs),
-                                                                           len(train_loader) * len(inputs),
-                                                                           100. * batch_idx / len(train_loader),
+                                                                           len(train_loader) *
+                                                                           len(inputs),
+                                                                           100. * batch_idx /
+                                                                           len(train_loader),
                                                                            loss.item() / len(inputs)))
 
     train_loss = running_loss / len(train_loader.dataset)
     experiment.log_metric("Train loss", train_loss, step=epoch)
     return train_loss
+
 
 def _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, experiment):
     """Train one epoch for convolutional clustering network."""
@@ -87,8 +91,8 @@ def _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, e
 
         inputs = inputs.to(device)
         labels = labels.to(device)
-        labels[labels<0] = 0
-        labels[labels>16] = 16
+        labels[labels < 0] = 0
+        labels[labels > 16] = 16
 
         optimizer.zero_grad()
         outputs = model(inputs)
@@ -108,6 +112,7 @@ def _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, e
     experiment.log_metric("Conv classifier pretrain loss", train_loss, step=epoch)
     return train_loss
 
+
 def _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experiment):
     """Train one epoch for the whole Damic model (Convolutional clustering network + Autoencoders)"""
     model.train()
@@ -117,7 +122,7 @@ def _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experi
         inputs, _ = data
         current_batch_size = inputs.shape[0]
         inputs = inputs.to(device)
-        
+
         optimizer.zero_grad()
 
         conv_net_class_predictions, ae_reconstruction = model.train_damic(inputs, current_batch_size)
@@ -128,15 +133,15 @@ def _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experi
             loss_autoencoder = criterion_ae(inputs, ae_reconstruction[i].to(device))
             loss_autoencoders[i] = -(loss_autoencoder/2.0)
 
-        loss_autoencoders = loss_autoencoders.transpose(0,1)
-      
+        loss_autoencoders = loss_autoencoders.transpose(0, 1)
+
         # Calculate loss given the formula (3) p2 from 'Deep clustering based on a mixture of autoencoders paper'
         exp_loss_autoencoders = loss_autoencoders.exp()
         total_loss_per_class = conv_net_class_predictions * exp_loss_autoencoders
         total_loss = total_loss_per_class.sum(dim=1)
         total_loss_log = total_loss.log()
         total_loss_log_sum = total_loss_log.sum()
-        
+
         # Simultaneously train all the autoencoders and the convolutional network
         total_loss_log_sum.backward()
         optimizer.step()
@@ -146,6 +151,7 @@ def _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experi
     train_loss = running_loss / len(train_loader)
     experiment.log_metric("DAMIC train loss", train_loss, step=epoch)
     return train_loss
+
 
 def _test(model, test_loader, epoch, device, experiment):
     """ Compute reconstruction loss of model over given dataset. Model is an autoencoder"""
@@ -157,6 +163,7 @@ def _test(model, test_loader, epoch, device, experiment):
         for inputs in test_loader:
             if isinstance(inputs, (tuple, list)):
                 inputs = inputs[0]
+
             inputs = inputs.to(device)
             # ConvAe is variational
             if model.is_variational:
@@ -164,7 +171,8 @@ def _test(model, test_loader, epoch, device, experiment):
                 if model.calculate_own_loss:
                     test_loss += mu
                 else:
-                    test_loss += loss_function(output, inputs, mu, logvar).item()
+                    test_loss += loss_function(output,
+                                               inputs, mu, logvar).item()
                 test_size += len(inputs)
             else:
                 output = model(inputs)
@@ -175,6 +183,7 @@ def _test(model, test_loader, epoch, device, experiment):
     test_loss /= test_size
     experiment.log_metric("Validation loss", test_loss, step=epoch)
     return test_loss
+
 
 def _test_classifier(model, test_loader, epoch, device, experiment):
     """ Compute cross entropy loss over given datase """
@@ -197,11 +206,13 @@ def _test_classifier(model, test_loader, epoch, device, experiment):
     experiment.log_metric("Conv classifier pretrain validation loss", test_loss, step=epoch)
     return test_loss
 
+
 def train_network(model, train_loader, test_loader, optimizer, n_epochs, device, experiment, train_classifier=False, train_damic=False,
-                 folder_save_model="experiment_models/", pth_filename_save_model=""):
+                  folder_save_model="experiment_models/", pth_filename_save_model=""):
     best_loss = np.inf
     key = experiment.get_key()
     best_model = None
+
     for epoch in range(n_epochs):
         if train_damic:
             train_loss = _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experiment)
@@ -228,7 +239,8 @@ def train_network(model, train_loader, test_loader, optimizer, n_epochs, device,
                 best_loss = valid_loss
                 best_model = deepcopy(model)  # Keep best model thus far
         except FileNotFoundError as e:
-            print("Directory for logging experiments does not exist. Launch script from repository root.")
+            print(
+                "Directory for logging experiments does not exist. Launch script from repository root.")
             raise e
 
         print("Training loss after {} epochs: {:.6f}".format(epoch, train_loss))
