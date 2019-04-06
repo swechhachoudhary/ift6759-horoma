@@ -48,18 +48,25 @@ class OriginalHoromaDataset(Dataset):
 
         if split == "train":
             self.nb_exemples = 152000
+            self.labeled = False
         elif split == "train_labeled":
             self.nb_exemples = 228
+            self.labeled = True
         elif split == "valid":
             self.nb_exemples = 252
+            self.labeled = True
         elif split == "test":
             self.nb_exemples = 498
+            self.labeled = True
         elif split == "train_overlapped":
             self.nb_exemples = 548720
+            self.labeled = False
         elif split == "train_labeled_overlapped":
             self.nb_exemples = 635
+            self.labeled = True
         elif split == "valid_overlapped":
             self.nb_exemples = 696
+            self.labeled = True
         else:
             raise (
                 "Dataset: Invalid split. Must be [train, valid, test, train_overlapped, valid_overlapped]")
