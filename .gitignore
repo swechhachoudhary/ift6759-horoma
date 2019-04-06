@@ -8,13 +8,17 @@ __pycache__/
 *.err
 *.out
 
-# All the experiments and models
+# All the experiments
 experiments/*
+damic_models/*
+damic_comet_experiences/*
 experiment_models/*
+final_models/*
 
 # All pycache
 models/__pycache__/*
 utils/__pycache__/*
+data/__pycache__/*
 
 # C extensions
 *.so

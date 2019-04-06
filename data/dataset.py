@@ -4,8 +4,30 @@ import numpy as np
 import torch
 from PIL import Image
 from tempfile import mkdtemp
-from torchvision.transforms import functional
 from torch.utils.data import Dataset
+
+
+class LocalHoromaDataset(Dataset):
+    """
+    The data is not loaded from a file but given as parameters instead
+    This dataset is for the pretraining of the convolution clustering network
+    Since this pretraining is supervised, this dataset can handle targets
+    """
+
+    def __init__(self, data, targets):
+        """
+        Args:
+            data : numpy array (number_of_sample, 3, 32, 32)
+            targets : numpy array (number_of_sample, 1)
+        """
+        self.data = data
+        self.targets = targets
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        return torch.Tensor(self.data[index]) / 255, torch.Tensor([self.targets[index]])
 
 
 class OriginalHoromaDataset(Dataset):
@@ -26,12 +48,16 @@ class OriginalHoromaDataset(Dataset):
 
         if split == "train":
             self.nb_exemples = 152000
+        elif split == "train_labeled":
+            self.nb_exemples = 228
         elif split == "valid":
             self.nb_exemples = 252
         elif split == "test":
             self.nb_exemples = 498
         elif split == "train_overlapped":
             self.nb_exemples = 548720
+        elif split == "train_labeled_overlapped":
+            self.nb_exemples = 635
         elif split == "valid_overlapped":
             self.nb_exemples = 696
         else:
@@ -42,7 +68,7 @@ class OriginalHoromaDataset(Dataset):
         filename_y = os.path.join(data_dir, "{}_y.txt".format(split))
 
         self.targets = None
-        if os.path.exists(filename_y) and not split.startswith("train"):
+        if os.path.exists(filename_y):
             pre_targets = np.loadtxt(filename_y, 'U2')
 
             if subset is None:
@@ -165,7 +191,7 @@ class HoromaDataset(Dataset):
             img = torch.Tensor(self.transform(self.data[index])) / 255
         else:
             img = torch.Tensor(self.data[index]) / 255
-        # img = img.transpose(2, 0).transpose(2, 1)
+
         if self.targets is None:
             return img
         else:
@@ -216,6 +242,7 @@ class HoromaDataset(Dataset):
                 targets += [self.str_to_id[_str]
                             for _str in pre_targets if _str in self.str_to_id]
         return np.asarray(targets)
+
 
 if __name__ == "__main__":
     valid_all = HoromaDataset(

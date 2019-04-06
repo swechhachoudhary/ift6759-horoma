@@ -10,8 +10,8 @@
     "latent_dim": 10,
     "train_subset": null,
     "overlapped": false,
-    "encode": true,
-    "cluster": false
+    "encode": false,
+    "cluster": true
   },
   "CONV_AE": {
     "cluster_model": "kmeans",
@@ -24,7 +24,40 @@
     "latent_dim": 40,
     "train_subset": null,
     "overlapped": false,
-    "encode": true,
-    "cluster": false
+    "encode": false,
+    "cluster": true
+  },
+  "DAMIC": {
+    "autoencoder_pretrain": {
+        "enc_model": "cvae",
+        "batch_size": 128,
+        "n_epochs": 20,
+        "lr": 1e-3,
+        "n_clusters": 21,
+        "latent_dim": 10,
+        "encoder_path": "damic_models/autoencoder_pretrain_4_3_16_31.pth",
+        "train_encoder": false
+    },
+    "damic_conv_net_pretrain": {
+        "batch_size": 128,
+        "lr": 1e-3,
+        "n_epochs": 4,
+        "conv_net_pretrain_path": ""
+    },
+    "damic_autoencoders_pretrain": {
+        "batch_size": 128,
+        "n_epochs": 4,
+        "lr": 1e-3,
+        "autoencoders_pretrain_path": ""
+    },
+    "damic_train": {
+        "batch_size": 128,
+        "n_epochs": 6,
+        "lr": 1e-3,
+        "damic_train_path": ""
+    },
+    "seed": 1234,
+    "train_subset": 250,
+    "overlapped": false
   }
 }
