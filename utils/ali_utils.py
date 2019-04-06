@@ -71,8 +71,8 @@ def initialize_ali(configs,data):
 
     elif configs['optim']=='OMD':
 
-        optim_d = OptMirrorAdam(Disc.parameters(),lr=configs['lr_d'],betas=(0.5, .999),weight_decay=0,amsgrad =configs['amsgrad'])
-        optim_g = OptMirrorAdam(gen,configs['lr_g'], betas=(0.5, .999), weight_decay=0,amsgrad =configs['amsgrad'])
+        optim_d = OptMirrorAdam(Disc.parameters(),lr=configs['lr_d'],betas=(0.5, .999),weight_decay=0,amsgrad =configs['amsgrad'],extragradient=configs['extragradient'])
+        optim_g = OptMirrorAdam(gen,configs['lr_g'], betas=(0.5, .999), weight_decay=0,amsgrad =configs['amsgrad'],extragradient=configs['extragradient'])
    
     train_loader = DataLoader(data, batch_size=BS, shuffle=True)
 

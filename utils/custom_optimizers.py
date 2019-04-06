@@ -148,7 +148,7 @@ class OptMirrorAdam(Optimizer):
         if not 0.0 <= betas[1] < 1.0:
             raise ValueError("Invalid beta parameter at index 1: {}".format(betas[1]))
         defaults = dict(lr=lr, betas=betas, eps=eps,
-                        weight_decay=weight_decay, amsgrad=amsgrad)
+                        weight_decay=weight_decay, amsgrad=amsgrad,extragradient=extragradient)
         super(OptMirrorAdam, self).__init__(params, defaults)
 
     def __setstate__(self, state):
@@ -184,7 +184,7 @@ class OptMirrorAdam(Optimizer):
                 if grad.is_sparse:
                     raise RuntimeError('Adam does not support sparse gradients, please consider SparseAdam instead')
                 amsgrad = group['amsgrad']
-
+                extragradient = group['extragradient']
                 state = self.state[p]
 
                 # @@@@@@@@@@@@@@@ State initialization @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

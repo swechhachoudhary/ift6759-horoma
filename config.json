@@ -28,7 +28,7 @@
     "train_labeled_split": "train_labeled",
     "cluster_model":"svm",
     "batch_size": 32,
-    "n_epochs": 20,
+    "n_epochs": 5000,
     "IMAGE_PATH":"images_ali",
     "MODEL_PATH":"models_ali"
   },
@@ -36,7 +36,7 @@
     "enc_model":"hali",
     "lr_d":1e-4,
     "lr_g":1e-4,
-    "optim":"Adam",
+    "optim":"OMD",
     "amsgrad":false,
     "n_critic":1,
     "gp":true,
@@ -56,9 +56,10 @@
     "cluster_model":"svm",
     "batch_size": 32,
     "seed": 1234,
-    "n_epochs": 5,
-    "IMAGE_PATH":"images_hali",
-    "MODEL_PATH":"models_hali"
+    "extragradient":true,
+    "n_epochs": 5000,
+    "IMAGE_PATH":"images_hali_OMD",
+    "MODEL_PATH":"models_hali_OMD"
   },
   "CVAE_BASE": {
     "cluster_model": "kmeans",
