@@ -1,10 +1,11 @@
 from comet_ml import OfflineExperiment
 import json
 import argparse
-from models.encoders import *
-from models.clustering import *
-from utils.utils import *
-from utils.utils import load_datasets
+import numpy as np
+from models.encoders import PCAEncoder, VAE, AE, CAE, CVAE, ConvAE
+from models.clustering import KMeansClustering, GMMClustering
+from utils.utils import assign_labels_to_clusters, eval_model_predictions
+from utils.model_utils import encode_dataset
 from utils.constants import Constants
 from data.dataset import HoromaDataset
 import torch

@@ -7,6 +7,7 @@ import torch.nn.functional as F
 # Note : this code comes from OM Signal block 2 baseline
 # Several adjustments (mainly in TransformerNet) were made to make it work for Horoma
 
+
 class Conv1DLinear(nn.Module):
 
     def __init__(self,
@@ -141,7 +142,7 @@ class Conv1DBNLinear(nn.Module):
         )
         return l_out
 
-    def forward(self, x, noise=None):        
+    def forward(self, x, noise=None):
         x = self.preprocess(x)
         if noise is not None:
             x = x + noise
@@ -280,6 +281,7 @@ class TransformerNet(nn.Module):
             pred = self.out(data)
 
         return pred
+
 
 class ScaledDotProductAttention(nn.Module):
     ''' Scaled Dot-Product Attention '''
@@ -473,7 +475,8 @@ class EncoderTaskLayer2(nn.Module):
             return enc_output.squeeze(1), enc_slf_attn
         else:
             return enc_output.squeeze(1)
-        
+
+
 class Preprocessor(nn.Module):
 
     def __init__(
@@ -530,4 +533,3 @@ class Preprocessor(nn.Module):
         x = x.detach().contiguous()
 
         return x
-

@@ -4,6 +4,7 @@ from torch.utils.data import sampler
 
 # Note : this code comes from OM Signal block 2 baseline
 
+
 class InfiniteSampler(sampler.Sampler):
 
     def __init__(self, num_samples):

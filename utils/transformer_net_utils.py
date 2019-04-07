@@ -9,6 +9,7 @@ import utils.utils2 as utils2
 # Note : this code comes from OM Signal block 2 baseline
 # Some changes were made to be able to use this for Horoma
 
+
 class Trainer():
 
     def __init__(
@@ -79,7 +80,6 @@ class Trainer():
                     filename = self.args.checkpoint_dir + prefix + '_{}.pt'.format('BestModel')
                     utils2.set_path(filename)
                     utils2.save_checkpoint(model, k, filename, optimizer)
-                    #utils.save_checkpoint(model, k, filename, optimizer, self.vat_loss)
 
                 experiment.log_metric('Train/Loss', sup_losses[0].avg, tbIndex)
                 experiment.log_metric('Valid/Loss', val_mean_loss, tbIndex)
@@ -126,14 +126,14 @@ class Trainer():
             if isinstance(x_ul, (list, tuple)):
                 x_ul = x_ul[0]
 
-            x_l = x_l.reshape([x_l.shape[0],1,3072])
+            x_l = x_l.reshape([x_l.shape[0], 1, 3072])
             outputs = model(x_l)
             if not isinstance(outputs, (list, tuple)):
                 outputs = [outputs]
 
             reg_loss = 0.0
             if self.is_entropy_based:
-                x_ul = x_ul.reshape([16,1,3072])
+                x_ul = x_ul.reshape([16, 1, 3072])
                 outputs_ul = model(x_ul)
                 if not isinstance(outputs_ul, (list, tuple)):
                     outputs_ul = [outputs_ul]
@@ -168,7 +168,7 @@ class Trainer():
                 treeClass_pred = pred_classes.view(-1).tolist()
                 treeClass_pred = np.array(treeClass_pred, dtype=np.int32)
                 treeClass_true = np.array(treeClass_true, dtype=np.int32)
-            
+
             loss = supervised_loss + reg_loss + self.args.alpha
 
             loss.backward()

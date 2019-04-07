@@ -1,9 +1,9 @@
 import numpy as np
-from scipy.stats import kendalltau
 from sklearn.metrics import recall_score, f1_score
 
 # Note : this code comes from OM Signal block 2 baseline
 # Some changes were made to be able to use this for Horoma
+
 
 def scorePerformance(treeClass_pred, treeClass_true):
     """

@@ -13,6 +13,7 @@ from data.dataset import OriginalHoromaDataset
 # Note : this code comes from OM Signal block 2 baseline
 # Some changes were made to be able to use this for Horoma
 
+
 def entropy_classification(x):
     return (F.log_softmax(x, dim=1) * F.softmax(x, dim=1)).sum()
 
@@ -116,12 +117,10 @@ def main():
     targets = args.targets
     targets = ','.join(targets)
 
-    scaler_dict = None
-    
     train_labeled_dataset = OriginalHoromaDataset(args.data_dir, split="train_labeled")
     train_unlabeled_dataset = OriginalHoromaDataset(args.data_dir, split="train")
     valid_dataset = OriginalHoromaDataset(args.data_dir, split="valid")
-    
+
     data_iterators = data_utils.get_iters(
         train_labeled_dataset,
         train_unlabeled_dataset,
@@ -133,7 +132,6 @@ def main():
         workers=args.workers
     )
 
-    input_size = 3750
     target_labels = targets.split(",")
     target_labels = [s.lower().strip() for s in target_labels]
     out_size = 17

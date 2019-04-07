@@ -7,12 +7,14 @@ import utils.scoring_function as scoreF
 # Some modifications were made to make it work with Horoma
 # (For example, evaluation is made on the class of the tree now)
 
+
 def get_scoring_func_param_index(target_labels):
     scoring_func_param_index = [
         None if target_labels.count(
             'tree_class') == 0 else target_labels.index('tree_class'),
     ]
     return scoring_func_param_index
+
 
 def update_prediction_data(score_index, y, outputs, TC):
     score_param_index = score_index
@@ -29,6 +31,7 @@ def update_prediction_data(score_index, y, outputs, TC):
     TC = [treeClass_true, treeClass_pred]
 
     return TC
+
 
 def evaluate(model, device, dataloader, targets, criterion=None, weight=None):
 
@@ -104,4 +107,3 @@ def evaluate(model, device, dataloader, targets, criterion=None, weight=None):
 
     preds = (treeClass_pred)
     return mean_loss, metrics, preds
-

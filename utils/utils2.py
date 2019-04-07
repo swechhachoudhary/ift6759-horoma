@@ -4,6 +4,7 @@ import torch
 
 # Note : this code comes from OM Signal block 2 baseline
 
+
 class AverageMeter(object):
     """Computes and stores the average and current value"""
 
@@ -98,4 +99,3 @@ def set_path(path):
     if not Path(path_dir).exists():
         Path(path_dir).mkdir(parents=True)
     return path
-
