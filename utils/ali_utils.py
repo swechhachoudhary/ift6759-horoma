@@ -246,7 +246,7 @@ def runloop_d_ali(imgs,Gx,Gz,Disc,optim_d,cuda,configs):
         d_true = Disc(imgs,z)
         d_fake = Disc(imgs_fake,zv)
 
-        gp = calc_gradient_penalty2_ali(Disc,imgs, imgs_fake, zv,z)
+        gp = calc_gradient_penalty2_ali(Disc,imgs, imgs_fake, zv,z,1)
         
         loss_d = torch.mean(softplus(-d_true) + softplus(d_fake))+gp
 
