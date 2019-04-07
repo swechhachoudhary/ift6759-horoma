@@ -152,7 +152,7 @@ def training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment
     
     Zdim = configs['Zdim']
     if 'continue_from' in configs:
-        start_epoch = configs['continue_from']+1
+        start_epoch = configs['continue_from']
         end_epoch   = start_epoch + configs['n_epochs']
     else:
         start_epoch = 0
@@ -246,9 +246,14 @@ def runloop_d_ali(imgs,Gx,Gz,Disc,optim_d,cuda,configs):
         d_true = Disc(imgs,z)
         d_fake = Disc(imgs_fake,zv)
 
-        gp = calc_gradient_penalty2_ali(Disc,imgs, imgs_fake, zv,z,1)
-        
-        loss_d = torch.mean(softplus(-d_true) + softplus(d_fake))+gp
+        if configs['gp']:
+
+            gp = calc_gradient_penalty2_ali(Disc,imgs, imgs_fake, zv,z,configs['gp_lambda'])
+            loss_d = torch.mean(softplus(-d_true) + softplus(d_fake))+gp
+
+        else: 
+
+            loss_d = torch.mean(softplus(-d_true) + softplus(d_fake))
 
         loss_d.backward(retain_graph=True)
         return loss_d.data.item()
@@ -414,10 +419,15 @@ def runloop_d_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs):
 
         d_true = Disc(imgs,z1,z2)
         d_fake = Disc(imgs_fake,zv1,zv)
-        gp = calc_gradient_penalty2_hali(Disc,imgs, imgs_fake, zv1,z1,zv, z2,1)
-        
-        loss_d = torch.mean(softplus(-d_true) + softplus(d_fake))+gp
 
+        if configs['gp']:
+
+            gp = calc_gradient_penalty2_hali(Disc,imgs, imgs_fake, zv1,z1,zv, z2,configs['gp_lambda'])
+            loss_d = torch.mean(softplus(-d_true) + softplus(d_fake))+gp
+
+        else:
+            loss_d = torch.mean(softplus(-d_true) + softplus(d_fake))
+            
         loss_d.backward(retain_graph=True)
         return loss_d.data.item()
 
@@ -495,7 +505,7 @@ def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs
     
     Zdim = configs['Zdim']
     if 'continue_from' in configs:
-        start_epoch = configs['continue_from']+1
+        start_epoch = configs['continue_from']
         end_epoch   = start_epoch + configs['n_epochs']
     else:
         start_epoch = 0
