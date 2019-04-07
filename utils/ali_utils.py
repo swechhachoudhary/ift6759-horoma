@@ -22,8 +22,10 @@ from torchvision.datasets import ImageFolder
 def initialize_ali(configs,data):
 
 
-    IMAGE_PATH = configs['experiment']+'/'+configs['IMAGE_PATH']
-    MODEL_PATH = configs['experiment']+'/'+configs['MODEL_PATH']
+    IMAGE_PATH = 'experiments/'+configs['experiment']+'/images'
+    MODEL_PATH = 'experiments/'+configs['experiment']+'/models'
+    configs['IMAGE_PATH'] = IMAGE_PATH
+    configs['MODEL_PATH'] = MODEL_PATH
 
     if not os.path.exists(IMAGE_PATH):
         print('mkdir ', IMAGE_PATH)
@@ -83,7 +85,7 @@ def initialize_ali(configs,data):
    
     train_loader = DataLoader(data, batch_size=BS, shuffle=True)
 
-    return Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda
+    return Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda,configs
 
 
 
@@ -267,9 +269,11 @@ def runloop_d_ali(imgs,Gx,Gz,Disc,optim_d,cuda,configs):
 def initialize_hali(configs,data):
 
 
-    IMAGE_PATH = configs['experiment']+'/'+configs['IMAGE_PATH']
-    MODEL_PATH = configs['experiment']+'/'+configs['MODEL_PATH']
+    IMAGE_PATH = 'experiments/'+configs['experiment']+'/images'
+    MODEL_PATH = 'experiments/'+configs['experiment']+'/models'
 
+    configs['IMAGE_PATH'] = IMAGE_PATH
+    configs['MODEL_PATH'] = MODEL_PATH
     if not os.path.exists(IMAGE_PATH):
         print('mkdir ', IMAGE_PATH)
         os.mkdir(IMAGE_PATH)
@@ -334,7 +338,7 @@ def initialize_hali(configs,data):
    
     train_loader = DataLoader(data, batch_size=BS, shuffle=True)
 
-    return Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda
+    return Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs
 
 def runloop_g_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,cuda,configs):
     softplus = nn.Softplus()
@@ -702,7 +706,6 @@ def calc_gradient_penalty_ali(discriminator, real_data, fake_data, encoder, gp_l
 def calc_gradient_penalty2_ali(discriminator,  real_data, fake_data, z, z_enc,
                           gp_lambda):
     """Calculate GP."""
-    Disc,imgs, imgs_fake, zv
     assert real_data.size(0) == fake_data.size(0)
     alpha = torch.rand(real_data.size(0), 1, 1, 1)
     alpha = alpha.expand(real_data.size())
@@ -716,8 +719,7 @@ def calc_gradient_penalty2_ali(discriminator,  real_data, fake_data, z, z_enc,
                             requires_grad=True)
     interpolate_z = Variable(alpha_z * z_enc + ((1 - alpha_z) * z),
                             requires_grad=True)
-    interpolates_cond = Variable(fake_data_cond, requires_grad=True)
-    disc_interpolates = discriminator(interpolates, interpolates_cond, interpolate_z)
+    disc_interpolates = discriminator(interpolates, interpolate_z)
     gradients = torch.autograd.grad(
         outputs=disc_interpolates, inputs=interpolates,
         grad_outputs=torch.ones(disc_interpolates.size()).cuda(),

@@ -51,10 +51,10 @@ def main(datapath, clustering_model, encoding_model, configs, train_split, valid
     if encode:
         # Train and apply encoding model
         if encoding_model =="hali":
-            Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda =  initialize_hali(configs,train)
+            Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs =  initialize_hali(configs,train)
             training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred1,z_pred2)
         else: #default to ALI
-            Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda = initialize_ali(configs,train)
+            Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda,configs = initialize_ali(configs,train)
             training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred)                    
     # else:
     #     if encoding_model =="hali":
@@ -126,10 +126,11 @@ if __name__ == '__main__':
     torch.backends.cudnn.deterministic = True
 
     latent_dim = configuration['Zdim']
-
-    experiment = OfflineExperiment(project_name='general',
-                                   workspace='timothynest',  # Replace this with appropriate comet workspace
-                                   offline_directory=configuration['experiment'])
+    if not os.path.exists('experiments'):
+        print('mkdir ', 'experiments')
+        os.mkdir('experiments')
+    experiment = OfflineExperiment(project_name="ali",workspace='timothynest',  # Replace this with appropriate comet workspace
+                                   offline_directory=str('experiments/'+configuration['experiment']))
     experiment.set_name(
         name=args.config + "_dim={}_overlapped={}".format(latent_dim, train_split))
     experiment.log_parameters(configuration)

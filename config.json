@@ -28,9 +28,8 @@
     "train_labeled_split": "train_labeled",
     "cluster_model":"svm",
     "batch_size": 32,
-    "n_epochs": 5000,
-    "IMAGE_PATH":"images_ali",
-    "MODEL_PATH":"models_ali"
+    "n_epochs": 5,
+    "experiment":"ALI_ADAM"
   },
   "HALI":{
     "enc_model":"hali",
@@ -57,10 +56,8 @@
     "batch_size": 32,
     "seed": 1234,
     "extragradient":true,
-    "n_epochs": 5000,
-    "IMAGE_PATH":"images_hali",
-    "MODEL_PATH":"models_hali",
-    "experiment":"ADAM"
+    "n_epochs": 20,
+    "experiment":"ADAM2"
   },
   "CVAE_BASE": {
     "cluster_model": "kmeans",
