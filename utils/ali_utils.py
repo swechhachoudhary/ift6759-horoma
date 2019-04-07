@@ -22,8 +22,8 @@ from torchvision.datasets import ImageFolder
 def initialize_ali(configs,data):
 
 
-    IMAGE_PATH = configs['IMAGE_PATH']
-    MODEL_PATH = configs['MODEL_PATH']
+    IMAGE_PATH = configs['experiment']+'/'+configs['IMAGE_PATH']
+    MODEL_PATH = configs['experiment']+'/'+configs['MODEL_PATH']
 
     if not os.path.exists(IMAGE_PATH):
         print('mkdir ', IMAGE_PATH)
@@ -267,8 +267,8 @@ def runloop_d_ali(imgs,Gx,Gz,Disc,optim_d,cuda,configs):
 def initialize_hali(configs,data):
 
 
-    IMAGE_PATH = configs['IMAGE_PATH']
-    MODEL_PATH = configs['MODEL_PATH']
+    IMAGE_PATH = configs['experiment']+'/'+configs['IMAGE_PATH']
+    MODEL_PATH = configs['experiment']+'/'+configs['MODEL_PATH']
 
     if not os.path.exists(IMAGE_PATH):
         print('mkdir ', IMAGE_PATH)
@@ -427,7 +427,7 @@ def runloop_d_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs):
 
         else:
             loss_d = torch.mean(softplus(-d_true) + softplus(d_fake))
-            
+
         loss_d.backward(retain_graph=True)
         return loss_d.data.item()
 

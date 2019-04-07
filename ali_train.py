@@ -129,7 +129,7 @@ if __name__ == '__main__':
 
     experiment = OfflineExperiment(project_name='general',
                                    workspace='timothynest',  # Replace this with appropriate comet workspace
-                                   offline_directory="experiments")
+                                   offline_directory=configuration['experiment'])
     experiment.set_name(
         name=args.config + "_dim={}_overlapped={}".format(latent_dim, train_split))
     experiment.log_parameters(configuration)

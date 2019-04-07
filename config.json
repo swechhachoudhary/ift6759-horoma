@@ -56,11 +56,11 @@
     "cluster_model":"svm",
     "batch_size": 32,
     "seed": 1234,
-    "continue_from":22,
     "extragradient":true,
     "n_epochs": 5000,
     "IMAGE_PATH":"images_hali",
-    "MODEL_PATH":"models_hali"
+    "MODEL_PATH":"models_hali",
+    "experiment":"ADAM"
   },
   "CVAE_BASE": {
     "cluster_model": "kmeans",
