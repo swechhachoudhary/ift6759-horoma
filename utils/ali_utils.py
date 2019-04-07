@@ -112,7 +112,7 @@ def train_epoch_ali(Gz,Gx,Disc, optim_d,optim_g, loader,epoch,cuda,configs):
      
         loss_d = runloop_d_ali(imgs,Gx,Gz,Disc,optim_d,cuda,configs)
         
-        if i%ncritic==0 or not is_critic:
+        if i%ncritic==0:
             loss_g,d_true,d_fake = runloop_g_ali(imgs,Gx,Gz,Disc,optim_g,cuda,configs) 
 
             gl = gl + loss_g
@@ -464,7 +464,7 @@ def train_epoch_hali(Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, loader,epoch,cuda,co
      
         loss_d = runloop_d_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs)
         
-        if i%ncritic==0 or not is_critic:
+        if i%ncritic==0:
             loss_g,d_true,d_fake = runloop_g_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,cuda,configs) 
 
             gl = gl + loss_g
