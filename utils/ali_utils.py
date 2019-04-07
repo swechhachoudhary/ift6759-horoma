@@ -246,7 +246,7 @@ def runloop_d_ali(imgs,Gx,Gz,Disc,optim_d,cuda,configs):
         d_true = Disc(imgs,z)
         d_fake = Disc(imgs_fake,zv)
 
-        gp = calc_gradient_penalty2_ali(Disc,imgs, imgs_fake, zv)
+        gp = calc_gradient_penalty2_ali(Disc,imgs, imgs_fake, zv,z)
         
         loss_d = torch.mean(softplus(-d_true) + softplus(d_fake))+gp
 
@@ -689,6 +689,33 @@ def calc_gradient_penalty_ali(discriminator, real_data, fake_data, encoder, gp_l
 
     return gradient_penalty
 
+def calc_gradient_penalty2_ali(discriminator,  real_data, fake_data, z, z_enc,
+                          gp_lambda):
+    """Calculate GP."""
+    Disc,imgs, imgs_fake, zv
+    assert real_data.size(0) == fake_data.size(0)
+    alpha = torch.rand(real_data.size(0), 1, 1, 1)
+    alpha = alpha.expand(real_data.size())
+    alpha = alpha.cuda()
+
+    alpha_z = torch.rand(z.size(0), 1, 1, 1)
+    alpha_z = alpha_z.expand(z.size())
+    alpha_z = alpha_z.cuda()
+
+    interpolates = Variable(alpha * real_data + ((1 - alpha) * fake_data),
+                            requires_grad=True)
+    interpolate_z = Variable(alpha_z * z_enc + ((1 - alpha_z) * z),
+                            requires_grad=True)
+    interpolates_cond = Variable(fake_data_cond, requires_grad=True)
+    disc_interpolates = discriminator(interpolates, interpolates_cond, interpolate_z)
+    gradients = torch.autograd.grad(
+        outputs=disc_interpolates, inputs=interpolates,
+        grad_outputs=torch.ones(disc_interpolates.size()).cuda(),
+        create_graph=True, retain_graph=True, only_inputs=True)[0]
+    gradients = gradients.contiguous().view(gradients.size(0), -1)
+    gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * gp_lambda
+
+return gradient_penalty
 
 def saveimages_hali(Gx1,Gx2,Gz1,Gz2,noise1,noise2,IMAGE_PATH):
     """Save Samples from HALI Latent spaces z1 and z2"""
