@@ -715,7 +715,7 @@ def calc_gradient_penalty2_ali(discriminator,  real_data, fake_data, z, z_enc,
     gradients = gradients.contiguous().view(gradients.size(0), -1)
     gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * gp_lambda
 
-return gradient_penalty
+    return gradient_penalty
 
 def saveimages_hali(Gx1,Gx2,Gz1,Gz2,noise1,noise2,IMAGE_PATH):
     """Save Samples from HALI Latent spaces z1 and z2"""
