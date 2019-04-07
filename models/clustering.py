@@ -2,6 +2,7 @@ from models.encoders import *
 from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 import torch
 import numpy as np
 import torch.nn as nn
@@ -9,6 +10,7 @@ import torch.nn.functional as F
 
 class DAMICClustering(nn.Module):
     """
+    
         Clustering network for DAMIC
         Each cluster is reprensented by an autoencoder
         A convolutional network assign one input to a specific autoencoder
@@ -134,7 +136,22 @@ class GMMClustering:
         if type(data) is torch.Tensor:
             data = data.detach().cpu().numpy()
         return self.gmm.predict(data)
+class RBFClustering:
+    """clustering with Nonlinear SVM"""
+    def __init__(self, seed):
+        self.svm = SVC(C = 4e-4,random_state=seed)
+        self.best_c = 0
+    
+    def train(self, data,labels):
+        if type(data) is torch.Tensor:
+            data = data.detach().cpu().numpy()
+        self.svm.fit(data,labels)
+        return self.svm
 
+    def predict_cluster(self, data):
+        if type(data) is torch.Tensor:
+            data = data.detach().cpu().numpy()
+        return self.svm.predict(data)
 class SVMClustering:
     """clustering with LinearSVC"""
     def __init__(self, seed):

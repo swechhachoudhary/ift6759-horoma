@@ -46,7 +46,7 @@ def initialize_ali(configs,data):
 
         Gx.load_state_dict(torch.load(MODEL_PATH+'/Gx-'+str(configs['continue_from'])+'.pth'))    
         Gz.load_state_dict(torch.load(MODEL_PATH+'/Gz-'+str(configs['continue_from'])+'.pth')) 
-        Disc.load_state_dict(torch.load(MODEL_PATH+'/Disc-'+str(configs['continue_from'])+'.pth'))
+        Disc.load_state_dict(torch.load(MODEL_PATH+'/Dict-'+str(configs['continue_from'])+'.pth'))
 
 
 
@@ -522,15 +522,26 @@ def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs
         print()     
 
 
-def get_hali_embeddings(Gz1,Gz2,loader,mode):
-    
-    for (imgs, target) in loader:
+def get_hali_embeddings(Gz1,Gz2,data,mode):
+    all_embeddings=[]
+    all_targets = []
+    loader = DataLoader(data, batch_size = 32,shuffle=True)
+    cuda = True if torch.cuda.is_available() else False
+    labeled = True
+    if loader.dataset.data.shape[0] >500 :
+        labeled = False
+
+    for imgs in loader:
        
+        if labeled:
+            (imgs, target) = imgs
+
         if cuda:
-            imgs = imgs.cuda()
-        data = Variable(imgs)
+            data = Variable(imgs).cuda()
+        else:
+            data = Variable(imgs)       
         encoded = Gz1(data)
-        
+    
         z1 = reparameterize(encoded)
         v1 = [z1.view(data.size()[0], -1).cpu().data.numpy()]
 
@@ -550,17 +561,30 @@ def get_hali_embeddings(Gz1,Gz2,loader,mode):
 
         for l in range(np.shape(vcat)[1]):
             all_embeddings.append(vcat[0][l,:])
-            all_targets.append(target[l].numpy()[0])
+            if labeled:
+                all_targets.append(target[l].numpy()[0])
 
     return all_embeddings,all_targets
 
-def get_ali_embeddings(Gz,loader):
+def get_ali_embeddings(Gz,data):
+    all_embeddings=[]
+    all_targets = []
+    loader = DataLoader(data, batch_size = 32,shuffle=True)
+    cuda = True if torch.cuda.is_available() else False
+    labeled = True
+    if loader.dataset.data.shape[0] >500 :
+        labeled = False
 
-    for (imgs, target) in loader:
-        
+    for imgs in loader:
+       
+        if labeled:
+            (imgs, target) = imgs
+
         if cuda:
-            imgs = imgs.cuda()
-        data = Variable(imgs)
+            data = Variable(imgs).cuda()
+        else:
+            data = Variable(imgs)     
+   
         encoded = Gz(data)
         
         z = reparameterize(encoded)
@@ -568,7 +592,8 @@ def get_ali_embeddings(Gz,loader):
 
         for l in range(np.shape(v1)[1]):
             all_embeddings.append(v1[0][l,:])
-            all_targets.append(target[l].numpy()[0])
+            if labeled:
+                all_targets.append(target[l].numpy()[0])
 
     return all_embeddings,all_targets
 

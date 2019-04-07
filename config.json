@@ -30,7 +30,8 @@
     "batch_size": 32,
     "n_epochs": 5000,
     "IMAGE_PATH":"images_ali",
-    "MODEL_PATH":"models_ali"
+    "MODEL_PATH":"models_ali",
+    "continue_from":19
   },
   "HALI":{
     "enc_model":"hali",
