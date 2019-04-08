@@ -162,8 +162,12 @@ def training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment
     
     Zdim = configs['Zdim']
     if 'continue_from' in configs:
-        start_epoch = configs['continue_from']
-        end_epoch   = start_epoch + configs['n_epochs']
+        if configs['continue_from'] ==-1:
+            start_epoch = get_max_epoch(configs)-1
+            end_epoch   = start_epoch + configs['n_epochs']
+        else:
+            start_epoch = configs['continue_from']
+            end_epoch   = start_epoch + configs['n_epochs']
     else:
         start_epoch = 0
         end_epoch = configs['n_epochs']
@@ -389,8 +393,8 @@ def get_results_hali(configs,experiment,train,labeled,valid_data):
         experiment.log_metric('accuracy', accuracy)
         experiment.log_metric('f1_score', f1)
 
-
-    save_res_figure(configs,accuracies,f1_list)
+    # if save_re
+    #     save_res_figure(configs,accuracies,f1_list)
     return(best_f1,best_accuracy,best_model)
 
 
@@ -402,8 +406,8 @@ def save_res_figure(configs,accuracies,f1_list):
     ax.plot(accuracies, label='Accuracy')
     ax.legend(loc='best')
     plt.title(configs['experiment'])
-    # formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
-    # plt.gca().xaxis.set_major_formatter(formatter)
+    formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
+    plt.gca().xaxis.set_major_formatter(formatter)
     plt.savefig(configs['IMAGE_PATH']+'/clustering_results.png')
 
 def get_results_ali(configs,experiment,train,labeled,valid_data):
@@ -436,7 +440,7 @@ def get_results_ali(configs,experiment,train,labeled,valid_data):
 
         experiment.log_metric('accuracy', accuracy)
         experiment.log_metric('f1_score', f1)
-    save_res_figure(configs,accuracies,f1_scores)
+    # save_res_figure(configs,accuracies,f1_scores)
     return(best_f1,best_accuracy,best_model)
 
 
@@ -611,8 +615,12 @@ def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs
     
     Zdim = configs['Zdim']
     if 'continue_from' in configs:
-        start_epoch = configs['continue_from']
-        end_epoch   = start_epoch + configs['n_epochs']
+        if configs['continue_from'] ==-1:
+            start_epoch = get_max_epoch(configs)-1
+            end_epoch   = start_epoch + configs['n_epochs']
+        else:
+            start_epoch = configs['continue_from']
+            end_epoch   = start_epoch + configs['n_epochs']
     else:
         start_epoch = 0
         end_epoch = configs['n_epochs']

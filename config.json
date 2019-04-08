@@ -57,7 +57,7 @@
     "seed": 1234,
     "extragradient":true,
     "n_epochs": 20,
-    "experiment":"ADAM2"
+    "experiment":"OMD_10_l1"
   },
   "CVAE_BASE": {
     "cluster_model": "kmeans",
