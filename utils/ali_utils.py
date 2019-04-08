@@ -352,14 +352,14 @@ def initialize_hali(configs,data):
 
     return Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs
 
-def get_max_epoch(configs):
-    onlyfiles = [f for f in listdir(configs['MODEL_PATH']) if isfile(join(configs['MODEL_PATH'], f))]
+# def get_max_epoch(configs):
+#     onlyfiles = [f for f in listdir(configs['MODEL_PATH']) if isfile(join(configs['MODEL_PATH'], f))]
 
-    epoch = []
-    for s in onlyfiles:
-        n = re.findall(r'\d+',s)
-        epoch.append(int(n[len(n)-1]))
-    return(max(epoch))
+#     epoch = []
+#     for s in onlyfiles:
+#         n = re.findall(r'\d+',s)
+#         epoch.append(int(n[len(n)-1]))
+#     return(max(epoch))
 
 def get_results_hali(configs,experiment,train,labeled,valid_data):
     
