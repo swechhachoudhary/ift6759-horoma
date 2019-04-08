@@ -56,34 +56,23 @@ def main(datapath, clustering_model, encoding_model, configs, train_split, valid
         else: #default to ALI
             Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda,configs = initialize_ali(configs,train)
             training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred)                    
-    # else:
-    #     if encoding_model =="hali":
-    #     else: #default to ALI
 
-        # encoding_model.load_state_dict(torch.load(path_to_model)["model"])
-        # train_enc = encode_dataset(encoding_model, train, batch_size, device)
 
     if cluster:
 
-        train_labeled_enc = encoding_model.encode(
-            labeled[train_label_indices][0].to(device))
-        valid_enc = encoding_model.encode(labeled[valid_indices][0].to(device))
+        if encoding_model =="hali":
+            
+          best_f1,best_acc,best_model =  get_results_hali(configs,experiment,train,labeled,valid_data)
 
-        # Train and apply clustering model
-        clustering_model.train(train_enc)
-        cluster_labels = assign_labels_to_clusters(clustering_model, train_labeled_enc,
-                                                   labeled.targets[train_label_indices])
-        _, accuracy, f1 = eval_model_predictions(clustering_model, valid_enc, labeled.targets[valid_indices],
-                                                 cluster_labels)
-        experiment.log_metric('accuracy', accuracy)
-        experiment.log_metric('f1-score', f1)
+        else:
+
+          best_f1,best_acc,best_model = get_results_ali(configs,experiment,train,labeled,valid_data)
 
 
+        experiment.log_metric('best_accuracy', best_acc)
+        experiment.log_metric('best_f1-score', best_f1)
+        experiment.log_metric('best_model_epoch', best_model)
 
-        # Save models
-        model = {'cluster': clustering_model,'cluster_labels': cluster_labels}
-        torch.save(model, configs['MODEL_PATH'] +
-                   str(experiment.get_key()) + '.pth')
 
 
 if __name__ == '__main__':
@@ -129,24 +118,19 @@ if __name__ == '__main__':
     if not os.path.exists('experiments'):
         print('mkdir ', 'experiments')
         os.mkdir('experiments')
-    experiment = OfflineExperiment(project_name="ali",workspace='timothynest',  # Replace this with appropriate comet workspace
+
+    if encode:
+        experiment = OfflineExperiment(project_name="ali",workspace='timothynest',  # Replace this with appropriate comet workspace
                                    offline_directory=str('experiments/'+configuration['experiment']))
+    elif cluster:
+        experiment = OfflineExperiment(project_name="ali",workspace='timothynest',  # Replace this with appropriate comet workspace
+                                   offline_directory=str('experiments/'+configuration['experiment']+'/cluster'))
     experiment.set_name(
         name=args.config + "_dim={}_overlapped={}".format(latent_dim, train_split))
     experiment.log_parameters(configuration)
+    experiment.add_tag(configuration['experiment'])
 
-    # Initialize necessary objects
-    if clustering_model == 'kmeans':
-        clustering_model = KMeansClustering(n_clusters, seed)
-    elif clustering_model == 'gmm':
-        clustering_model = GMMClustering(n_clusters, seed)
-    elif clustering_model =='svm':
-        clustering_model = SVMClustering(seed)
-    else:
-        print('No clustering model specified. Using Kmeans.')
-        clustering_model = KMeansClustering(n_clusters, seed)
-
-
+  
     # Initiate experiment
     main(datapath, clustering_model, encoding_model, configuration, train_split, valid_split, train_labeled_split,
          experiment, encode, cluster, path_to_model=path_to_model)

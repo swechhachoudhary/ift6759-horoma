@@ -156,7 +156,32 @@ def load_original_horoma_datasets(datapath, train_subset, flattened=False, overl
     print("Done in {:.2f} sec".format(time() - start_time))
     return unlabeled_trainset, labeled_trainset, labeled_validset, labeled_train_valid_set
 
+def return_images(data):
+    all_embeddings=[]
+    all_targets = []
+    loader = DataLoader(data, batch_size = 32,shuffle=True)
+    cuda = True if torch.cuda.is_available() else False
+    labeled = True
+    if loader.dataset.data.shape[0] >500 :
+        labeled = False
 
+    for imgs in loader:
+       
+        if labeled:
+            (imgs, target) = imgs
+
+        if cuda:
+            data = Variable(imgs).cuda()
+        else:
+            data = Variable(imgs)       
+        data =data.view(-1,3*32*32).cpu().data.numpy()
+        for l in range(np.shape(data)[0]):
+            all_embeddings.append(data[l])
+            if labeled:
+                all_targets.append(target[l].numpy()[0])
+
+    return all_embeddings,all_targets
+    
 def assign_labels_to_clusters(model, data, labels_true):
     """
     Assign class label to each model cluster using labeled data.

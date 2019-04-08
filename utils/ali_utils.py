@@ -18,6 +18,14 @@ from torchvision.utils import save_image
 
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
+from os import walk
+import re
+from models.clustering import *
+from utils.utils import *
+
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
 
 def initialize_ali(configs,data):
 
@@ -340,6 +348,98 @@ def initialize_hali(configs,data):
 
     return Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs
 
+def get_max_epoch(configs):
+    f = []
+    for (dirpath, dirnames, filenames) in walk(configs['MODEL_PATH']):
+        f.extend(filenames)
+        break
+    epoch = []
+    for s in f:
+        n = re.findall(r'\d+',s)
+        epoch.append(int(n[len(n)-1]))
+    return(max(epoch))
+
+def get_results_hali(configs,experiment,train,labeled,valid_data):
+    
+    Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs =  initialize_hali(configs,train)
+
+    max_ep = get_max_epoch(configs)
+    best_accuracy  = 0
+    best_model = 0
+    best_f1 = 0
+    accuracies = []
+    f1_list  = []
+    for i in range(1,max_ep):
+        configs['continue_from'] =i
+        Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs =  initialize_hali(configs,train)
+        train_labeled_enc,train_labels = get_hali_embeddings(Gz1,Gz2,labeled,'z1')
+        valid_enc,val_labels = get_hali_embeddings(Gz1,Gz2,valid_data,'z1')
+        svm = SVMClustering(configs['seed'])
+        svm.train(train_labeled_enc,train_labels)
+        y_pred = svm.predict_cluster(valid_enc)
+        y_true = val_labels
+        accuracy, f1 = compute_metrics(y_true, y_pred)
+        accuracies.append(accuracy)
+        f1_list.append(f1)
+        if accuracy>best_accuracy:
+            best_accuracy  = accuracy
+            best_f1 = f1
+            best_model = i    
+
+        experiment.log_metric('accuracy', accuracy)
+        experiment.log_metric('f1_score', f1)
+
+
+    save_res_figure(configs,accuracies,f1_list)
+    return(best_f1,best_accuracy,best_model)
+
+
+def save_res_figure(configs,accuracies,f1_list):
+    fig = plt.figure()
+    ax = plt.axes()
+
+    ax.plot(f1_list,label='F1 Score')
+    ax.plot(accuracies, label='Accuracy')
+    ax.legend(loc='best')
+    plt.title(configs['experiment'])
+    # formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
+    # plt.gca().xaxis.set_major_formatter(formatter)
+    plt.savefig(configs['IMAGE_PATH']+'/clustering_results.png')
+
+def get_results_ali(configs,experiment,train,labeled,valid_data):
+    
+    Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda,configs =  initialize_ali(configs,train)
+
+    max_ep = get_max_epoch(configs)
+    best_accuracy  = 0
+    best_model = 0
+    best_f1 = 0
+
+    accuracies = []
+    f1_scores  = []
+    for i in range(1,max_ep):
+        configs['continue_from'] =i
+        Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda,configs =  initialize_ali(configs,train)
+        train_labeled_enc,train_labels = get_ali_embeddings(Gz,labeled)
+        valid_enc,val_labels = get_ali_embeddings(Gz,valid_data)
+        svm = SVMClustering(configs['seed'])
+        svm.train(train_labeled_enc,train_labels)
+        y_pred = svm.predict_cluster(valid_enc)
+        y_true = val_labels
+        accuracy, f1 = compute_metrics(y_true, y_pred)
+        accuracies.append(accuracy)
+        f1_scores.append(f1)
+        if accuracy>best_accuracy:
+            best_accuracy  = accuracy
+            best_f1 = f1
+            best_model = i    
+
+        experiment.log_metric('accuracy', accuracy)
+        experiment.log_metric('f1_score', f1)
+    save_res_figure(configs,accuracies,f1_scores)
+    return(best_f1,best_accuracy,best_model)
+
+
 def runloop_g_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,cuda,configs):
     softplus = nn.Softplus()
     Zdim = configs['Zdim']
@@ -460,13 +560,14 @@ def train_epoch_hali(Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, loader,epoch,cuda,co
     dl = 0
     gl = 0
 
+
     for i, (imgs) in enumerate(loader):
      
         loss_d = runloop_d_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs)
         
         if i%ncritic==0:
-            loss_g,d_true,d_fake = runloop_g_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,cuda,configs) 
 
+            loss_g,d_true,d_fake = runloop_g_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,cuda,configs) 
             gl = gl + loss_g
             df = df +d_fake.item()
             dt = dt + d_true.data.mean().item()
@@ -490,6 +591,7 @@ def train_epoch_hali(Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, loader,epoch,cuda,co
 
 
     return g_loss,d_loss,d_true,d_false
+
 
 
 
@@ -536,6 +638,48 @@ def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs
         print()     
 
 
+def training_loop_hali_unrolled(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred1,z_pred2):
+    """
+     Runs training loop
+    :param model: the model created under src/algorithms
+    :param optimizer: pytorch optim
+    :param train_loader: the training set loader
+    :param valid_loader: the validation set loader
+    :param hyperparameters_dict: stores save location of model
+    
+    :return: [(train_losses,train_accuracy)(valid_losses,valid_accuracy)]
+    """
+
+    # Index starts at 1 for reporting purposes
+    
+    Zdim = configs['Zdim']
+    if 'continue_from' in configs:
+        start_epoch = configs['continue_from']
+        end_epoch   = start_epoch + configs['n_epochs']
+    else:
+        start_epoch = 0
+        end_epoch = configs['n_epochs']
+    for epoch in range(start_epoch, end_epoch):
+
+        g_loss,d_loss,d_true,d_false = train_epoch_hali(
+            Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, train_loader,epoch,cuda,configs
+        )
+
+
+        # saveimages_hali(Gx1,Gx2,Gz1,Gz2,z_pred1,z_pred2,configs['IMAGE_PATH'])
+        # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,True,configs['IMAGE_PATH'])
+        # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,False,configs['IMAGE_PATH'])
+
+        save_models_hali(Gz1,Gz2,Gx1,Gx2,Disc,configs['MODEL_PATH'],epoch)
+        sys.stdout.write("\r[%5d / %5d]: G: %.4f D: %.4f D(x,Gz(x)): %.4f D(Gx(z),z): %.4f" % (epoch,configs['n_epochs'],g_loss,d_loss,d_true,d_false))
+        
+        experiment.log_metric('g_loss', g_loss)
+        experiment.log_metric('d_loss', d_loss)
+        experiment.log_metric('d_true', d_true)
+        experiment.log_metric('d_fake', d_false)
+
+        print()     
+
 def get_hali_embeddings(Gz1,Gz2,data,mode):
     all_embeddings=[]
     all_targets = []
@@ -573,8 +717,8 @@ def get_hali_embeddings(Gz1,Gz2,data,mode):
         else:
             vec = v1
 
-        for l in range(np.shape(vcat)[1]):
-            all_embeddings.append(vcat[0][l,:])
+        for l in range(np.shape(data)[0]):
+            all_embeddings.append(vec[0][l,:])
             if labeled:
                 all_targets.append(target[l].numpy()[0])
 
