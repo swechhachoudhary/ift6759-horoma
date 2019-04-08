@@ -26,6 +26,8 @@ from utils.utils import *
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from os import listdir
+from os.path import isfile, join
 
 def initialize_ali(configs,data):
 
@@ -162,9 +164,12 @@ def training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment
     
     Zdim = configs['Zdim']
     if 'continue_from' in configs:
-
-        start_epoch = configs['continue_from']
-        end_epoch   = start_epoch + configs['n_epochs']
+        if configs['continue_from'] ==-1:
+            start_epoch = get_max_epoch(configs)-1
+            end_epoch   = start_epoch + configs['n_epochs']
+        else:
+            start_epoch = configs['continue_from']
+            end_epoch   = start_epoch + configs['n_epochs']
     else:
         start_epoch = 0
         end_epoch = configs['n_epochs']
@@ -349,16 +354,26 @@ def initialize_hali(configs,data):
 
     return Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs
 
+def get_max_epoch(configs):
+    onlyfiles = [f for f in listdir(configs['MODEL_PATH']) if isfile(join(configs['MODEL_PATH'], f))]
+
+    epoch = []
+    for s in onlyfiles:
+        n = re.findall(r'\d+',s)
+        epoch.append(int(n[len(n)-1]))
+    return(max(epoch))
+
 def get_results_hali(configs,experiment,train,labeled,valid_data):
     
     Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs =  initialize_hali(configs,train)
 
+    max_ep = get_max_epoch(configs)
     best_accuracy  = 0
     best_model = 0
     best_f1 = 0
     accuracies = []
     f1_list  = []
-    for i in range(1,10):
+    for i in range(1,max_ep):
         configs['continue_from'] =i
         Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs =  initialize_hali(configs,train)
         train_labeled_enc,train_labels = get_hali_embeddings(Gz1,Gz2,labeled,'z1')
@@ -383,17 +398,19 @@ def get_results_hali(configs,experiment,train,labeled,valid_data):
     return(best_f1,best_accuracy,best_model)
 
 
+
 def get_results_ali(configs,experiment,train,labeled,valid_data):
     
     Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda,configs =  initialize_ali(configs,train)
 
+    max_ep = get_max_epoch(configs)
     best_accuracy  = 0
     best_model = 0
     best_f1 = 0
 
     accuracies = []
     f1_scores  = []
-    for i in range(1,10):
+    for i in range(1,max_ep):
         configs['continue_from'] =i
         Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda,configs =  initialize_ali(configs,train)
         train_labeled_enc,train_labels = get_ali_embeddings(Gz,labeled)
@@ -587,8 +604,12 @@ def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs
     
     Zdim = configs['Zdim']
     if 'continue_from' in configs:
-        start_epoch = configs['continue_from']
-        end_epoch   = start_epoch + configs['n_epochs']
+        if configs['continue_from'] ==-1:
+            start_epoch = get_max_epoch(configs)-1
+            end_epoch   = start_epoch + configs['n_epochs']
+        else:
+            start_epoch = configs['continue_from']
+            end_epoch   = start_epoch + configs['n_epochs']
     else:
         start_epoch = 0
         end_epoch = configs['n_epochs']
