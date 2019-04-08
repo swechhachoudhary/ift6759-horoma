@@ -47,8 +47,8 @@
     "z1dim":64,
     "train_subset": null,
     "overlapped": false,
-    "encode": false,
-    "cluster": true,
+    "encode": true,
+    "cluster": false,
     "train_split": "train_all",
     "valid_split": "valid",
     "train_labeled_split": "train_labeled",
@@ -56,8 +56,9 @@
     "batch_size": 32,
     "seed": 1234,
     "extragradient":true,
-    "n_epochs": 20,
-    "experiment":"OMD_10_l1"
+    "n_epochs": 200,
+    "continue_from": 9,
+    "experiment":"Adam_1_l1"
   },
   "CVAE_BASE": {
     "cluster_model": "kmeans",
