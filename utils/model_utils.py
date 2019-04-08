@@ -31,6 +31,7 @@ def loss_function(recon_x, x, mu, logvar):
 
 
 def encode_dataset(model, data, batch_size, device):
+    """encode data using model (model must provide an encode function)"""
     full_loader = DataLoader(data, batch_size=batch_size)
     tensors = []
     with torch.no_grad():
@@ -43,7 +44,17 @@ def encode_dataset(model, data, batch_size, device):
 
 
 def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
-    """Train one epoch for model."""
+    """
+    Train one epoch for the model
+
+    :param model: model on which we do the training
+    :param train_loader: dataloader
+    :param optimizer: optimizer
+    :param epoch: number of epoch
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :return: loss for this epoch
+    """
     model.train()
 
     running_loss = 0.0
@@ -80,7 +91,17 @@ def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
 
 
 def _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, experiment):
-    """Train one epoch for convolutional clustering network."""
+    """
+    Train one epoch for a model of type classifier
+
+    :param model: model on which we do the training
+    :param train_loader: dataloader
+    :param optimizer: optimizer
+    :param epoch: number of epoch
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :return: loss for this epoch
+    """
     model.train()
     running_loss = 0.0
 
@@ -114,7 +135,17 @@ def _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, e
 
 
 def _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experiment):
-    """Train one epoch for the whole Damic model (Convolutional clustering network + Autoencoders)"""
+    """
+    Train one epoch for a Damic model
+
+    :param model: model on which we do the training
+    :param train_loader: dataloader
+    :param optimizer: optimizer
+    :param epoch: number of epoch
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :return: loss for this epoch
+    """
     model.train()
     running_loss = 0.0
     print("====== TRAINING DAMIC")
@@ -186,7 +217,7 @@ def _test(model, test_loader, epoch, device, experiment):
 
 
 def _test_classifier(model, test_loader, epoch, device, experiment):
-    """ Compute cross entropy loss over given datase """
+    """ Compute cross entropy loss over given test_loader """
 
     test_loss = 0
     test_size = 0
@@ -209,6 +240,23 @@ def _test_classifier(model, test_loader, epoch, device, experiment):
 
 def train_network(model, train_loader, test_loader, optimizer, n_epochs, device, experiment, train_classifier=False, train_damic=False,
                   folder_save_model="experiment_models/", pth_filename_save_model=""):
+    """
+    Train a network
+
+    :param model: model on which we do the training
+    :param train_loader: dataloader with training samples
+    :param test_loader: dataloader with test samples
+    :param optimizer: optimizer
+    :param n_epochs: number of epoch
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :param train_classifier: if True we train a classifier
+    :param train_classifier: if True we train a Damic model
+    :param experiment: comet experiment to log results
+    :param folder_save_model: folder where to save the best model
+    :param pth_filename_save_model: name of the pth file for the best model
+    :return: best model after the training
+    """
     best_loss = np.inf
     key = experiment.get_key()
     best_model = None

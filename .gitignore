@@ -14,6 +14,8 @@ damic_models/*
 damic_comet_experiences/*
 experiment_models/*
 final_models/*
+transformer_net_models/*
+transformer_net_comet_experiences/*
 
 # All pycache
 models/__pycache__/*

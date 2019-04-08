@@ -1,54 +1,64 @@
 from comet_ml import OfflineExperiment
 import json
 import argparse
-from models.encoders import *
-from models.clustering import *
-from utils.utils import *
-from utils.damic_utils import *
+import numpy as np
+from models.clustering import DAMICClustering
+from utils.damic_utils import execute_damic_pre_training, execute_damic_training, get_accuracy_f1_scores_from_damic_model
 from utils.constants import Constants
 import torch
-from data.dataset import LocalHoromaDataset
+
 
 def main(datapath, configuration, config_key):
     """
     :param datapath: path to the directory containing the samples
-    :param configuration: dictionnary containing all the keys/values part of the config_key json file
-    :param config_key: key of the configuration we have to load from the configuration file (Ex: DAMIC)
-    """ 
+    :param configuration: dictionnary containing all the keys/values part of
+                                                    the config_key json file
+    :param config_key: key of the configuration we have to load from the
+                                                configuration file (Ex: DAMIC)
+    """
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    
+
     seed = configuration['seed']
     _set_torch_seed(seed)
 
     experiment = _set_comet_experiment(configuration, config_key)
-    
+
     damic_model = DAMICClustering(17).to(device)
 
     ae_pretrain_config = configuration['autoencoder_pretrain']
     conv_net_pretrain_config = configuration['damic_conv_net_pretrain']
-    damic_autoencoders_pretrain_config = configuration['damic_autoencoders_pretrain']
+    damic_autoencoders_pretrain_config = \
+        configuration['damic_autoencoders_pretrain']
     train_subset = configuration['train_subset']
     overlapped = configuration['overlapped']
 
     damic_model, numpy_unla_train, numpy_unla_target_pred_by_cluster, labeled_train_and_valid = \
-                                execute_damic_pre_training(datapath, damic_model, train_subset, overlapped, ae_pretrain_config,
-                                                           conv_net_pretrain_config,damic_autoencoders_pretrain_config,experiment, seed)
+        execute_damic_pre_training(datapath, damic_model, train_subset,
+                                   overlapped, ae_pretrain_config,
+                                   conv_net_pretrain_config,
+                                   damic_autoencoders_pretrain_config,
+                                   experiment, seed)
 
-    damic_model = execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_unla_target_pred_by_cluster, 
-                                         labeled_train_and_valid, device, experiment)
-    
+    damic_model = execute_damic_training(damic_model, configuration,
+                                         numpy_unla_train,
+                                         numpy_unla_target_pred_by_cluster,
+                                         labeled_train_and_valid, device,
+                                         experiment)
+
     _, accuracy, f1 = get_accuracy_f1_scores_from_damic_model(damic_model, labeled_train_and_valid, device)
-    
+
     experiment.log_metric('accuracy', accuracy)
     experiment.log_metric('f1-score', f1)
-    
+
+
 def _set_torch_seed(seed):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
-    
+
+
 def _set_comet_experiment(configuration, config_key):
     experiment = OfflineExperiment(project_name='general',
                                    workspace='benjaminbenoit',
@@ -56,6 +66,7 @@ def _set_comet_experiment(configuration, config_key):
     experiment.set_name(config_key)
     experiment.log_parameters(configuration)
     return experiment
+
 
 if __name__ == '__main__':
 

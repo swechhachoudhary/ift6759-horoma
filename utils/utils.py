@@ -127,6 +127,7 @@ def load_datasets(datapath, train_subset, flattened=False, split="train_all"):
 
     return dataset
 
+
 def load_original_horoma_datasets(datapath, train_subset, flattened=False, overlapped=True):
     """
     Load Original Horoma datasets from specified data directory.
@@ -181,6 +182,7 @@ def assign_labels_to_clusters(model, data, labels_true):
 
 
 def compute_metrics(y_true, y_pred):
+    """ From the true and predicted labels, return the accuracy and the f1 score"""
     accuracy = accuracy_score(y_true, y_pred)
     f1 = f1_score(y_true, y_pred, average="weighted")
     return accuracy, f1
@@ -188,7 +190,7 @@ def compute_metrics(y_true, y_pred):
 
 def eval_model_predictions(model, x, y_true, cluster_labels):
     """
-    Predict labels and compare to true labels to compute the accuracy.
+    Predict labels and compare to true labels to compute the accuracy and f1 score
     """
     print("Evaluating model ...", end=' ')
     start_time = time()

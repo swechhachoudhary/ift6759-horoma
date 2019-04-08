@@ -1,10 +1,11 @@
 from comet_ml import OfflineExperiment
 import json
 import argparse
-from models.encoders import *
-from models.clustering import *
-from utils.utils import *
-from utils.utils import load_datasets
+import numpy as np
+from models.encoders import PCAEncoder, VAE, AE, CAE, CVAE, ConvAE
+from models.clustering import KMeansClustering, GMMClustering
+from utils.utils import assign_labels_to_clusters, eval_model_predictions
+from utils.model_utils import encode_dataset
 from utils.constants import Constants
 from data.dataset import HoromaDataset
 import torch
@@ -38,14 +39,9 @@ def main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, f
 
     train_label_indices = labeled.targets
     valid_indices = valid_data.targets
-    # train_label_indices, valid_indices = get_split_indices(
-    #     labeled.targets, overlapped=overlapped)
 
     print("Shape of training set: ", train.data.shape)
     print("Shape of validation set: ", valid_data.data.shape)
-    # print("Shape of labeled training set: ",
-    #       labeled.data[train_label_indices].shape)
-    # print("Shape of validation dataset: ", labeled.data[valid_indices].shape)
 
     if encode:
         # Train and apply encoding model
@@ -116,11 +112,6 @@ if __name__ == '__main__':
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
-
-    # Set up Comet Experiment tracking  # Replace this with appropriate comet
-    # workspaces
-#     experiment = OfflineExperiment(
-#         "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="swechhas_experiments")
 
     # Set up Comet Experiment tracking
     experiment = OfflineExperiment(project_name='general',

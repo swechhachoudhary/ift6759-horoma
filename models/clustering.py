@@ -1,16 +1,15 @@
-from models.encoders import *
+from models.encoders import CVAE
 from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 import torch
-import numpy as np
 import torch.nn as nn
-import torch.nn.functional as F
+
 
 class DAMICClustering(nn.Module):
     """
         Clustering network for DAMIC
         Each cluster is reprensented by an autoencoder
-        A convolutional network assign one input to a specific autoencoder
+        A convolutional network map an input to a specific autoencoder
         See 'Deep clustering based on a mixture of autoencoders' by Chazan, Gannot and Goldberger
     """
     def __init__(self, n_clusters):
@@ -60,12 +59,11 @@ class DAMICClustering(nn.Module):
         torch.nn.init.kaiming_uniform_(self.output_layer_conv_net.weight)
         self.softmax_layer = nn.Softmax(dim=1)
 
-
     def init_weights(self, m):
+        # Initialize weights using Kaiming algorithm
         if type(m) == nn.Conv2d or type(m) == nn.Linear or type(m) == nn.ConvTranspose2d:
             torch.nn.init.kaiming_uniform_(m.weight)
             m.bias.data.fill_(0.01)
-
 
     def forward(self, inputs):
         output = self.clustering_network(inputs)
@@ -73,30 +71,29 @@ class DAMICClustering(nn.Module):
         output = self.output_layer_conv_net(output)
         return self.softmax_layer(output)
 
-
     def train_damic(self, inputs, batch_size):
         output_cluster_network = self(inputs)
         input_reconstruction_of_each_encoders = torch.FloatTensor(17, batch_size, 3, 32, 32).zero_()
-        input_reconstruction_of_each_encoders[0],_,_ = self.ae1(inputs)
-        input_reconstruction_of_each_encoders[1],_,_ = self.ae2(inputs)
-        input_reconstruction_of_each_encoders[2],_,_ = self.ae3(inputs)
-        input_reconstruction_of_each_encoders[3],_,_ = self.ae4(inputs)
-        input_reconstruction_of_each_encoders[4],_,_ = self.ae5(inputs)
-        input_reconstruction_of_each_encoders[5],_,_ = self.ae6(inputs)
-        input_reconstruction_of_each_encoders[6],_,_ = self.ae7(inputs)
-        input_reconstruction_of_each_encoders[7],_,_ = self.ae8(inputs)
-        input_reconstruction_of_each_encoders[8],_,_ = self.ae9(inputs)
-        input_reconstruction_of_each_encoders[9],_,_ = self.ae10(inputs)
-        input_reconstruction_of_each_encoders[10],_,_ = self.ae11(inputs)
-        input_reconstruction_of_each_encoders[11],_,_ = self.ae12(inputs)
-        input_reconstruction_of_each_encoders[12],_,_ = self.ae13(inputs)
-        input_reconstruction_of_each_encoders[13],_,_ = self.ae14(inputs)
-        input_reconstruction_of_each_encoders[14],_,_ = self.ae15(inputs)
-        input_reconstruction_of_each_encoders[15],_,_ = self.ae16(inputs)
-        input_reconstruction_of_each_encoders[16],_,_ = self.ae17(inputs)
+        input_reconstruction_of_each_encoders[0], _, _ = self.ae1(inputs)
+        input_reconstruction_of_each_encoders[1], _, _ = self.ae2(inputs)
+        input_reconstruction_of_each_encoders[2], _, _ = self.ae3(inputs)
+        input_reconstruction_of_each_encoders[3], _, _ = self.ae4(inputs)
+        input_reconstruction_of_each_encoders[4], _, _ = self.ae5(inputs)
+        input_reconstruction_of_each_encoders[5], _, _ = self.ae6(inputs)
+        input_reconstruction_of_each_encoders[6], _, _ = self.ae7(inputs)
+        input_reconstruction_of_each_encoders[7], _, _ = self.ae8(inputs)
+        input_reconstruction_of_each_encoders[8], _, _ = self.ae9(inputs)
+        input_reconstruction_of_each_encoders[9], _, _ = self.ae10(inputs)
+        input_reconstruction_of_each_encoders[10], _, _ = self.ae11(inputs)
+        input_reconstruction_of_each_encoders[11], _, _ = self.ae12(inputs)
+        input_reconstruction_of_each_encoders[12], _, _ = self.ae13(inputs)
+        input_reconstruction_of_each_encoders[13], _, _ = self.ae14(inputs)
+        input_reconstruction_of_each_encoders[14], _, _ = self.ae15(inputs)
+        input_reconstruction_of_each_encoders[15], _, _ = self.ae16(inputs)
+        input_reconstruction_of_each_encoders[16], _, _ = self.ae17(inputs)
 
         return output_cluster_network, input_reconstruction_of_each_encoders
-    
+
 
 class KMeansClustering:
     """clustering with K-means"""
