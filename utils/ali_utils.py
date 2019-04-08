@@ -353,12 +353,10 @@ def initialize_hali(configs,data):
     return Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs
 
 def get_max_epoch(configs):
-    f = []
-    for (dirpath, dirnames, filenames) in walk(configs['MODEL_PATH']):
-        f.extend(filenames)
-        break
+    onlyfiles = [f for f in listdir(configs['MODEL_PATH']) if isfile(join(configs['MODEL_PATH'], f))]
+
     epoch = []
-    for s in f:
+    for s in onlyfiles:
         n = re.findall(r'\d+',s)
         epoch.append(int(n[len(n)-1]))
     return(max(epoch))
@@ -398,17 +396,17 @@ def get_results_hali(configs,experiment,train,labeled,valid_data):
     return(best_f1,best_accuracy,best_model)
 
 
-def save_res_figure(configs,accuracies,f1_list):
-    fig = plt.figure()
-    ax = plt.axes()
+# def save_res_figure(configs,accuracies,f1_list):
+#     fig = plt.figure()
+#     ax = plt.axes()
 
-    ax.plot(f1_list,label='F1 Score')
-    ax.plot(accuracies, label='Accuracy')
-    ax.legend(loc='best')
-    plt.title(configs['experiment'])
-    formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
-    plt.gca().xaxis.set_major_formatter(formatter)
-    plt.savefig(configs['IMAGE_PATH']+'/clustering_results.png')
+#     ax.plot(f1_list,label='F1 Score')
+#     ax.plot(accuracies, label='Accuracy')
+#     ax.legend(loc='best')
+#     plt.title(configs['experiment'])
+#     formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
+#     plt.gca().xaxis.set_major_formatter(formatter)
+#     plt.savefig(configs['IMAGE_PATH']+'/clustering_results.png')
 
 def get_results_ali(configs,experiment,train,labeled,valid_data):
     
