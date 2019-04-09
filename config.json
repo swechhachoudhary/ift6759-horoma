@@ -58,6 +58,7 @@
     "extragradient":true,
     "n_epochs": 200,
     "unrolled_steps":10,
+    "continue_from": -1,
     "experiment":"OAdam_1_l10_unrolled"
   },
   "CVAE_BASE": {

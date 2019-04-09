@@ -54,10 +54,23 @@ def initialize_ali(configs,data):
 
     if 'continue_from' in configs:
 
-        Gx.load_state_dict(torch.load(MODEL_PATH+'/Gx-'+str(configs['continue_from'])+'.pth'))    
-        Gz.load_state_dict(torch.load(MODEL_PATH+'/Gz-'+str(configs['continue_from'])+'.pth')) 
-        Disc.load_state_dict(torch.load(MODEL_PATH+'/Dict-'+str(configs['continue_from'])+'.pth'))
+        if configs['continue_from'] == -1:
 
+            start_epoch = get_max_epoch(configs)-1
+            
+            Gx1.load_state_dict(torch.load(MODEL_PATH+'/Gx1-'+str(start_epoch)+'.pth')) 
+            Gx2.load_state_dict(torch.load(MODEL_PATH+'/Gx2-'+str(start_epoch)+'.pth')) 
+            Gz1.load_state_dict(torch.load(MODEL_PATH+'/Gz1-'+str(start_epoch)+'.pth')) 
+            Gz2.load_state_dict(torch.load(MODEL_PATH+'/Gz2-'+str(start_epoch)+'.pth'))
+            Disc.load_state_dict(torch.load(MODEL_PATH+'/Disc-'+str(start_epoch)+'.pth'))
+
+        else:
+
+            Gx1.load_state_dict(torch.load(MODEL_PATH+'/Gx1-'+str(configs['continue_from'])+'.pth')) 
+            Gx2.load_state_dict(torch.load(MODEL_PATH+'/Gx2-'+str(configs['continue_from'])+'.pth')) 
+            Gz1.load_state_dict(torch.load(MODEL_PATH+'/Gz1-'+str(configs['continue_from'])+'.pth')) 
+            Gz2.load_state_dict(torch.load(MODEL_PATH+'/Gz2-'+str(configs['continue_from'])+'.pth'))
+            Disc.load_state_dict(torch.load(MODEL_PATH+'/Disc-'+str(configs['continue_from'])+'.pth'))
 
 
     z_pred = torch.FloatTensor(81,Zdim,1,1).normal_(0,1)
@@ -308,11 +321,23 @@ def initialize_hali(configs,data):
 
     if 'continue_from' in configs:
 
-        Gx1.load_state_dict(torch.load(MODEL_PATH+'/Gx1-'+str(configs['continue_from'])+'.pth')) 
-        Gx2.load_state_dict(torch.load(MODEL_PATH+'/Gx2-'+str(configs['continue_from'])+'.pth')) 
-        Gz1.load_state_dict(torch.load(MODEL_PATH+'/Gz1-'+str(configs['continue_from'])+'.pth')) 
-        Gz2.load_state_dict(torch.load(MODEL_PATH+'/Gz2-'+str(configs['continue_from'])+'.pth'))
-        Disc.load_state_dict(torch.load(MODEL_PATH+'/Disc-'+str(configs['continue_from'])+'.pth'))
+        if configs['continue_from'] == -1:
+
+            start_epoch = get_max_epoch(configs)-1
+            
+            Gx1.load_state_dict(torch.load(MODEL_PATH+'/Gx1-'+str(start_epoch)+'.pth')) 
+            Gx2.load_state_dict(torch.load(MODEL_PATH+'/Gx2-'+str(start_epoch)+'.pth')) 
+            Gz1.load_state_dict(torch.load(MODEL_PATH+'/Gz1-'+str(start_epoch)+'.pth')) 
+            Gz2.load_state_dict(torch.load(MODEL_PATH+'/Gz2-'+str(start_epoch)+'.pth'))
+            Disc.load_state_dict(torch.load(MODEL_PATH+'/Disc-'+str(start_epoch)+'.pth'))
+
+        else:
+
+            Gx1.load_state_dict(torch.load(MODEL_PATH+'/Gx1-'+str(configs['continue_from'])+'.pth')) 
+            Gx2.load_state_dict(torch.load(MODEL_PATH+'/Gx2-'+str(configs['continue_from'])+'.pth')) 
+            Gz1.load_state_dict(torch.load(MODEL_PATH+'/Gz1-'+str(configs['continue_from'])+'.pth')) 
+            Gz2.load_state_dict(torch.load(MODEL_PATH+'/Gz2-'+str(configs['continue_from'])+'.pth'))
+            Disc.load_state_dict(torch.load(MODEL_PATH+'/Disc-'+str(configs['continue_from'])+'.pth'))
 
     z_pred1 = torch.FloatTensor(81,Zdim,1,1).normal_(0,1)
     z_pred2 = torch.FloatTensor(81, zd1, 16, 16).normal_(0, 1)
