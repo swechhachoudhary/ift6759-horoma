@@ -18,13 +18,11 @@ from torchvision.utils import save_image
 
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
-from os import walk
 import re
 from models.clustering import *
 from utils.utils import *
+import copy
 
-import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 from os import listdir
 from os.path import isfile, join
@@ -230,6 +228,7 @@ def runloop_g_ali(imgs,Gx,Gz,Disc,optim_g,cuda,configs):
 
         loss_g.backward(retain_graph=True)
         return loss_g.data.item(),d_fake.data.mean(),d_true.data.mean()
+    
     loss_g,d_fake,d_true = optim_g.step(g_closure)
     return loss_g, d_true,d_fake
 
@@ -393,11 +392,24 @@ def get_results_hali(configs,experiment,train,labeled,valid_data):
         experiment.log_metric('accuracy', accuracy)
         experiment.log_metric('f1_score', f1)
 
-    # if save_re
-    #     save_res_figure(configs,accuracies,f1_list)
+    save_res_figure(configs,accuracies,f1_list)
     return(best_f1,best_accuracy,best_model)
 
 
+def save_res_figure(configs,accuracies,f1_list):
+    print()
+    # import matplotlib
+    # import matplotlib.pyplot as plt
+    # fig = plt.figure()
+    # ax = plt.axes()
+
+    # ax.plot(f1_list,label='F1 Score')
+    # ax.plot(accuracies, label='Accuracy')
+    # ax.legend(loc='best')
+    # plt.title(configs['experiment'])
+    # formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
+    # plt.gca().xaxis.set_major_formatter(formatter)
+    # plt.savefig(configs['IMAGE_PATH']+'/clustering_results.png')
 
 def get_results_ali(configs,experiment,train,labeled,valid_data):
     
@@ -532,7 +544,6 @@ def runloop_d_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs):
 
     return loss_d
 
-
     
 def train_epoch_hali(Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, loader,epoch,cuda,configs):
     """
@@ -560,7 +571,11 @@ def train_epoch_hali(Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, loader,epoch,cuda,co
         
         if i%ncritic==0:
 
-            loss_g,d_true,d_fake = runloop_g_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,cuda,configs) 
+            if 'unrolled_steps' in configs and configs['unrolled_steps']>1:
+                loss_g,d_true,d_fake,Disc = runloop_g_hali_unrolled(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,optim_d,cuda,configs,loader) 
+            else:      
+                loss_g,d_true,d_fake = runloop_g_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,cuda,configs) 
+
             gl = gl + loss_g
             df = df +d_fake.item()
             dt = dt + d_true.data.mean().item()
@@ -586,7 +601,19 @@ def train_epoch_hali(Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, loader,epoch,cuda,co
     return g_loss,d_loss,d_true,d_false
 
 
+def runloop_g_hali_unrolled(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,optim_d,cuda,configs,loader):
+    softplus = nn.Softplus()
+    Zdim = configs['Zdim']
 
+    backup_disc = copy.deepcopy(Disc.state_dict())
+    for i in range(configs['unrolled_steps']):
+        im = next(iter(loader))
+        loss_d= runloop_d_hali(im,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs)
+
+    loss_g,d_true,d_fake = runloop_g_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,cuda,configs)
+    Disc.load_state_dict(backup_disc)
+    del backup_disc
+    return loss_g, d_true,d_fake,Disc
 
 def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred1,z_pred2):
     """
@@ -619,7 +646,6 @@ def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs
             Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, train_loader,epoch,cuda,configs
         )
 
-
         # saveimages_hali(Gx1,Gx2,Gz1,Gz2,z_pred1,z_pred2,configs['IMAGE_PATH'])
         # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,True,configs['IMAGE_PATH'])
         # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,False,configs['IMAGE_PATH'])
@@ -634,48 +660,6 @@ def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs
 
         print()     
 
-
-def training_loop_hali_unrolled(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred1,z_pred2):
-    """
-     Runs training loop
-    :param model: the model created under src/algorithms
-    :param optimizer: pytorch optim
-    :param train_loader: the training set loader
-    :param valid_loader: the validation set loader
-    :param hyperparameters_dict: stores save location of model
-    
-    :return: [(train_losses,train_accuracy)(valid_losses,valid_accuracy)]
-    """
-
-    # Index starts at 1 for reporting purposes
-    
-    Zdim = configs['Zdim']
-    if 'continue_from' in configs:
-        start_epoch = configs['continue_from']
-        end_epoch   = start_epoch + configs['n_epochs']
-    else:
-        start_epoch = 0
-        end_epoch = configs['n_epochs']
-    for epoch in range(start_epoch, end_epoch):
-
-        g_loss,d_loss,d_true,d_false = train_epoch_hali(
-            Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, train_loader,epoch,cuda,configs
-        )
-
-
-        # saveimages_hali(Gx1,Gx2,Gz1,Gz2,z_pred1,z_pred2,configs['IMAGE_PATH'])
-        # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,True,configs['IMAGE_PATH'])
-        # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,False,configs['IMAGE_PATH'])
-
-        save_models_hali(Gz1,Gz2,Gx1,Gx2,Disc,configs['MODEL_PATH'],epoch)
-        sys.stdout.write("\r[%5d / %5d]: G: %.4f D: %.4f D(x,Gz(x)): %.4f D(Gx(z),z): %.4f" % (epoch,configs['n_epochs'],g_loss,d_loss,d_true,d_false))
-        
-        experiment.log_metric('g_loss', g_loss)
-        experiment.log_metric('d_loss', d_loss)
-        experiment.log_metric('d_true', d_true)
-        experiment.log_metric('d_fake', d_false)
-
-        print()     
 
 def get_hali_embeddings(Gz1,Gz2,data,mode):
     all_embeddings=[]
