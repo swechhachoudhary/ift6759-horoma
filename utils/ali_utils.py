@@ -89,21 +89,35 @@ def initialize_ali(configs,data):
     gen = chain(Gx.parameters(),Gz.parameters())
 
 
+    decay = 0
+    beta1 = 0.5
+    beta2 = 0.999
+    amsgrad = False
+
+    if 'decay' in configs:
+        decay = configs['decay']
+    if 'amsgrad' in configs:
+        amsgrad  = configs['amsgrad']
+    if ('beta1' in configs) and ('beta2' in configs):
+        beta1 = configs['beta1']
+        beta2 = configs['beta2']        
+
     if configs['optim']=='Adam':
 
-        optim_d = torch.optim.Adam(Disc.parameters(),lr=configs['lr_d'],betas=(0.5, .999),weight_decay=0)
-        optim_g = torch.optim.Adam(gen,configs['lr_g'], betas=(0.5, .999), weight_decay=0)
+        optim_d = torch.optim.Adam(Disc.parameters(),lr=configs['lr_d'],betas=(beta1, beta2),weight_decay=decay)
+        optim_g = torch.optim.Adam(gen,configs['lr_g'], betas=(beta1, beta2), weight_decay=decay)
 
     elif configs['optim']=='OAdam':
 
-        optim_d = OAdam(Disc.parameters(),lr=configs['lr_d'],betas=(0.5, .999),weight_decay=0,amsgrad =configs['amsgrad'])
-        optim_g = OAdam(gen,configs['lr_g'], betas=(0.5, .999), weight_decay=0,amsgrad =configs['amsgrad'])
+        optim_d = OAdam(Disc.parameters(),lr=configs['lr_d'],betas=(beta1, beta2),weight_decay=decay,amsgrad =amsgrad)
+        optim_g = OAdam(gen,configs['lr_g'], betas=(beta1, beta2), weight_decay=decay,amsgrad =amsgrad)
 
     elif configs['optim']=='OMD':
 
-        optim_d = OptMirrorAdam(Disc.parameters(),lr=configs['lr_d'],betas=(0.5, .999),weight_decay=0,amsgrad =configs['amsgrad'],extragradient=configs['extragradient'])
-        optim_g = OptMirrorAdam(gen,configs['lr_g'], betas=(0.5, .999), weight_decay=0,amsgrad =configs['amsgrad'],extragradient=configs['extragradient'])
-   
+        optim_d = OptMirrorAdam(Disc.parameters(),lr=configs['lr_d'],betas=(beta1, beta2),weight_decay=decay,amsgrad =amsgrad)
+        optim_g = OptMirrorAdam(gen,configs['lr_g'], betas=(beta1, beta2), weight_decay=decay,amsgrad =amsgrad)
+
+
     train_loader = DataLoader(data, batch_size=BS, shuffle=True)
 
     return Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda,configs
@@ -152,7 +166,7 @@ def train_epoch_ali(Gz,Gx,Disc, optim_d,optim_g, loader,epoch,cuda,configs):
 
     # generate fake images
 
-    # saveimages(Gx1,Gx2,Gz1,Gz2,z_pred1,z_pred2)
+   # saveimages(Gx1,Gx2,Gz1,Gz2,z_pred1,z_pred2)
     # test(Gx1,Gx2,Gz1,Gz2,epoch,True)
     # test(Gx1,Gx2,Gz1,Gz2,epoch,False)
  
@@ -324,7 +338,7 @@ def initialize_hali(configs,data):
         if configs['continue_from'] == -1:
 
             start_epoch = get_max_epoch(configs)-1
-            
+
             Gx1.load_state_dict(torch.load(MODEL_PATH+'/Gx1-'+str(start_epoch)+'.pth')) 
             Gx2.load_state_dict(torch.load(MODEL_PATH+'/Gx2-'+str(start_epoch)+'.pth')) 
             Gz1.load_state_dict(torch.load(MODEL_PATH+'/Gz1-'+str(start_epoch)+'.pth')) 
@@ -358,21 +372,33 @@ def initialize_hali(configs,data):
 
     gen = chain(Gx1.parameters(),Gx2.parameters(),Gz1.parameters(),Gz2.parameters())
 
+    decay = 0
+    beta1 = 0.5
+    beta2 = 0.999
+    amsgrad = False
+
+    if 'decay' in configs:
+        decay = configs['decay']
+    if 'amsgrad' in configs:
+        amsgrad  = configs['amsgrad']
+    if ('beta1' in configs) and ('beta2' in configs):
+        beta1 = configs['beta1']
+        beta2 = configs['beta2']        
 
     if configs['optim']=='Adam':
 
-        optim_d = torch.optim.Adam(Disc.parameters(),lr=configs['lr_d'],betas=(0.5, .999),weight_decay=0)
-        optim_g = torch.optim.Adam(gen,configs['lr_g'], betas=(0.5, .999), weight_decay=0)
+        optim_d = torch.optim.Adam(Disc.parameters(),lr=configs['lr_d'],betas=(beta1, beta2),weight_decay=decay)
+        optim_g = torch.optim.Adam(gen,configs['lr_g'], betas=(beta1, beta2), weight_decay=decay)
 
     elif configs['optim']=='OAdam':
 
-        optim_d = OAdam(Disc.parameters(),lr=configs['lr_d'],betas=(0.5, .999),weight_decay=0,amsgrad =configs['amsgrad'])
-        optim_g = OAdam(gen,configs['lr_g'], betas=(0.5, .999), weight_decay=0,amsgrad =configs['amsgrad'])
+        optim_d = OAdam(Disc.parameters(),lr=configs['lr_d'],betas=(beta1, beta2),weight_decay=decay,amsgrad =amsgrad)
+        optim_g = OAdam(gen,configs['lr_g'], betas=(beta1, beta2), weight_decay=decay,amsgrad =amsgrad)
 
     elif configs['optim']=='OMD':
 
-        optim_d = OptMirrorAdam(Disc.parameters(),lr=configs['lr_d'],betas=(0.5, .999),weight_decay=0,amsgrad =configs['amsgrad'])
-        optim_g = OptMirrorAdam(gen,configs['lr_g'], betas=(0.5, .999), weight_decay=0,amsgrad =configs['amsgrad'])
+        optim_d = OptMirrorAdam(Disc.parameters(),lr=configs['lr_d'],betas=(beta1, beta2),weight_decay=decay,amsgrad =amsgrad)
+        optim_g = OptMirrorAdam(gen,configs['lr_g'], betas=(beta1, beta2), weight_decay=decay,amsgrad =amsgrad)
    
     train_loader = DataLoader(data, batch_size=BS, shuffle=True)
 
