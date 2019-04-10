@@ -25,7 +25,7 @@ import copy
 
 import numpy as np
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile,isdir, join
 
 def initialize_ali(configs,data):
 
@@ -447,6 +447,11 @@ def get_results_hali(configs,experiment,train,labeled,valid_data):
     return(best_f1,best_accuracy,best_model)
 
 
+def get_experiments():
+    experiments = [f for f in listdir('experiments') if isdir(join('experiments', f))]
+    return experiments
+
+
 def save_res_figure(configs,accuracies,f1_list):
     print()
     # import matplotlib
@@ -492,7 +497,7 @@ def get_results_ali(configs,experiment,train,labeled,valid_data):
 
         experiment.log_metric('accuracy', accuracy)
         experiment.log_metric('f1_score', f1)
-    # save_res_figure(configs,accuracies,f1_scores)
+    save_res_figure(configs,accuracies,f1_scores)
     return(best_f1,best_accuracy,best_model)
 
 

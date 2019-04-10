@@ -1,4 +1,43 @@
-{"ALI":{
+
+
+
+
+
+{
+"NRM":{
+    "enc_model":"nrm",
+    "train_subset": null,
+    "overlapped": false,
+    "encode": true,
+    "cluster": false,
+    "train_split": "train_all",
+    "valid_split": "valid",
+    "train_labeled_split": "train_labeled",
+    "cluster_model":"svm",
+    "batch_size": 32,
+    "seed": 1234,
+    "n_epochs": 200,        
+    "num_train_sup":228 ,
+    "batch_size": 6 ,
+    "labeled_batch_size": 3 ,
+    "device": 0,  
+    "lr" :[0.001, 0.15] ,
+    "num_epochs": 500, 
+    "decay" : 5e-4 ,
+    "num_classes":17,
+    "workers" :4,
+    "alpha_reconst" :0.5,
+    "alpha_pn" :1.0 ,
+    "alpha_kl" : 0.5, 
+    "alpha_bnmm" : 0.5,
+    "use_bias" : true ,
+    "use_bn" : true, 
+    "do_topdown" : true, 
+    "do_pn" : true, 
+    "do_bnmm" : true, 
+    "experiment":"NRM"
+},
+  "ALI":{
     "enc_model":"ali",
     "lr_d":1e-4,
     "lr_g":1e-4,
@@ -30,16 +69,16 @@
     "batch_size": 32,
     "n_epochs": 5,
     "experiment":"ALI_ADAM"
-  },
+},
   "HALI":{
     "enc_model":"hali",
     "lr_d":1e-4,
     "lr_g":1e-4,
-    "optim":"OAdam",
+    "optim":"Adam",
     "amsgrad":false,
     "n_critic":1,
     "gp":true,
-    "gp_lambda":10,
+    "gp_lambda":1,
     "gp_variant":1,
     "batch_size":100,
     "unlabelled": true,
@@ -47,8 +86,8 @@
     "z1dim":64,
     "train_subset": null,
     "overlapped": false,
-    "encode": false,
-    "cluster": true,
+    "encode": true,
+    "cluster": false,
     "train_split": "train_all",
     "valid_split": "valid",
     "train_labeled_split": "train_labeled",
@@ -58,7 +97,7 @@
     "extragradient":true,
     "n_epochs": 200,
     "unrolled_steps":10,
-    "experiment":"Adam_1_l10"
+    "experiment":"Adam_1_l1_unrolled"
   },
   "CVAE_BASE": {
     "cluster_model": "kmeans",
