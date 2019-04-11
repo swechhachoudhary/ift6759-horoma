@@ -321,10 +321,10 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
 
     optimizer_supervised = torch.optim.Adam(param_sup)
 
-    unsup_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_unsupervised, step_size=30, gamma=0.1)
-    sup_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_supervised, step_size=30, gamma=0.1)
+    # unsup_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_unsupervised, step_size=30, gamma=0.1)
+    sup_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_supervised, step_size=25, gamma=0.1)
     for epoch in range(n_epochs):
-        unsup_scheduler.step()
+        # unsup_scheduler.step()
         sup_scheduler.step()
 
         encoding_model = _train_one_epoch_unlabeled(encoding_model, train_unlab_data, optimizer_unsupervised,
@@ -338,7 +338,8 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
                                                                                               valid_loader, epoch, device, experiment)
 
         try:
-            if valid_accuracy > best_acc and valid_f1 > best_f1:
+            # if valid_accuracy > best_acc and valid_f1 > best_f1:
+            if valid_f1 > best_f1:
                 best_acc = valid_accuracy
                 best_f1 = valid_f1
                 k = 0
