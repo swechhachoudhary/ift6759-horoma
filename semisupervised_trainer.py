@@ -33,6 +33,7 @@ def main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr_un
     n_labeled_batch = len(train_labeled) // batch_size
     n_unlabeled_batch = n_labeled_batch
 
+    # Semisupervised Training
     train_semi_supervised_network(encoding_model, classifier_model, train_unlabeled, train_labeled, valid_loader,
                                   n_epochs, batch_size, lr_unsup, lr_sup, device, n_labeled_batch, n_unlabeled_batch,
                                   patience, experiment)

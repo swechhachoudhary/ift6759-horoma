@@ -147,6 +147,7 @@ def train_network(model, train_loader, test_loader, optimizer, n_epochs, device,
 
 
 def loop_over_unlabeled_data(data, batch_size):
+    """Infiinte dataloader for unlabeled data"""
     data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
     while True:
         for batch in iter(data_loader):
@@ -154,6 +155,7 @@ def loop_over_unlabeled_data(data, batch_size):
 
 
 def loop_over_labeled_data(data, batch_size):
+    """Infiinte dataloader for labeled data"""
     data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
     while True:
         for batch in iter(data_loader):
@@ -161,7 +163,7 @@ def loop_over_labeled_data(data, batch_size):
 
 
 def _train_one_epoch_unlabeled(model, train_data, optimizer, batch_size, n_unlabeled_batch, epoch, device, experiment):
-    """Train one epoch for model."""
+    """Train one epoch of unlabeled data."""
     model.train()
 
     running_loss = 0.0
@@ -194,7 +196,7 @@ def _train_one_epoch_unlabeled(model, train_data, optimizer, batch_size, n_unlab
 
 
 def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optimizer, batch_size, n_labeled_batch, epoch, device, experiment):
-    """Train one epoch for model."""
+    """Train one epoch of labeled data."""
     encoding_model.train()
     classifier_model.train()
 
@@ -247,7 +249,7 @@ def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optim
 
 
 def _test_semisupervised(encoding_model, classifier_model, test_loader, epoch, device, experiment):
-    """ Compute reconstruction loss of model over given dataset. """
+    """ Validation of semisupervised task"""
     encoding_model.eval()
     classifier_model.eval()
 
@@ -298,7 +300,7 @@ def _test_semisupervised(encoding_model, classifier_model, test_loader, epoch, d
 
 def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_data, train_lab_data, valid_loader,
                                   n_epochs, batch_size, lr_unsup, lr_sup, device, n_labeled_batch, n_unlabeled_batch, patience, experiment):
-
+    """Training of semisupervised task"""
     best_acc = 0.0
     best_f1 = 0.0
     k = 0
@@ -325,7 +327,7 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
     #sup_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_supervised, step_size=25, gamma=0.1)
     for epoch in range(n_epochs):
         # unsup_scheduler.step()
-        #sup_scheduler.step()
+        # sup_scheduler.step()
 
         encoding_model = _train_one_epoch_unlabeled(encoding_model, train_unlab_data, optimizer_unsupervised,
                                                     batch_size, n_unlabeled_batch, epoch, device, experiment)

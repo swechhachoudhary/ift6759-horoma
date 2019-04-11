@@ -251,9 +251,8 @@ if __name__ == "__main__":
         split='train_labeled'
     )
 
-    print(len(valid))
-    print(len(valid.targets))
-    print(len(train_labeled))
+    # plot bar graph of frequencies of classes
+    plot_historgrams(valid.targets, "Validation", valid.str_labels)
 
     # i = np.random.randint(0, len(train_labeled))
     # print(i)
@@ -263,22 +262,3 @@ if __name__ == "__main__":
     # img = Image.fromarray(
     #     (255 * train_labeled[i][0]).numpy().astype(np.uint8), 'RGB')
     # img.show()
-    # label = train_labeled[i][1]
-    # print("label: ", train_labeled.id_to_str[int(label)])
-
-    # hist, bins = np.histogram(train_labeled.targets,
-    #                           bins=np.arange(len(train_labeled.str_labels)))
-    # print("Train hist: {},\n bins: {}".format(hist, bins))
-    hist, bins = np.histogram(valid.targets,
-                              bins=np.arange(len(valid.str_labels)))
-    # print("Validation hist: {},\n bins: {}".format(hist, bins))
-
-    # plt.figure()
-    # plt.hist(train_labeled.targets, bins=np.arange(
-    #     len(train_labeled.str_labels)))
-    # plt.title("Histogram of class labels for train labeled data")
-    # plt.savefig("train_hist.png")
-    # plt.close()
-    # labels = [str(valid.id_to_str[id_])
-    #           for id_ in valid.targets if id_ in valid.id_to_str]
-    plot_historgrams(valid.targets, "Validation", valid.str_labels)
