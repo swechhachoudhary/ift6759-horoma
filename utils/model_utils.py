@@ -303,7 +303,6 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
     best_f1 = 0.0
     k = 0
     key = experiment.get_key()
-    best_model = None
 
     lr_unsup_encoder = lr_unsup * (len(train_lab_data) / len(train_unlab_data))
     param_unsup = [
@@ -354,14 +353,13 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
                     "train_f1": train_f1,
                 }, "experiment_models/" + str(key) + '.pth')
 
-                # best_model = deepcopy(model)  # Keep best model thus far
                 plot_confusion_matrix(valid_true_labels, valid_pred_labels, classes=np.arange(17),
                                       title='Confusion matrix for Validation')
-            # elif k < patience:
-            #     k += 1
-            # else:
-            #     print("Early stopping......")
-            #     break
+            elif k < patience:
+                k += 1
+            else:
+                print("Early stopping......")
+                break
         except FileNotFoundError as e:
             print(
                 "Directory for logging experiments does not exist. Launch script from repository root.")
