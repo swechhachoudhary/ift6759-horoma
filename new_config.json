@@ -1,22 +1,17 @@
-{"CAE_BASE": {
-    "cluster_model": "kmeans",
-    "n_clusters": 21,
+{"CAE_MLP": {
     "enc_model": "cae",
     "classifier_model": "MLPClassifier",
     "batch_size": 32,
     "seed": 1234,
-    "n_epochs": 200,
-    "lr": 1e-3,
+    "n_epochs": 60,
     "lr_unsup": 1e-2,
     "lr_sup": 1e-2,
     "patience": 10,
-    "latent_dim": 10,
+    "latent_dim": 100,
     "train_split": "train_all",
     "train_unlabeled_split": "train",
-    "valid_split": "valid",
     "train_labeled_split": "train_labeled",
-    "encode": true,
-    "cluster": false
+    "valid_split": "valid"
   },
   "CAE_BASE_": {
     "cluster_model": "kmeans",

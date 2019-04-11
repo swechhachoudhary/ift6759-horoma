@@ -1,15 +1,13 @@
 from comet_ml import OfflineExperiment
 import json
 import argparse
-from models.encoders import *
-from models.clustering import *
-from utils.utils import *
-from utils.utils import load_datasets
-from utils.constants import Constants
-from data.dataset import HoromaDataset
 import torch
 from torch.utils.data import DataLoader
+from models.encoders import *
 from models.mlp_classifier import MLPClassifier
+from utils.constants import Constants
+from data.dataset import HoromaDataset
+from utils.model_utils import train_semi_supervised_network
 
 
 def main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr_unsup, lr_sup, device,
@@ -21,7 +19,8 @@ def main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr_un
     :param encoding_model: which encoding model to use, convolutional, variational or simple autoencoders.
     :param batch_size: batch size
     :param n_epochs: number of epochs
-    :param lr: learning rate
+    :param lr_unsup: learning rate for unsupervised part
+    :param lr_sup: learning rate for supervised part
     :param device: use CUDA device if available else CPU .
     :param experiment: track experiment
     :param path_to_model: path to the directory containing saved models.
@@ -44,9 +43,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--datapath", type=str, default=Constants.DATAPATH,
                         help="Path to dataset folder")
-    parser.add_argument("--encoder_path", type=str, default=None)
+    parser.add_argument("--encoder_path", type=str, default='results/best_model1.pth')
 
-    parser.add_argument("--config", type=str, default="CAE_BASE",
+    parser.add_argument("--config", type=str, default="CAE_MLP",
                         help="To select configuration from config.json")
     args = parser.parse_args()
     config_key = args.config
@@ -61,7 +60,6 @@ if __name__ == '__main__':
     batch_size = configuration['batch_size']
     seed = configuration['seed']
     n_epochs = configuration['n_epochs']
-    lr = configuration['lr']
     lr_unsup = configuration['lr_unsup']
     lr_sup = configuration['lr_sup']
     patience = configuration['patience']
@@ -69,7 +67,7 @@ if __name__ == '__main__':
     valid_split = configuration['valid_split']
     train_labeled_split = configuration['train_labeled_split']
     latent_dim = configuration['latent_dim']
-    flattened = False  # Default
+    flattened = False
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     # Set all seeds for full reproducibility
@@ -112,6 +110,12 @@ if __name__ == '__main__':
 
     if classifier_model == "MLPClassifier":
         classifier_model = MLPClassifier().to(device)
+
+    # print("Loading model....\n")
+    # # # load the best model
+    # x = torch.load(path_to_model, map_location=device)
+    # print(x["best_acc"], x["best_f1"])
+    # print(x["train_acc"], x["train_f1"])
 
     # Initiate experiment
     main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr_unsup, lr_sup, device,
