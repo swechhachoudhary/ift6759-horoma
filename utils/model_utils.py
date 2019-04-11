@@ -321,10 +321,11 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
 
     optimizer_supervised = torch.optim.Adam(param_sup)
 
-    # scheduler = torch.optim.lr_scheduler.StepLR(
-    #     optimizer, step_size=2, gamma=0.5)
+    unsup_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_unsupervised, step_size=20, gamma=0.1)
+    sup_scheduler = torch.optim.lr_scheduler.StepLR(optimizer_supervised, step_size=20, gamma=0.1)
     for epoch in range(n_epochs):
-        # scheduler.step()
+        unsup_scheduler.step()
+        sup_scheduler.step()
 
         encoding_model = _train_one_epoch_unlabeled(encoding_model, train_unlab_data, optimizer_unsupervised,
                                                     batch_size, n_unlabeled_batch, epoch, device, experiment)
