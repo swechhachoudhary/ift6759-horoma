@@ -340,6 +340,7 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
             if valid_accuracy > best_acc and valid_f1 > best_f1:
                 best_acc = valid_accuracy
                 best_f1 = valid_f1
+                k = 0
                 print("Saving best model....")
                 torch.save({
                     "epoch": epoch,
