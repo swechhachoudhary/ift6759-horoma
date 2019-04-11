@@ -109,7 +109,7 @@ if __name__ == '__main__':
         encoding_model = PCAEncoder(seed)
 
     if classifier_model == "MLPClassifier":
-        classifier_model = MLPClassifier().to(device)
+        classifier_model = MLPClassifier(latent_dim=latent_dim).to(device)
 
     # print("Loading model....\n")
     # # # load the best model
