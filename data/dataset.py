@@ -8,6 +8,7 @@ from torchvision.transforms import functional
 from torch.utils import data
 from torch.utils.data import Dataset
 import matplotlib.pyplot as plt
+from collections import Counter
 
 
 class OriginalHoromaDataset(Dataset):
@@ -219,6 +220,26 @@ class HoromaDataset(Dataset):
                         for _str in pre_targets if _str in self.str_to_id]
         return np.asarray(targets)
 
+
+def plot_historgrams(data, label, str_labels):
+
+    counter = Counter(data)
+    print(counter)
+    counter = dict(sorted(counter.items(), key=lambda i: i[0]))
+    print(counter)
+    frequencies = counter.values()
+    names = counter.keys()
+    print("{} frequencies: {},\n names: {}".format(label, frequencies, names))
+    x_coordinates = np.arange(len(counter))
+    plt.figure()
+    plt.bar(x_coordinates, frequencies, align='center')
+    plt.xticks(x_coordinates, str_labels)
+    plt.title("Histogram of class labels for " + label + " labeled data")
+    plt.xlabel("Class Ids")
+    plt.ylabel("Frequency")
+    plt.savefig(label + "_hist.png")
+    plt.close()
+
 if __name__ == "__main__":
     valid = HoromaDataset(
         data_dir='./../data/horoma',
@@ -248,8 +269,8 @@ if __name__ == "__main__":
     # hist, bins = np.histogram(train_labeled.targets,
     #                           bins=np.arange(len(train_labeled.str_labels)))
     # print("Train hist: {},\n bins: {}".format(hist, bins))
-    # hist, bins = np.histogram(valid.targets,
-    #                           bins=np.arange(len(valid.str_labels)))
+    hist, bins = np.histogram(valid.targets,
+                              bins=np.arange(len(valid.str_labels)))
     # print("Validation hist: {},\n bins: {}".format(hist, bins))
 
     # plt.figure()
@@ -258,10 +279,6 @@ if __name__ == "__main__":
     # plt.title("Histogram of class labels for train labeled data")
     # plt.savefig("train_hist.png")
     # plt.close()
-
-    # plt.figure()
-    # plt.hist(valid.targets, bins=np.arange(
-    #     len(valid.str_labels)))
-    # plt.title("Histogram of class labels for validation labeled data")
-    # plt.savefig("valid_hist.png")
-    # plt.close()
+    # labels = [str(valid.id_to_str[id_])
+    #           for id_ in valid.targets if id_ in valid.id_to_str]
+    plot_historgrams(valid.targets, "Validation", valid.str_labels)

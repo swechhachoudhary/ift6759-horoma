@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score, f1_score
 from utils.constants import Constants
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
+from collections import Counter
 from sklearn.utils.multiclass import unique_labels
 
 
@@ -181,20 +182,6 @@ def eval_model_predictions(model, x, y_true, cluster_labels):
         "Done in {:.2f} sec | Accuracy: {:.2f} - F1: {:.2f}".format(time() - start_time, accuracy * 100, f1 * 100))
 
     return y_pred, accuracy, f1
-
-
-def plot_historgrams(list_of_data, label_list, str_labels):
-    for data, label in zip(list_of_data, label_list):
-        hist, bins = np.histogram(data, bins=np.arange(len(str_labels)))
-        print("{} hist: {},\n bins: {}".format(label, hist, bins))
-
-        plt.figure()
-        plt.hist(data, bins=np.arange(len(str_labels)))
-        plt.title("Histogram of class labels for " + label + "labeled data")
-        plt.xlabel("Class Ids")
-        plt.ylabel("Frequency")
-        plt.savefig(label + "_hist.png")
-        plt.close()
 
 
 def plot_confusion_matrix(y_true, y_pred, classes,
