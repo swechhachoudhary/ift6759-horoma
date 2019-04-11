@@ -15,18 +15,16 @@
     "hidden_size": 60,
     "n_layers":3
   },
-  "CAE_BASE_": {
-    "cluster_model": "kmeans",
+  "CAE_BASE": {
     "enc_model": "cae",
     "batch_size": 128,
     "seed": 1234,
-    "n_epochs": 20,
+    "n_epochs": 80,
     "lr": 1e-3,
-    "n_clusters": 21,
     "latent_dim": 10,
-    "train_subset": null,
-    "overlapped": false,
-    "encode": true,
-    "cluster": true
+    "train_split": "train_all",
+    "train_unlabeled_split": "train",
+    "train_labeled_split": "train_labeled",
+    "valid_split": "valid"
   }
 }

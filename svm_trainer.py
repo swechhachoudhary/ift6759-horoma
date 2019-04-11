@@ -5,7 +5,7 @@ from time import time
 from models.encoders import *
 from models.svm_classifier import SVMClassifier
 from utils.model_utils import encode_dataset
-from utils.utils import compute_metrics, __compute_metrics, plot_historgrams, plot_confusion_matrix
+from utils.utils import compute_metrics, __compute_metrics, plot_confusion_matrix
 from utils.constants import Constants
 from data.dataset import HoromaDataset
 import torch
@@ -26,11 +26,6 @@ def main(datapath, encoding_model, batch_size, n_epochs, lr, device, train_split
     n_train = int(0.90 * len(full_dataset))
     n_valid = len(full_dataset) - n_train
     train_dataset, valid_dataset = data.random_split(full_dataset, [n_train, n_valid])
-
-    # print("Loading model....\n")
-    # # load the best model
-    # encoding_model.load_state_dict(torch.load(
-    #     path_to_model, map_location=device)["model"])
 
     # Train and apply encoding model
     train_enc, encoding_model = encoding_model.fit(train_dataset, valid_dataset, batch_size=batch_size, n_epochs=n_epochs,
@@ -81,10 +76,6 @@ def main(datapath, encoding_model, batch_size, n_epochs, lr, device, train_split
     experiment.log_metric('Validation accuracy', valid_accuracy)
     experiment.log_metric('Validation f1-score', valid_f1)
 
-    list_of_data = [pred_train_y, pred_valid_y]
-    label_list = ["Train", "Validation"]
-    plot_historgrams(list_of_data, label_list, valid_data.str_labels)
-
     # Plot non-normalized confusion matrix
     plot_confusion_matrix(train_labeled.targets, pred_train_y, classes=np.arange(17),
                           title='Confusion matrix for Train, without normalization')
@@ -119,7 +110,6 @@ if __name__ == '__main__':
     train_split = configuration['train_split']
     valid_split = configuration['valid_split']
     train_labeled_split = configuration['train_labeled_split']
-    encode = configuration['encode']
     latent_dim = configuration['latent_dim']
     flattened = False  # Default
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
