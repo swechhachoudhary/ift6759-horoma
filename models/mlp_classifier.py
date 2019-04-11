@@ -21,7 +21,7 @@ class MLPClassifier(nn.Module):
 
     def _weight_init(self,):
         k = math.sqrt(1. / self.hidden_size)
-        for i in len(self.layers) - 1:
+        for i in range(len(self.layers) - 1):
             nn.init.uniform_(self.layers[i].weight, -k, k)
             nn.init.constant_(self.layers[i].bias, 0.0)
         nn.init.uniform_(self.layers[-1].weight, -0.1, 0.1)
