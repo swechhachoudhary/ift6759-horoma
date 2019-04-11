@@ -67,6 +67,7 @@ if __name__ == '__main__':
     valid_split = configuration['valid_split']
     train_labeled_split = configuration['train_labeled_split']
     latent_dim = configuration['latent_dim']
+    hidden_size = configuration['hidden_size']
     flattened = False
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -109,7 +110,7 @@ if __name__ == '__main__':
         encoding_model = PCAEncoder(seed)
 
     if classifier_model == "MLPClassifier":
-        classifier_model = MLPClassifier(latent_dim=latent_dim).to(device)
+        classifier_model = MLPClassifier(latent_dim=latent_dim, hidden_size=hidden_size).to(device)
 
     # print("Loading model....\n")
     # # # load the best model

@@ -11,7 +11,8 @@
     "train_split": "train_all",
     "train_unlabeled_split": "train",
     "train_labeled_split": "train_labeled",
-    "valid_split": "valid"
+    "valid_split": "valid",
+    "hidden_size": 60
   },
   "CAE_BASE_": {
     "cluster_model": "kmeans",
