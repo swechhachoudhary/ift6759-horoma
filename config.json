@@ -86,8 +86,8 @@
     "z1dim":64,
     "train_subset": null,
     "overlapped": false,
-    "encode": false,
-    "cluster": true,
+    "encode": true,
+    "cluster": false,
     "train_split": "train_all",
     "valid_split": "valid",
     "train_labeled_split": "train_labeled",
@@ -96,6 +96,8 @@
     "seed": 1234,
     "extragradient":true,
     "n_epochs": 200,
+    "lr_scheduler":"cyclic",
+    "scheduler_mode":"both",
     "experiment":"OMD_1_l10"
   },
   "CVAE_BASE": {
