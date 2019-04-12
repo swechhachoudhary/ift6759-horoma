@@ -37,23 +37,15 @@ def main(datapath, clustering_model, encoding_model, configs, train_split, valid
     valid_data = HoromaDataset(
         datapath, split=valid_split, subset=train_subset, flattened=flattened)
 
-    train_label_indices = labeled.targets
-    valid_indices = valid_data.targets
-    # train_label_indices, valid_indices = get_split_indices(
-    #     labeled.targets, overlapped=overlapped)
-
     print("Shape of training set: ", train.data.shape)
     print("Shape of validation set: ", valid_data.data.shape)
-    # print("Shape of labeled training set: ",
-    #       labeled.data[train_label_indices].shape)
-    # print("Shape of validation dataset: ", labeled.data[valid_indices].shape)
+
 
     if encode:
-        # Train and apply encoding model
         if encoding_model =="hali":
             Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs =  initialize_hali(configs,train)
             training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred1,z_pred2)
-        else: #default to ALI
+        else: 
             Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda,configs = initialize_ali(configs,train)
             training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred)                    
 

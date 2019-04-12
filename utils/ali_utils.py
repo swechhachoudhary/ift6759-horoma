@@ -15,7 +15,7 @@ from torch.nn import Parameter
 from utils.custom_optimizers import *
 from itertools import chain
 from torchvision.utils import save_image
-
+from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 import re
@@ -28,7 +28,6 @@ from os import listdir
 from os.path import isfile,isdir, join
 
 def initialize_ali(configs,data):
-
 
     IMAGE_PATH = 'experiments/'+configs['experiment']+'/images'
     MODEL_PATH = 'experiments/'+configs['experiment']+'/models'
@@ -198,12 +197,41 @@ def training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment
     else:
         start_epoch = 0
         end_epoch = configs['n_epochs']
+
+
+
+    if 'lr_scheduler' in configs:
+        if configs['lr_scheduler'] =='cyclic':
+            milestones = [int(np.floor((2**x)*1.2)) for x in range(7)]
+            if configs['scheduler_mode'] =='both':
+                scheduler1 = CyclicCosAnnealingLR(optim_d,milestones=milestones,eta_min=1e-5)
+                scheduler2 = CyclicCosAnnealingLR(optim_g,milestones=milestones,eta_min=1e-5)
+            else:
+                scheduler = CyclicCosAnnealingLR(optim_d,milestones=milestones,eta_min=1e-5)
+
+        else:
+            lambda1 = lambda epoch: 0.95 ** epoch
+            if configs['scheduler_mode'] =='both':
+                scheduler1 = LambdaLR(optim_d, lr_lambda=lambda1)
+                scheduler2 = LambdaLR(optim_g, lr_lambda=lambda1)
+            else:
+                scheduler = LambdaLR(optim_d, lr_lambda=lambda1)
+
+
     for epoch in range(start_epoch, end_epoch):
+
+
 
         g_loss,d_loss,d_true,d_false = train_epoch_ali(
             Gz,Gx,Disc, optim_d,optim_g, train_loader,epoch,cuda,configs
         )
 
+        if 'lr_scheduler' in configs:
+            if configs['scheduler_mode']=='both':
+                scheduler1.step()
+                scheduler2.step()
+            else:
+                scheduler.step()
 
         # saveimages_hali(Gx1,Gx2,Gz1,Gz2,z_pred1,z_pred2,configs['IMAGE_PATH'])
         # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,True,configs['IMAGE_PATH'])
@@ -603,6 +631,19 @@ def runloop_d_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs):
 
     return loss_d
 
+def runloop_g_hali_unrolled(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,optim_d,cuda,configs,loader):
+    softplus = nn.Softplus()
+    Zdim = configs['Zdim']
+
+    backup_disc = copy.deepcopy(Disc.state_dict())
+    for i in range(configs['unrolled_steps']):
+        im = next(iter(loader))
+        loss_d= runloop_d_hali(im,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs)
+
+    loss_g,d_true,d_fake = runloop_g_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,cuda,configs)
+    Disc.load_state_dict(backup_disc)
+    del backup_disc
+    return loss_g, d_true,d_fake,Disc
     
 def train_epoch_hali(Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, loader,epoch,cuda,configs):
     """
@@ -660,19 +701,7 @@ def train_epoch_hali(Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, loader,epoch,cuda,co
     return g_loss,d_loss,d_true,d_false
 
 
-def runloop_g_hali_unrolled(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,optim_d,cuda,configs,loader):
-    softplus = nn.Softplus()
-    Zdim = configs['Zdim']
 
-    backup_disc = copy.deepcopy(Disc.state_dict())
-    for i in range(configs['unrolled_steps']):
-        im = next(iter(loader))
-        loss_d= runloop_d_hali(im,Gx1,Gx2,Gz1,Gz2,Disc,optim_d,cuda,configs)
-
-    loss_g,d_true,d_fake = runloop_g_hali(imgs,Gx1,Gx2,Gz1,Gz2,Disc,optim_g,cuda,configs)
-    Disc.load_state_dict(backup_disc)
-    del backup_disc
-    return loss_g, d_true,d_fake,Disc
 
 def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs,experiment,cuda,z_pred1,z_pred2):
     """
@@ -699,6 +728,10 @@ def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs
     else:
         start_epoch = 0
         end_epoch = configs['n_epochs']
+
+
+
+
     for epoch in range(start_epoch, end_epoch):
 
         g_loss,d_loss,d_true,d_false = train_epoch_hali(
