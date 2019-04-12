@@ -1,10 +1,5 @@
-
-
-
-
-
 {
-"NRM":{
+  "NRM":{
     "enc_model":"nrm",
     "train_subset": null,
     "overlapped": false,
