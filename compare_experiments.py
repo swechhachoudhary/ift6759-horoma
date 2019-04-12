@@ -131,7 +131,7 @@ if __name__ == '__main__':
     for exp in exp_list:
 
         configuration['experiment'] = exp
-
+        print(exp)
         experiment = OfflineExperiment(project_name="ali",workspace='timothynest',  # Replace this with appropriate comet workspace
                                        offline_directory=str('experiments/'+configuration['experiment']+'/cluster'))
         experiment.set_name(

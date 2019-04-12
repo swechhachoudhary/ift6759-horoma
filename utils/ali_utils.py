@@ -415,6 +415,9 @@ def get_max_epoch(configs):
 
 def get_results_hali(configs,experiment,train,labeled,valid_data):
     
+    if '_32' in configs['experiment']:
+        configs['z1dim'] =32
+
     Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs =  initialize_hali(configs,train)
 
     max_ep = get_max_epoch(configs)
@@ -454,18 +457,18 @@ def get_experiments():
 
 def save_res_figure(configs,accuracies,f1_list):
     print()
-    # import matplotlib
-    # import matplotlib.pyplot as plt
-    # fig = plt.figure()
-    # ax = plt.axes()
+    import matplotlib
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = plt.axes()
 
-    # ax.plot(f1_list,label='F1 Score')
-    # ax.plot(accuracies, label='Accuracy')
-    # ax.legend(loc='best')
-    # plt.title(configs['experiment'])
-    # formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
-    # plt.gca().xaxis.set_major_formatter(formatter)
-    # plt.savefig(configs['IMAGE_PATH']+'/clustering_results.png')
+    ax.plot(f1_list,label='F1 Score')
+    ax.plot(accuracies, label='Accuracy')
+    ax.legend(loc='best')
+    plt.title(configs['experiment'])
+    formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
+    plt.gca().xaxis.set_major_formatter(formatter)
+    plt.savefig(configs['IMAGE_PATH']+'/clustering_results.png')
 
 def get_results_ali(configs,experiment,train,labeled,valid_data):
     

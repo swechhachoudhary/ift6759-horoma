@@ -133,6 +133,10 @@ run.pbs
 models_*/*
 images_*/*
 block1/
+*.swp
+*.swo
+
+*.ipynb
 
 .DS_Store
 
