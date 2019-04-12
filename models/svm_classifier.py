@@ -7,10 +7,10 @@ class SVMClassifier:
     SVM classifier for multiclass classification
     """
 
-    def __init__(self, C=0.01, kernel='rbf', gamma=.5):
+    def __init__(self, C=1, kernel='rbf', gamma=.5):
         super(SVMClassifier, self).__init__()
 
-        self.clf = SVC(C=C, kernel=kernel, gamma=gamma)
+        self.clf = SVC(C=C, kernel=kernel, gamma=gamma, class_weight='balanced')
 
     def train_classifier(self, train_X, train_y):
         """
