@@ -1,6 +1,6 @@
 class Constants:
 
-    DATAPATH = "/rap/jvb-000-aa/COURS2019/etudiants/data/horoma"
+    _DATAPATH = "/rap/jvb-000-aa/COURS2019/etudiants/data/horoma"
     DATAPATH = "../horoma_data/"
 
     REGION_ID_PATH = DATAPATH+"valid_regions_id.txt"
