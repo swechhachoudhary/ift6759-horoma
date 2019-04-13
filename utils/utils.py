@@ -3,16 +3,22 @@ from data.dataset import HoromaDataset, OriginalHoromaDataset
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score
 from utils.constants import Constants
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+from collections import Counter
+from sklearn.utils.multiclass import unique_labels
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
 
+
 def get_acc(output, label):
     pred = torch.argmax(output, dim=1, keepdim=False)
     correct = torch.mean((pred == label).type(torch.FloatTensor))
     return correct
+
 
 def get_split_indices(targets, overlapped=False, split=0.7):
     """
@@ -151,7 +157,8 @@ def load_original_horoma_datasets(datapath, train_subset, flattened=False, overl
     print("Loading datasets from ({}) ...".format(datapath), end=' ')
     start_time = time()
     if overlapped:
-        unlabeled_trainset = OriginalHoromaDataset(datapath, split="train_overlapped", subset=train_subset, flattened=flattened)
+        unlabeled_trainset = OriginalHoromaDataset(
+            datapath, split="train_overlapped", subset=train_subset, flattened=flattened)
         labeled_trainset = OriginalHoromaDataset(datapath, split="train_labeled_overlapped", flattened=flattened)
         labeled_validset = OriginalHoromaDataset(datapath, split="valid_overlapped", flattened=flattened)
 
@@ -166,31 +173,33 @@ def load_original_horoma_datasets(datapath, train_subset, flattened=False, overl
     print("Done in {:.2f} sec".format(time() - start_time))
     return unlabeled_trainset, labeled_trainset, labeled_validset, labeled_train_valid_set
 
+
 def return_images(data):
-    all_embeddings=[]
+    all_embeddings = []
     all_targets = []
-    loader = DataLoader(data, batch_size = 32,shuffle=True)
+    loader = DataLoader(data, batch_size=32, shuffle=True)
     cuda = True if torch.cuda.is_available() else False
     labeled = True
-    if loader.dataset.data.shape[0] >500 :
+    if loader.dataset.data.shape[0] > 500:
         labeled = False
 
     for imgs in loader:
-       
+
         if labeled:
             (imgs, target) = imgs
 
         if cuda:
             data = Variable(imgs).cuda()
         else:
-            data = Variable(imgs)       
-        data =data.view(-1,3*32*32).cpu().data.numpy()
+            data = Variable(imgs)
+        data = data.view(-1, 3 * 32 * 32).cpu().data.numpy()
         for l in range(np.shape(data)[0]):
             all_embeddings.append(data[l])
             if labeled:
                 all_targets.append(target[l].numpy()[0])
 
-    return all_embeddings,all_targets
+    return all_embeddings, all_targets
+
 
 def assign_labels_to_clusters(model, data, labels_true):
     """
@@ -222,6 +231,13 @@ def compute_metrics(y_true, y_pred):
     return accuracy, f1
 
 
+def __compute_metrics(y_true, y_pred):
+    accuracy = accuracy_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred, average="weighted")
+    _f1 = f1_score(y_true, y_pred, average=None)
+    return accuracy, f1, _f1
+
+
 def eval_model_predictions(model, x, y_true, cluster_labels):
     """
     Predict labels and compare to true labels to compute the accuracy and f1 score
@@ -238,6 +254,61 @@ def eval_model_predictions(model, x, y_true, cluster_labels):
     return y_pred, accuracy, f1
 
 
+def plot_confusion_matrix(y_true, y_pred, classes,
+                          normalize=False,
+                          title=None,
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if not title:
+        if normalize:
+            title = 'Normalized confusion matrix'
+        else:
+            title = 'Confusion matrix, without normalization'
+
+    # Compute confusion matrix
+    cm = confusion_matrix(y_true, y_pred)
+    # Only use the labels that appear in the data
+    classes = classes[unique_labels(y_true, y_pred)]
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    print(cm)
+
+    fig, ax = plt.subplots()
+    im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
+    ax.figure.colorbar(im, ax=ax)
+    # We want to show all ticks...
+    ax.set(xticks=np.arange(cm.shape[1]),
+           yticks=np.arange(cm.shape[0]),
+           # ... and label them with the respective list entries
+           xticklabels=classes, yticklabels=classes,
+           title=title,
+           ylabel='True label',
+           xlabel='Predicted label')
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+             rotation_mode="anchor")
+
+    # Loop over data dimensions and create text annotations.
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            ax.text(j, i, format(cm[i, j], fmt),
+                    ha="center", va="center",
+                    color="white" if cm[i, j] > thresh else "black")
+    fig.tight_layout()
+    plt.savefig(title + '.png')
+    plt.close()
+
+
 def weights_init(m):
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
@@ -248,13 +319,12 @@ def weights_init(m):
         m.bias.data.fill_(0)
     elif classname.find('Bias') != -1:
         m.bias.data.fill_(0)
-        
 
-def train_nrm(net, train_loader,labeled_loader, eval_loader, num_epochs, configs,n_iterations):
+
+def train_nrm(net, train_loader, labeled_loader, eval_loader, num_epochs, configs, n_iterations):
     best_f1 = 0
     valid_accuracies = []
     f1_scores = []
-
 
     device = 'cuda'
     NO_LABEL = -1
@@ -265,12 +335,17 @@ def train_nrm(net, train_loader,labeled_loader, eval_loader, num_epochs, configs
     best_valid_acc = 0
     iter_indx = 0
 
-    for epoch in range(1,num_epochs):
-        train_loss = 0; train_loss_xentropy = 0; train_loss_reconst = 0; train_loss_pn = 0; train_loss_kl = 0; train_loss_bnmm = 0
+    for epoch in range(1, num_epochs):
+        train_loss = 0
+        train_loss_xentropy = 0
+        train_loss_reconst = 0
+        train_loss_pn = 0
+        train_loss_kl = 0
+        train_loss_bnmm = 0
         correct = 0
         num_batch_train = 0
 
-        # start with adam optimizer but switch sgd optimizer with exponential decay learning rate since epoch 20 
+        # start with adam optimizer but switch sgd optimizer with exponential decay learning rate since epoch 20
         if epoch == 200:
             sgd_lr = configs['lr'][1]
             decay_val = np.exp(np.log(sgd_lr / 0.0001) / (num_epochs - 2))
@@ -279,24 +354,24 @@ def train_nrm(net, train_loader,labeled_loader, eval_loader, num_epochs, configs
 
         if epoch >= 150:
             for param_group in trainer.param_groups:
-                param_group['lr'] = param_group['lr']/decay_val
+                param_group['lr'] = param_group['lr'] / decay_val
 
         for param_group in trainer.param_groups:
             learning_rate = param_group['lr']
-
 
         # switch to train mode
         net.train()
 
     #     end = time.time()
         for i in range(int(n_iterations)):
-    #         meters.update('data_time', time.time() - end)
+            #         meters.update('data_time', time.time() - end)
 
             unsup_batch = next(iter(train_loader))
-            sup_batch,target = next(iter(labeled_loader))
+            sup_batch, target = next(iter(labeled_loader))
 
             # set up unlabeled input and labeled input with the corresponding labels
-            input_unsup_var = torch.autograd.Variable(unsup_batch[0:(configs['batch_size'] - configs['labeled_batch_size'])]).to(device)
+            input_unsup_var = torch.autograd.Variable(
+                unsup_batch[0:(configs['batch_size'] - configs['labeled_batch_size'])]).to(device)
             input_sup_var = torch.autograd.Variable(sup_batch).to(device)
             target_sup_var = torch.autograd.Variable(target.data.long()).to(device)
 
@@ -307,18 +382,18 @@ def train_nrm(net, train_loader,labeled_loader, eval_loader, num_epochs, configs
             [output_unsup, xhat_unsup, loss_pn_unsup, loss_bnmm_unsup] = net(input_unsup_var)
             loss_reconst_unsup = L2_loss(xhat_unsup, input_unsup_var).mean()
             softmax_unsup = F.softmax(output_unsup)
-            loss_kl_unsup = -torch.sum(torch.log(10.0*softmax_unsup + 1e-8) * softmax_unsup) / minibatch_unsup_size
-            loss_unsup = configs['alpha_reconst'] * loss_reconst_unsup + configs['alpha_kl'] * loss_kl_unsup + configs['alpha_bnmm'] * loss_bnmm_unsup + configs['alpha_pn'] * loss_pn_unsup
-
-
+            loss_kl_unsup = -torch.sum(torch.log(10.0 * softmax_unsup + 1e-8) * softmax_unsup) / minibatch_unsup_size
+            loss_unsup = configs['alpha_reconst'] * loss_reconst_unsup + configs['alpha_kl'] * \
+                loss_kl_unsup + configs['alpha_bnmm'] * loss_bnmm_unsup + configs['alpha_pn'] * loss_pn_unsup
 
             # compute loss for labeled input
             [output_sup, xhat_sup, loss_pn_sup, loss_bnmm_sup] = net(input_sup_var, target_sup_var.squeeze_())
             loss_xentropy_sup = criterion(output_sup, target_sup_var) / minibatch_sup_size
             loss_reconst_sup = L2_loss(xhat_sup, input_sup_var).mean()
             softmax_sup = F.softmax(output_sup)
-            loss_kl_sup = -torch.sum(torch.log(10.0*softmax_sup + 1e-8) * softmax_sup)/ minibatch_sup_size
-            loss_sup = loss_xentropy_sup + configs['alpha_reconst'] * loss_reconst_sup + configs['alpha_kl'] * loss_kl_sup + configs['alpha_bnmm'] * loss_bnmm_sup + configs['alpha_pn'] * loss_pn_sup
+            loss_kl_sup = -torch.sum(torch.log(10.0 * softmax_sup + 1e-8) * softmax_sup) / minibatch_sup_size
+            loss_sup = loss_xentropy_sup + configs['alpha_reconst'] * loss_reconst_sup + configs[
+                'alpha_kl'] * loss_kl_sup + configs['alpha_bnmm'] * loss_bnmm_sup + configs['alpha_pn'] * loss_pn_sup
 
             loss = torch.mean(loss_unsup + loss_sup)
 
@@ -352,10 +427,13 @@ def train_nrm(net, train_loader,labeled_loader, eval_loader, num_epochs, configs
         # writer.add_scalars('loss_bnmm', {'train': train_loss_bnmm / num_batch_train}, epoch)
         # writer.add_scalars('acc', {'train': correct / num_batch_train}, epoch)
 
- 
-
         # Validation
-        valid_loss = 0; valid_loss_xentropy = 0; valid_loss_reconst = 0; valid_loss_pn = 0; valid_loss_kl = 0; valid_loss_bnmm = 0
+        valid_loss = 0
+        valid_loss_xentropy = 0
+        valid_loss_reconst = 0
+        valid_loss_pn = 0
+        valid_loss_kl = 0
+        valid_loss_bnmm = 0
         valid_correct = 0
         num_batch_valid = 0
         valid_accuracy = 0
@@ -372,11 +450,12 @@ def train_nrm(net, train_loader,labeled_loader, eval_loader, num_epochs, configs
 
                 [output, xhat, loss_pn, loss_bnmm] = net(input_var, target_var)
 
-                loss_xentropy = criterion(output, target_var.squeeze_())/minibatch_size
+                loss_xentropy = criterion(output, target_var.squeeze_()) / minibatch_size
                 loss_reconst = L2_loss(xhat, input_var).mean()
                 softmax_val = F.softmax(output)
-                loss_kl = -torch.sum(torch.log(10.0*softmax_val + 1e-8) * softmax_val)/minibatch_size
-                loss = loss_xentropy + configs['alpha_reconst'] * loss_reconst + configs['alpha_kl'] * loss_kl + configs['alpha_bnmm'] * loss_bnmm + configs['alpha_pn'] * loss_pn
+                loss_kl = -torch.sum(torch.log(10.0 * softmax_val + 1e-8) * softmax_val) / minibatch_size
+                loss = loss_xentropy + configs['alpha_reconst'] * loss_reconst + configs['alpha_kl'] * \
+                    loss_kl + configs['alpha_bnmm'] * loss_bnmm + configs['alpha_pn'] * loss_pn
 
                 valid_loss_xentropy += torch.mean(loss_xentropy).cpu().detach().numpy()
                 valid_loss_reconst += torch.mean(loss_reconst).cpu().detach().numpy()
@@ -385,16 +464,16 @@ def train_nrm(net, train_loader,labeled_loader, eval_loader, num_epochs, configs
                 valid_loss_bnmm += torch.mean(loss_bnmm).cpu().detach().numpy()
                 valid_loss += torch.mean(loss).cpu().detach().numpy()
                 valid_correct += get_acc(output, target_var).cpu().detach().numpy()
-                
+
                 accuracy, f1 = compute_metrics(target_var.cpu(), torch.argmax(output, dim=1, keepdim=False).cpu())
-                valid_accuracy+=accuracy
-                valid_f1+=f1
+                valid_accuracy += accuracy
+                valid_f1 += f1
                 num_batch_valid += 1
-        
-        valid_accuracies.append(valid_accuracy/num_batch_valid)
-        f1_scores.append(valid_f1/num_batch_valid)
+
+        valid_accuracies.append(valid_accuracy / num_batch_valid)
+        f1_scores.append(valid_f1 / num_batch_valid)
         valid_acc = valid_correct / num_batch_valid
-        f1_s = valid_f1/num_batch_valid
+        f1_s = valid_f1 / num_batch_valid
         if f1_s > best_f1:
             best_f1 = f1_s
             torch.save(net.state_dict(), 'best_model.pth')
@@ -408,13 +487,14 @@ def train_nrm(net, train_loader,labeled_loader, eval_loader, num_epochs, configs
     #     writer.add_scalars('acc', {'valid': valid_acc}, epoch)
         epoch_str = ("Epoch %d. Train Loss: %f, Train Xent: %f, Train Reconst: %f, Train Pn: %f, Train acc %f, Valid Loss: %f, Valid acc %f, Best f1 acc %f,f1 %f, acc %f "
                      % (epoch, train_loss / num_batch_train, train_loss_xentropy / num_batch_train, train_loss_reconst / num_batch_train, train_loss_pn / num_batch_train,
-                        correct / num_batch_train, valid_loss / num_batch_valid, valid_acc, best_f1,valid_f1/num_batch_valid,valid_accuracy/num_batch_valid))
+                        correct / num_batch_train, valid_loss / num_batch_valid, valid_acc, best_f1, valid_f1 / num_batch_valid, valid_accuracy / num_batch_valid))
     #     if not epoch % 20:
     #         torch.save(net.state_dict(), '%s/%s_epoch_%i.pth'%(configs['model_dir, configs['exp_name, epoch))
 
     #     logging.info(epoch_str + time_str + ', lr ' + str(learning_rate))
-        print(epoch_str)   
+        print(epoch_str)
     #     return best_valid_acc
+
 if __name__ == '__main__':
     train, labeled = load_datasets(
         "/rap/jvb-000-aa/COURS2019/etudiants/data/horoma", None, overlapped=False)

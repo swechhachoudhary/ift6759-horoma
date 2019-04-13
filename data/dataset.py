@@ -3,7 +3,11 @@ import numpy as np
 import torch
 from PIL import Image
 from tempfile import mkdtemp
+from torchvision.transforms import functional
+from torch.utils import data
 from torch.utils.data import Dataset
+import matplotlib.pyplot as plt
+from collections import Counter
 
 
 class LocalHoromaDataset(Dataset):
@@ -233,27 +237,47 @@ class HoromaDataset(Dataset):
 
     def get_targets(self, list_of_filename):
         targets = []
+        if os.path.exists(list_of_filename[0]):
+            pre_targets = np.loadtxt(list_of_filename[0], 'U2')
+
+            self.str_labels = np.unique(pre_targets)
+
+            self.str_to_id = dict(
+                zip(self.str_labels, range(len(self.str_labels))))
+            self.id_to_str = dict((v, k)
+                                  for k, v in self.str_to_id.items())
 
         for filename_y in list_of_filename:
-            if os.path.exists(filename_y):
-                pre_targets = np.loadtxt(filename_y, 'U2')
-
-                self.str_labels = np.unique(pre_targets)
-
-                self.str_to_id = dict(
-                    zip(self.str_labels, range(len(self.str_labels))))
-                self.id_to_str = dict((v, k)
-                                      for k, v in self.str_to_id.items())
-
-                targets += [self.str_to_id[_str]
-                            for _str in pre_targets if _str in self.str_to_id]
+            pre_targets = np.loadtxt(filename_y, 'U2')
+            targets += [self.str_to_id[_str]
+                        for _str in pre_targets if _str in self.str_to_id]
         return np.asarray(targets)
 
 
+
+def plot_historgrams(data, label, str_labels):
+
+    counter = Counter(data)
+    print(counter)
+    counter = dict(sorted(counter.items(), key=lambda i: i[0]))
+    print(counter)
+    frequencies = counter.values()
+    names = counter.keys()
+    print("{} frequencies: {},\n names: {}".format(label, frequencies, names))
+    x_coordinates = np.arange(len(counter))
+    plt.figure()
+    plt.bar(x_coordinates, frequencies, align='center')
+    plt.xticks(x_coordinates, str_labels)
+    plt.title("Histogram of class labels for " + label + " labeled data")
+    plt.xlabel("Class Ids")
+    plt.ylabel("Frequency")
+    plt.savefig(label + "_hist.png")
+    plt.close()
+
 if __name__ == "__main__":
-    valid_all = HoromaDataset(
+    valid = HoromaDataset(
         data_dir='./../data/horoma',
-        split='valid_all'
+        split='valid'
     )
 
     train_labeled = HoromaDataset(
@@ -261,16 +285,14 @@ if __name__ == "__main__":
         split='train_labeled'
     )
 
-    print(len(valid_all))
-    print(len(valid_all.targets))
-    print(len(train_labeled))
-    i = np.random.randint(0, len(train_labeled))
-    print(i)
-    print(train_labeled[i][0].size(), train_labeled[i][1])
-    print(train_labeled[0][0].size(), train_labeled[0][1])
+    # plot bar graph of frequencies of classes
+    plot_historgrams(valid.targets, "Validation", valid.str_labels)
 
-    img = Image.fromarray(
-        (255 * train_labeled[i][0]).numpy().astype(np.uint8), 'RGB')
-    img.show()
-    label = train_labeled[i][1]
-    print("label: ", train_labeled.id_to_str[int(label)])
+    # i = np.random.randint(0, len(train_labeled))
+    # print(i)
+    # print(train_labeled[i][0].size(), train_labeled[i][1])
+    # print(train_labeled[0][0].size(), train_labeled[0][1])
+
+    # img = Image.fromarray(
+    #     (255 * train_labeled[i][0]).numpy().astype(np.uint8), 'RGB')
+    # img.show()
