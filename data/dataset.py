@@ -1,5 +1,4 @@
 import os
-
 import numpy as np
 import torch
 from PIL import Image
@@ -11,13 +10,36 @@ import matplotlib.pyplot as plt
 from collections import Counter
 
 
+class LocalHoromaDataset(Dataset):
+    """
+    The data is not loaded from a file but given as parameters instead
+    This dataset is for Damic pretraining of the convolution clustering network
+    Since this pretraining is supervised, this dataset provide targets
+    """
+
+    def __init__(self, data, targets):
+        """
+        Args:
+            data : numpy array (number_of_sample, 3, 32, 32)
+            targets : numpy array (number_of_sample, 1)
+        """
+        self.data = data
+        self.targets = targets
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        return torch.Tensor(self.data[index]) / 255, torch.Tensor([self.targets[index]])
+
+
 class OriginalHoromaDataset(Dataset):
 
     def __init__(self, data_dir, split="train", subset=None, skip=0, flattened=False, transform=None):
         """
         Args:
             data_dir: Path to the directory containing the samples.
-            split: Which split to use. [train, valid, test]
+            split: Which split to use. [train, valid, train_labeled, train_overlapped, train_labeled_overlapped, valid_overlapped]
             subset: How many elements will be used. Default: all.
             skip: How many element to skip before taking the subset.
             flattened: If True return the images in a flatten format.
@@ -29,14 +51,25 @@ class OriginalHoromaDataset(Dataset):
 
         if split == "train":
             self.nb_exemples = 152000
+            self.labeled = False
+        elif split == "train_labeled":
+            self.nb_exemples = 228
+            self.labeled = True
         elif split == "valid":
             self.nb_exemples = 252
+            self.labeled = True
         elif split == "test":
             self.nb_exemples = 498
+            self.labeled = True
         elif split == "train_overlapped":
             self.nb_exemples = 548720
+            self.labeled = False
+        elif split == "train_labeled_overlapped":
+            self.nb_exemples = 635
+            self.labeled = True
         elif split == "valid_overlapped":
             self.nb_exemples = 696
+            self.labeled = True
         else:
             raise (
                 "Dataset: Invalid split. Must be [train, valid, test, train_overlapped, valid_overlapped]")
@@ -45,7 +78,7 @@ class OriginalHoromaDataset(Dataset):
         filename_y = os.path.join(data_dir, "{}_y.txt".format(split))
 
         self.targets = None
-        if os.path.exists(filename_y) and not split.startswith("train"):
+        if os.path.exists(filename_y):
             pre_targets = np.loadtxt(filename_y, 'U2')
 
             if subset is None:
@@ -168,7 +201,7 @@ class HoromaDataset(Dataset):
             img = torch.Tensor(self.transform(self.data[index])) / 255
         else:
             img = torch.Tensor(self.data[index]) / 255
-        # img = img.transpose(2, 0).transpose(2, 1)
+
         if self.targets is None:
             return img
         else:
@@ -219,6 +252,7 @@ class HoromaDataset(Dataset):
             targets += [self.str_to_id[_str]
                         for _str in pre_targets if _str in self.str_to_id]
         return np.asarray(targets)
+
 
 
 def plot_historgrams(data, label, str_labels):

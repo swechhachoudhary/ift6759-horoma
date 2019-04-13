@@ -1,10 +1,11 @@
 from comet_ml import OfflineExperiment
 import json
 import argparse
-from models.encoders import *
-from models.clustering import *
-from utils.utils import *
-from utils.utils import load_datasets
+import numpy as np
+from models.encoders import PCAEncoder, VAE, AE, CAE, CVAE, ConvAE
+from models.clustering import KMeansClustering, GMMClustering
+from utils.utils import assign_labels_to_clusters, eval_model_predictions
+from utils.model_utils import encode_dataset
 from utils.constants import Constants
 from data.dataset import HoromaDataset
 import torch
@@ -38,14 +39,9 @@ def main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, f
 
     train_label_indices = labeled.targets
     valid_indices = valid_data.targets
-    # train_label_indices, valid_indices = get_split_indices(
-    #     labeled.targets, overlapped=overlapped)
 
     print("Shape of training set: ", train.data.shape)
     print("Shape of validation set: ", valid_data.data.shape)
-    # print("Shape of labeled training set: ",
-    #       labeled.data[train_label_indices].shape)
-    # print("Shape of validation dataset: ", labeled.data[valid_indices].shape)
 
     if encode:
         # Train and apply encoding model
@@ -82,14 +78,16 @@ if __name__ == '__main__':
                         help="Path to dataset folder")
     parser.add_argument("--encoder_path", type=str, default=None)
 
-    parser.add_argument("--config", type=str, default="CAE_BASE",
+    parser.add_argument("--config", type=str, default="CVAE_BASE",
                         help="To select configuration from config.json")
     args = parser.parse_args()
     config_key = args.config
     datapath = args.datapath
     path_to_model = args.encoder_path
-
-    with open(Constants.CONFIG_PATH, 'r') as f:
+    print(Constants.CONFIG_PATH)
+    print(config_key)
+    print(Constants.CONFIG_PATH)
+    with open(Constants.CONFIG_PATH, "r") as f:
         configuration = json.load(f)[config_key]
 
     # Parse configuration file
@@ -117,14 +115,9 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
-    # Set up Comet Experiment tracking  # Replace this with appropriate comet
-    # workspaces
-#     experiment = OfflineExperiment(
-#         "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="swechhas_experiments")
-
     # Set up Comet Experiment tracking
     experiment = OfflineExperiment(project_name='general',
-                                   workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
+                                   workspace='timothynest',  # Replace this with appropriate comet workspace
                                    offline_directory="experiments")
     experiment.set_name(
         name=args.config + "_dim={}_overlapped={}".format(latent_dim, train_split))
@@ -135,6 +128,8 @@ if __name__ == '__main__':
         clustering_model = KMeansClustering(n_clusters, seed)
     elif clustering_model == 'gmm':
         clustering_model = GMMClustering(n_clusters, seed)
+    elif clustering_model =='svm':
+        clustering_model = SVMClustering(seed)
     else:
         print('No clustering model specified. Using Kmeans.')
         clustering_model = KMeansClustering(n_clusters, seed)

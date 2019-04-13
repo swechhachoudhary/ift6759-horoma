@@ -7,14 +7,13 @@ import torch
 from utils.utils import __compute_metrics, plot_confusion_matrix
 
 
-def get_ae_dataloaders(traindata, valid_data, batch_size=32):
+def get_ae_dataloaders(traindata, batch_size, split):
     """get dataloaders for train and valid sets"""
-    # indices = list(range(len(traindata)))
-    # np.random.shuffle(indices)
-    # n_train = int(split * len(indices))
-    # train_loader = DataLoader(traindata, batch_size=batch_size, sampler=SubsetRandomSampler(indices[:n_train]))
-    train_loader = DataLoader(traindata, batch_size=batch_size, shuffle=True)
-    valid_loader = DataLoader(valid_data, batch_size=batch_size)
+    indices = list(range(len(traindata)))
+    np.random.shuffle(indices)
+    n_train = int(split * len(indices))
+    train_loader = DataLoader(traindata, batch_size=batch_size, sampler=SubsetRandomSampler(indices[:n_train]))
+    valid_loader = DataLoader(traindata, batch_size=batch_size, sampler=SubsetRandomSampler(indices[n_train:]))
 
     return train_loader, valid_loader
 
@@ -33,28 +32,44 @@ def loss_function(recon_x, x, mu, logvar):
 
 
 def encode_dataset(model, data, batch_size, device, is_unlabeled=True):
+    """encode data using model (model must provide an encode function)"""
+
     full_loader = DataLoader(data, batch_size=batch_size)
-    model.eval()
     tensors = []
     with torch.no_grad():
         if is_unlabeled:
             for batch_idx, inputs in enumerate(full_loader):
+                if isinstance(inputs, (tuple, list)):
+                    inputs = inputs[0]
                 inputs = inputs.to(device)
                 tensors.append(model.encode(inputs))
         else:
             for batch_idx, (inputs, labels) in enumerate(full_loader):
                 inputs = inputs.to(device)
                 tensors.append(model.encode(inputs))
+
     return torch.cat(tensors, dim=0)
 
 
 def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
-    """Train one epoch for model."""
+    """
+    Train one epoch for the model
+
+    :param model: model on which we do the training
+    :param train_loader: dataloader
+    :param optimizer: optimizer
+    :param epoch: number of epoch
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :return: loss for this epoch
+    """
     model.train()
 
     running_loss = 0.0
 
     for batch_idx, inputs in enumerate(train_loader):
+        if isinstance(inputs, (tuple, list)):
+            inputs = inputs[0]
         inputs = inputs.to(device)
         optimizer.zero_grad()
         if model.is_variational:
@@ -83,16 +98,113 @@ def _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment):
     return train_loss
 
 
+def _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, experiment):
+    """
+    Train one epoch for a model of type classifier
+
+    :param model: model on which we do the training
+    :param train_loader: dataloader
+    :param optimizer: optimizer
+    :param epoch: number of epoch
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :return: loss for this epoch
+    """
+    model.train()
+    running_loss = 0.0
+
+    for batch_idx, data in enumerate(train_loader):
+        inputs, labels = data
+        labels = labels.long()
+        labels = labels.squeeze()
+
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        labels[labels < 0] = 0
+        labels[labels > 16] = 16
+
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        criterion = nn.CrossEntropyLoss()
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item()
+        if batch_idx % 10 == 0:
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(epoch, batch_idx * len(inputs),
+                                                                           len(train_loader) * len(inputs),
+                                                                           100. * batch_idx / len(train_loader),
+                                                                           loss.item() / len(inputs)))
+    model.status = "Conv net pretrain done"
+    train_loss = running_loss / len(train_loader)
+    experiment.log_metric("Conv classifier pretrain loss", train_loss, step=epoch)
+    return train_loss
+
+
+def _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experiment):
+    """
+    Train one epoch for a Damic model
+
+    :param model: model on which we do the training
+    :param train_loader: dataloader
+    :param optimizer: optimizer
+    :param epoch: number of epoch
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :return: loss for this epoch
+    """
+    model.train()
+    running_loss = 0.0
+    print("====== TRAINING DAMIC")
+    for batch_idx, data in enumerate(train_loader):
+        inputs, _ = data
+        current_batch_size = inputs.shape[0]
+        inputs = inputs.to(device)
+
+        optimizer.zero_grad()
+
+        conv_net_class_predictions, ae_reconstruction = model.train_damic(inputs, current_batch_size)
+        criterion_ae = nn.MSELoss()
+
+        loss_autoencoders = torch.FloatTensor(17, len(inputs)).zero_().to(device)
+        for i in range(17):
+            loss_autoencoder = criterion_ae(inputs, ae_reconstruction[i].to(device))
+            loss_autoencoders[i] = -(loss_autoencoder / 2.0)
+
+        loss_autoencoders = loss_autoencoders.transpose(0, 1)
+
+        # Calculate loss given the formula (3) p2 from 'Deep clustering based on a mixture of autoencoders paper'
+        exp_loss_autoencoders = loss_autoencoders.exp()
+        total_loss_per_class = conv_net_class_predictions * exp_loss_autoencoders
+        total_loss = total_loss_per_class.sum(dim=1)
+        total_loss_log = total_loss.log()
+        total_loss_log_sum = total_loss_log.sum()
+
+        # Simultaneously train all the autoencoders and the convolutional network
+        total_loss_log_sum.backward()
+        optimizer.step()
+
+        running_loss += total_loss_log_sum.item()
+
+    train_loss = running_loss / len(train_loader)
+    experiment.log_metric("DAMIC train loss", train_loss, step=epoch)
+    return train_loss
+
+
 def _test(model, test_loader, epoch, device, experiment):
-    """ Compute reconstruction loss of model over given dataset. """
-    model.eval()
+    """ Compute reconstruction loss of model over given dataset. Model is an autoencoder"""
 
     test_loss = 0
     test_size = 0
 
     with torch.no_grad():
-        for batch_idx, inputs in enumerate(test_loader):
+        for inputs in test_loader:
+            if isinstance(inputs, (tuple, list)):
+                inputs = inputs[0]
+
             inputs = inputs.to(device)
+            # ConvAe is variational
             if model.is_variational:
                 output, mu, logvar = model(inputs)
                 if model.calculate_own_loss:
@@ -105,33 +217,81 @@ def _test(model, test_loader, epoch, device, experiment):
                 output = model(inputs)
                 criterion = nn.MSELoss(reduction='sum')
                 test_loss += criterion(output, inputs).item()
-                # test_size += len(inputs)
+                test_size += len(inputs)
 
-    test_loss /= len(test_loader.dataset)
+    test_loss /= test_size
     experiment.log_metric("Validation loss", test_loss, step=epoch)
     return test_loss
 
 
-def train_network(model, train_loader, test_loader, optimizer, n_epochs, device, experiment):
+def _test_classifier(model, test_loader, epoch, device, experiment):
+    """ Compute cross entropy loss over given test_loader """
+
+    test_loss = 0
+    test_size = 0
+
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs = inputs.to(device)
+            labels = labels.long()
+            labels = labels.squeeze()
+            labels = labels.to(device)
+            outputs = model(inputs)
+            criterion = nn.CrossEntropyLoss()
+            test_loss += criterion(outputs, labels).item()
+            test_size += len(inputs)
+
+    test_loss /= test_size
+    experiment.log_metric("Conv classifier pretrain validation loss", test_loss, step=epoch)
+    return test_loss
+
+
+def train_network(model, train_loader, test_loader, optimizer, n_epochs, device, experiment, train_classifier=False, train_damic=False,
+                  folder_save_model="experiment_models/", pth_filename_save_model=""):
+    """
+    Train a network
+
+    :param model: model on which we do the training
+    :param train_loader: dataloader with training samples
+    :param test_loader: dataloader with test samples
+    :param optimizer: optimizer
+    :param n_epochs: number of epoch
+    :param device: cpu or cuda
+    :param experiment: comet experiment to log results
+    :param train_classifier: if True we train a classifier
+    :param train_classifier: if True we train a Damic model
+    :param experiment: comet experiment to log results
+    :param folder_save_model: folder where to save the best model
+    :param pth_filename_save_model: name of the pth file for the best model
+    :return: best model after the training
+    """
     best_loss = np.inf
     key = experiment.get_key()
     best_model = None
-    scheduler = torch.optim.lr_scheduler.StepLR(
-        optimizer, step_size=2, gamma=0.5)
+
     for epoch in range(n_epochs):
-        scheduler.step()
-        train_loss = _train_one_epoch(
-            model, train_loader, optimizer, epoch, device, experiment)
-        valid_loss = _test(model, test_loader, epoch, device, experiment)
+        if train_damic:
+            train_loss = _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experiment)
+            valid_loss = _test_classifier(model, test_loader, epoch, device, experiment)
+        elif train_classifier:
+            train_loss = _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, experiment)
+            valid_loss = _test_classifier(model, test_loader, epoch, device, experiment)
+        else:
+            train_loss = _train_one_epoch(model, train_loader, optimizer, epoch, device, experiment)
+            valid_loss = _test(model, test_loader, epoch, device, experiment)
 
         try:
             if valid_loss < best_loss:
+                if pth_filename_save_model == "":
+                    pth_filename = folder_save_model + str(key) + '.pth'
+                else:
+                    pth_filename = folder_save_model + pth_filename_save_model + '.pth'
                 torch.save({
                     "epoch": epoch,
                     "optimizer": optimizer.state_dict(),
                     "model": model.state_dict(),
                     "loss": valid_loss
-                }, "experiment_models/" + str(key) + '.pth')
+                }, pth_filename)
                 best_loss = valid_loss
                 best_model = deepcopy(model)  # Keep best model thus far
         except FileNotFoundError as e:
