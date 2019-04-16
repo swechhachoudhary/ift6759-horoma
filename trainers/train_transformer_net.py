@@ -1,14 +1,18 @@
 from comet_ml import OfflineExperiment
 import argparse
+import os
+import sys
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
+
+sys.path.append("../")
 import utils.data_utils as data_utils
 from utils.transformer_net_utils import Trainer
+from utils.dataset import OriginalHoromaDataset
 import models.transformer_net as transformer_net
-import torch.nn.functional as F
-from data.dataset import OriginalHoromaDataset
 
 # Note : this code comes from OM Signal block 2 baseline
 # Some changes were made to be able to use this for Horoma
@@ -90,7 +94,7 @@ def main():
                         help='list of targets to use for training')
     parser.add_argument("--data_dir", type=str, default="/rap/jvb-000-aa/COURS2019/etudiants/data/horoma",
                         help='directory where to find the data')
-    parser.add_argument("--checkpoint_dir", type=str, default='./transformer_net_models/',
+    parser.add_argument("--checkpoint_dir", type=str, default='../transformer_net_models/',
                         help='directory where to checkpoints the models')
     parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                         help='how many batches to wait before logging training status')
@@ -173,7 +177,7 @@ def main():
 def _get_comet_experiment():
     experiment = OfflineExperiment(project_name='general',
                                    workspace='benjaminbenoit',
-                                   offline_directory="transformer_net_comet_experiences")
+                                   offline_directory="../transformer_net_comet_experiences")
     experiment.set_name("TransformerNet")
     return experiment
 

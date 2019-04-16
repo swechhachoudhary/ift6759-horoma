@@ -2,11 +2,16 @@ from comet_ml import OfflineExperiment
 import json
 import argparse
 import torch
+import os
+import sys
+import numpy as np
 from torch.utils.data import DataLoader
+
+sys.path.append("../")
 from models.encoders import *
 from models.mlp_classifier import MLPClassifier
 from utils.constants import Constants
-from data.dataset import HoromaDataset
+from utils.dataset import HoromaDataset
 from utils.model_utils import train_semi_supervised_network
 
 
@@ -83,7 +88,7 @@ if __name__ == '__main__':
     # Set up Comet Experiment tracking  # Replace this with appropriate comet
     # workspaces
     experiment = OfflineExperiment(
-        "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="swechhas_experiments")
+        "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="../swechhas_experiments")
 
     experiment.set_name(
         name=args.config + "_dim={}_split={}".format(latent_dim, train_unlabeled_split))

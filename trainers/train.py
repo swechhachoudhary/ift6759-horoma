@@ -2,13 +2,17 @@ from comet_ml import OfflineExperiment
 import json
 import argparse
 import numpy as np
+import torch
+import sys
+import os
+
+sys.path.append("../")
 from models.encoders import PCAEncoder, VAE, AE, CAE, CVAE, ConvAE
 from models.clustering import KMeansClustering, GMMClustering
 from utils.utils import assign_labels_to_clusters, eval_model_predictions
 from utils.model_utils import encode_dataset
 from utils.constants import Constants
-from data.dataset import HoromaDataset
-import torch
+from utils.dataset import HoromaDataset
 
 
 def main(datapath, clustering_model, encoding_model, batch_size, n_epochs, lr, flattened, device, train_split, valid_split, train_labeled_split,
@@ -128,7 +132,7 @@ if __name__ == '__main__':
         clustering_model = KMeansClustering(n_clusters, seed)
     elif clustering_model == 'gmm':
         clustering_model = GMMClustering(n_clusters, seed)
-    elif clustering_model =='svm':
+    elif clustering_model == 'svm':
         clustering_model = SVMClustering(seed)
     else:
         print('No clustering model specified. Using Kmeans.')

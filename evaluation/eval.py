@@ -7,7 +7,7 @@ import numpy as np
 from joblib import load  # You can use Pickle or the serialization technique of your choice
 
 sys.path.append("../")
-from data.dataset import OriginalHoromaDataset
+from utils.dataset import OriginalHoromaDataset
 import models.transformer_net as transformer_net
 
 
@@ -40,9 +40,9 @@ def eval_model(model_path, dataset_dir, split):
         1, out_size, hidden_size, n_layers, kernel_size=kernel_size, pool_size=pool_size,
         n_heads=n_heads, key_dim=key_dim, val_dim=val_dim, inner_dim=inner_dim, dropout=dropout
     ).to('cuda')
-    
+
     resume = torch.load(model_path, map_location='cuda')
-    
+
     if ('module' in list(resume['state_dict'].keys())[0]) \
             and not (isinstance(model, torch.nn.DataParallel)):
         new_state_dict = OrderedDict()
@@ -76,9 +76,12 @@ if __name__ == "__main__":
     #########################
     # DO NOT MODIFY - BEGIN #
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--dataset_dir", type=str, default="/rap/jvb-000-aa/COURS2019/etudiants/data/horoma/", help="Absolute path to the dataset directory.")
-    parser.add_argument("-s", "--dataset_split", type=str, choices=['valid', 'test', 'train'], default="valid", help="Which split of the dataset should be loaded from `dataset_dir`.")
-    parser.add_argument("-r", "--results_dir", type=str, default="./", help="Absolute path to where the predictions will be saved.")
+    parser.add_argument("-d", "--dataset_dir", type=str, default="/rap/jvb-000-aa/COURS2019/etudiants/data/horoma/",
+                        help="Absolute path to the dataset directory.")
+    parser.add_argument("-s", "--dataset_split", type=str, choices=['valid', 'test', 'train'],
+                        default="valid", help="Which split of the dataset should be loaded from `dataset_dir`.")
+    parser.add_argument("-r", "--results_dir", type=str, default="./",
+                        help="Absolute path to where the predictions will be saved.")
     args = parser.parse_args()
 
     # Arguments validation

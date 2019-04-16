@@ -1,15 +1,20 @@
 from comet_ml import OfflineExperiment
 import json
 import argparse
+import torch
+from nrm import NRM
+import sys
+import os
+
+sys.path.append("../")
 from models import *
 from models.clustering import *
 from utils.ali_utils import *
 from utils.utils import *
 from utils.utils import load_datasets
 from utils.constants import Constants
-from data.dataset import HoromaDataset
-import torch
-from nrm import NRM
+from utils.dataset import HoromaDataset
+
 
 def main(datapath, clustering_model, encoding_model, configs, train_split, valid_split, train_labeled_split,
          experiment, encode, cluster, train_subset=None, path_to_model=None):
@@ -53,14 +58,16 @@ def main(datapath, clustering_model, encoding_model, configs, train_split, valid
     # print("Shape of labeled training set: ",
     #       labeled.data[train_label_indices].shape)
     # print("Shape of validation dataset: ", labeled.data[valid_indices].shape)
-  
+
     if encode:
         # Train and apply encoding model
-        n_iterations = np.floor(labeled.data.shape[0]/configs['labeled_batch_size'])
+        n_iterations = np.floor(labeled.data.shape[0] / configs['labeled_batch_size'])
 
-        net =  NRM('AllConv13', batch_size=configs['labeled_batch_size'], num_class=17, use_bias=configs['use_bias'], use_bn=configs['use_bn'], do_topdown=configs['do_topdown'], do_pn=configs['do_pn'], do_bnmm=configs['do_bnmm']).to(device)
+        net = NRM('AllConv13', batch_size=configs['labeled_batch_size'], num_class=17, use_bias=configs['use_bias'], use_bn=configs[
+                  'use_bn'], do_topdown=configs['do_topdown'], do_pn=configs['do_pn'], do_bnmm=configs['do_bnmm']).to(device)
         net.apply(weights_init)
-        best_f1,best_acc,best_model = train_nrm(net, train_loader,labeled_loader, eval_loader, configs['n_epochs'],configs,n_iterations)
+        best_f1, best_acc, best_model = train_nrm(net, train_loader, labeled_loader, eval_loader, configs[
+                                                  'n_epochs'], configs, n_iterations)
 
     experiment.log_metric('best_accuracy', best_acc)
     experiment.log_metric('best_f1-score', best_f1)
@@ -111,17 +118,16 @@ if __name__ == '__main__':
         os.mkdir('experiments')
 
     if encode:
-        experiment = OfflineExperiment(project_name="ali",workspace='timothynest',  # Replace this with appropriate comet workspace
-                                   offline_directory=str('experiments/'+configuration['experiment']))
+        experiment = OfflineExperiment(project_name="ali", workspace='timothynest',  # Replace this with appropriate comet workspace
+                                       offline_directory=str('experiments/' + configuration['experiment']))
     elif cluster:
-        experiment = OfflineExperiment(project_name="ali",workspace='timothynest',  # Replace this with appropriate comet workspace
-                                   offline_directory=str('experiments/'+configuration['experiment']+'/cluster'))
+        experiment = OfflineExperiment(project_name="ali", workspace='timothynest',  # Replace this with appropriate comet workspace
+                                       offline_directory=str('experiments/' + configuration['experiment'] + '/cluster'))
     experiment.set_name(
         name=args.config + "_NRMTEST")
     experiment.log_parameters(configuration)
     experiment.add_tag(configuration['experiment'])
 
-  
     # Initiate experiment
     main(datapath, clustering_model, encoding_model, configuration, train_split, valid_split, train_labeled_split,
          experiment, encode, cluster, path_to_model=path_to_model)

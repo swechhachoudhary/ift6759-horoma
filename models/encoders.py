@@ -1,4 +1,4 @@
-from utils.model_utils import get_ae_dataloaders, train_network, encode_dataset
+from utils.model_utils import get_ae_dataloaders, train_network, encode_dataset, get_cae_dataloaders
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -130,6 +130,7 @@ class CVAE(nn.Module):
     :param latent_dim: dimension of latent-space representation.
 
     """
+
     def __init__(self, input_dim=3072, latent_dim=2, folder_save_model="experiment_models/", pth_filename_save_model=""):
 
         self.latent_dim = latent_dim
@@ -334,8 +335,8 @@ class CAE(nn.Module):
         return self.embedding(self.encoder(x).view(-1, 16 * 4 * 4))
 
     def fit(self, traindata, valid_data, batch_size, n_epochs, lr, device, experiment):
-        train_loader, valid_loader = get_ae_dataloaders(
-            traindata, valid_data, batch_size)
+        train_loader, valid_loader = get_cae_dataloaders(traindata, valid_data, batch_size)
+
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
         best_model = train_network(

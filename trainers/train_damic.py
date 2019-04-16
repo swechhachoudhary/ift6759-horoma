@@ -1,11 +1,15 @@
 from comet_ml import OfflineExperiment
 import json
+import os
+import sys
 import argparse
 import numpy as np
+import torch
+
+sys.path.append("../")
 from models.clustering import DAMICClustering
 from utils.damic_utils import execute_damic_pre_training, execute_damic_training, get_accuracy_f1_scores_from_damic_model
 from utils.constants import Constants
-import torch
 
 
 def main(datapath, configuration, config_key):
