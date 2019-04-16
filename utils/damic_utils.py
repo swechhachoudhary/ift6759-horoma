@@ -7,7 +7,7 @@ from models.clustering import KMeansClustering
 from utils.utils import assign_labels_to_clusters, eval_model_predictions, compute_metrics, load_original_horoma_datasets
 from utils.model_utils import encode_dataset, train_network
 from torch.utils.data import DataLoader
-from data.dataset import LocalHoromaDataset
+from utils.dataset import LocalHoromaDataset
 
 
 def get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_train, unlabeled_train, labeled_train,
@@ -38,7 +38,8 @@ def get_class_prediction(encoding_model, clustering_model, encoded_unlabeled_tra
     clustering_model.train(encoded_unlabeled_train)
     print("Done")
     cluster_labels = assign_labels_to_clusters(clustering_model, encoded_labeled_train, labeled_train.targets)
-    _, accuracy, f1 = eval_model_predictions(clustering_model, encoded_labeled_valid, labeled_valid.targets, cluster_labels)
+    _, accuracy, f1 = eval_model_predictions(
+        clustering_model, encoded_labeled_valid, labeled_valid.targets, cluster_labels)
     experiment.log_metric('accuracy', accuracy)
     experiment.log_metric('f1-score', f1)
 
@@ -64,7 +65,8 @@ def _get_encoding_model(encoding_model_name, latent_dim, device, seed):
     """
     if encoding_model_name == "cvae":
         now = datetime.datetime.now()
-        pth_filename = "autoencoder_pretrain_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
+        pth_filename = "autoencoder_pretrain_" + str(now.month) + "_" + \
+            str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
         encoding_model = CVAE(latent_dim=latent_dim,
                               folder_save_model="damic_models/",
                               pth_filename_save_model=pth_filename).to(device)
@@ -109,7 +111,8 @@ def _initialize_damic_conv_clustering_net_weights(damic_model, conv_net_pretrain
 
     # Used to save the convolutional network model at the end of the pre training
     now = datetime.datetime.now()
-    pth_filename = "conv_net_pretrain_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
+    pth_filename = "conv_net_pretrain_" + str(now.month) + "_" + str(now.day) + \
+        "_" + str(now.hour) + "_" + str(now.minute)
     return train_network(damic_model, pretrain_dataset_predicted_label_loader, valid_and_train_real_label_loader, optimizer, n_epoch,
                          device, experiment, train_classifier=True, folder_save_model="damic_models/", pth_filename_save_model=pth_filename)
 
@@ -183,9 +186,11 @@ def _initialize_damic_autoencoders_weights(damic_model, damic_autoencoders_pretr
     n_epochs = damic_autoencoders_pretrain_config["n_epochs"]
     batch_size = damic_autoencoders_pretrain_config["batch_size"]
     now = datetime.datetime.now()
-    pth_filename = "autoencoders_pretrain_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
+    pth_filename = "autoencoders_pretrain_" + str(now.month) + "_" + \
+        str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
 
-    # Didn't do a loop because it seems encapsulating the auto encoders into an array led into issues with optimizing the parameters
+    # Didn't do a loop because it seems encapsulating the auto encoders into
+    # an array led into issues with optimizing the parameters
     _, damic_model.ae1 = damic_model.ae1.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [0]))],
                                              batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
     _, damic_model.ae2 = damic_model.ae2.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [1]))],
@@ -222,7 +227,8 @@ def _initialize_damic_autoencoders_weights(damic_model, damic_autoencoders_pretr
                                                batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
 
     now = datetime.datetime.now()
-    pth_filename = "damic_models/autoencoders_pretrain_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
+    pth_filename = "damic_models/autoencoders_pretrain_" + \
+        str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
     torch.save({
         "model": damic_model.state_dict(),
     }, pth_filename + ".pth")

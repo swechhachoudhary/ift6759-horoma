@@ -1,15 +1,21 @@
 from comet_ml import OfflineExperiment
+import os
+import sys
 import json
+import torch
 import argparse
+import numpy as np
 from time import time
+from torch.utils import data
+
+
+sys.path.append("../")
 from models.encoders import *
 from models.svm_classifier import SVMClassifier
 from utils.model_utils import encode_dataset
-from utils.utils import compute_metrics, __compute_metrics, plot_confusion_matrix
+from utils.utils import compute_metrics, __compute_metrics
 from utils.constants import Constants
-from data.dataset import HoromaDataset
-import torch
-from torch.utils import data
+from utils.dataset import HoromaDataset
 
 
 def main(datapath, encoding_model, batch_size, n_epochs, lr, device, train_split, valid_split, train_labeled_split,
@@ -77,11 +83,11 @@ def main(datapath, encoding_model, batch_size, n_epochs, lr, device, train_split
     experiment.log_metric('Validation f1-score', valid_f1)
 
     # Plot non-normalized confusion matrix
-    plot_confusion_matrix(train_labeled.targets, pred_train_y, classes=np.arange(17),
-                          title='Confusion matrix for Train, without normalization')
+    # plot_confusion_matrix(train_labeled.targets, pred_train_y, classes=np.arange(17),
+    #                       title='Confusion matrix for Train, without normalization')
     # validation data
-    plot_confusion_matrix(valid_data.targets, pred_valid_y, classes=np.arange(17),
-                          title='Confusion matrix for Validation, without normalization')
+    # plot_confusion_matrix(valid_data.targets, pred_valid_y, classes=np.arange(17),
+    #                       title='Confusion matrix for Validation, without normalization')
 
 
 if __name__ == '__main__':
@@ -124,7 +130,7 @@ if __name__ == '__main__':
     # Set up Comet Experiment tracking  # Replace this with appropriate comet
     # workspaces
     experiment = OfflineExperiment(
-        "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="swechhas_experiments")
+        "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="../swechhas_experiments")
 
     # Set up Comet Experiment tracking
     # experiment = OfflineExperiment(project_name='general',

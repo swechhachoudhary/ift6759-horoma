@@ -94,6 +94,41 @@ optional arguments:
 
 ```
 
+## To run scripts
+
+Add the following command in run.pbs for training 
+* CAE-SVM model
+```
+s_exec python svm_trainer.py
+```
+* CAE-MLP model
+```
+s_exec python semisupervised_trainer.py
+```
+* TransformerNet model
+```
+s_exec python train_transformer_net.py
+```
+* HALI model
+```
+s_exec python ali_train.py --config HALI
+```
+* ALI model
+```
+s_exec python ali_train.py --config ALI
+```
+* DAMIC model
+```
+s_exec python train_damic.py
+```
+* CVAE model
+```
+s_exec python train.py --config CVAE_BASE --encoder_path experiment_models/cvae_base.pth
+```
+* CONV_AE model
+```
+s_exec python train.py --config CONV_AE --encoder_path experiment_models/conv_ae.pth
+```
 
 ## Github conventions
 * Each feature must have his own branch for development

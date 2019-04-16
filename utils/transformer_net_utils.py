@@ -4,7 +4,7 @@ import torch.nn as nn
 from tqdm import tqdm
 import utils.scoring_function as scoreF
 import utils.evaluator as evaluator
-import utils.utils2 as utils2
+import utils.checkpoint_utils as checkpoint_utils
 
 # Note : this code comes from OM Signal block 2 baseline
 # Some changes were made to be able to use this for Horoma
@@ -44,9 +44,9 @@ class Trainer():
         assert len(self.weight) == len(self.criterion)
 
     def train(self, model, data_iterators, optimizer, tb_prefix='exp/', prefix='neural_network', experiment=None):
-        sup_losses = [utils2.AverageMeter() for _ in range(len(self.criterion) + 1)]
-        vat_losses = utils2.AverageMeter()
-        perfs = [utils2.AverageMeter() for _ in range(3)]
+        sup_losses = [checkpoint_utils.AverageMeter() for _ in range(len(self.criterion) + 1)]
+        vat_losses = checkpoint_utils.AverageMeter()
+        perfs = [checkpoint_utils.AverageMeter() for _ in range(3)]
 
         model.train()
 
@@ -78,8 +78,8 @@ class Trainer():
                     best_val_metric = val_metrics[0]
                     best_val_data = val_metrics
                     filename = self.args.checkpoint_dir + prefix + '_{}.pt'.format('BestModel')
-                    utils2.set_path(filename)
-                    utils2.save_checkpoint(model, k, filename, optimizer)
+                    checkpoint_utils.set_path(filename)
+                    checkpoint_utils.save_checkpoint(model, k, filename, optimizer)
 
                 experiment.log_metric('Train/Loss', sup_losses[0].avg, tbIndex)
                 experiment.log_metric('Valid/Loss', val_mean_loss, tbIndex)
@@ -196,13 +196,13 @@ class Trainer():
             if k > 0 and k % self.args.chkpt_freq == 0:
                 filename = self.args.checkpoint_dir + \
                     prefix + '_{}.pt'.format(k)
-                utils2.set_path(filename)
-                utils2.save_checkpoint(model, k, filename, optimizer)
+                checkpoint_utils.set_path(filename)
+                checkpoint_utils.save_checkpoint(model, k, filename, optimizer)
 
         filename = self.args.checkpoint_dir + \
             prefix + '_{}.pt'.format(self.args.iters)
-        utils2.set_path(filename)
-        utils2.save_checkpoint(model, self.args.iters, filename, optimizer)
+        checkpoint_utils.set_path(filename)
+        checkpoint_utils.save_checkpoint(model, self.args.iters, filename, optimizer)
 
     def eval(self, model, data_iterators, key='val'):
         assert key in ('val', 'test')

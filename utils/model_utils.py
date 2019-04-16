@@ -4,7 +4,7 @@ from copy import deepcopy
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
-from utils.utils import __compute_metrics, plot_confusion_matrix
+from utils.utils import __compute_metrics
 
 
 def get_ae_dataloaders(traindata, batch_size, split):
@@ -15,6 +15,13 @@ def get_ae_dataloaders(traindata, batch_size, split):
     train_loader = DataLoader(traindata, batch_size=batch_size, sampler=SubsetRandomSampler(indices[:n_train]))
     valid_loader = DataLoader(traindata, batch_size=batch_size, sampler=SubsetRandomSampler(indices[n_train:]))
 
+    return train_loader, valid_loader
+
+
+def get_cae_dataloaders(traindata, valid_data, batch_size):
+    """get dataloaders for train and valid sets"""
+    train_loader = DataLoader(traindata, batch_size=batch_size, shuffle=True)
+    valid_loader = DataLoader(valid_data, batch_size=batch_size)
     return train_loader, valid_loader
 
 
@@ -247,7 +254,7 @@ def _test_classifier(model, test_loader, epoch, device, experiment):
 
 
 def train_network(model, train_loader, test_loader, optimizer, n_epochs, device, experiment, train_classifier=False, train_damic=False,
-                  folder_save_model="experiment_models/", pth_filename_save_model=""):
+                  folder_save_model="../experiment_models/", pth_filename_save_model=""):
     """
     Train a network
 
@@ -516,10 +523,10 @@ def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_
                     "best_f1": valid_f1,
                     "train_acc": train_accuracy,
                     "train_f1": train_f1,
-                }, "experiment_models/" + str(key) + '.pth')
+                }, "../experiment_models/" + str(key) + '.pth')
 
-                plot_confusion_matrix(valid_true_labels, valid_pred_labels, classes=np.arange(17),
-                                      title='Confusion matrix for Validation')
+                # plot_confusion_matrix(valid_true_labels, valid_pred_labels, classes=np.arange(17),
+                #                       title='Confusion matrix for Validation')
             elif k < patience:
                 k += 1
             else:
