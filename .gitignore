@@ -4,6 +4,13 @@ __pycache__/
 *$py.class
 *.pyc
 
+# Results folder
+data/Validation_hist.png
+data/horoma/
+plots/
+results/
+swechhas_experiments/
+
 # All the err and out files
 *.err
 *.out

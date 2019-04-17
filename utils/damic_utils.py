@@ -68,7 +68,7 @@ def _get_encoding_model(encoding_model_name, latent_dim, device, seed):
         pth_filename = "autoencoder_pretrain_" + str(now.month) + "_" + \
             str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
         encoding_model = CVAE(latent_dim=latent_dim,
-                              folder_save_model="damic_models/",
+                              folder_save_model="../damic_models/",
                               pth_filename_save_model=pth_filename).to(device)
     elif encoding_model_name == "convae":
         encoding_model = ConvAE(latent_dim=latent_dim).to(device)
@@ -114,7 +114,7 @@ def _initialize_damic_conv_clustering_net_weights(damic_model, conv_net_pretrain
     pth_filename = "conv_net_pretrain_" + str(now.month) + "_" + str(now.day) + \
         "_" + str(now.hour) + "_" + str(now.minute)
     return train_network(damic_model, pretrain_dataset_predicted_label_loader, valid_and_train_real_label_loader, optimizer, n_epoch,
-                         device, experiment, train_classifier=True, folder_save_model="damic_models/", pth_filename_save_model=pth_filename)
+                         device, experiment, train_classifier=True, folder_save_model="../damic_models/", pth_filename_save_model=pth_filename)
 
 
 def _get_class_predictions_for_damic_pretraining(datapath, train_subset, overlapped, ae_pretrain_config, device, experiment, seed):
@@ -227,7 +227,7 @@ def _initialize_damic_autoencoders_weights(damic_model, damic_autoencoders_pretr
                                                batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
 
     now = datetime.datetime.now()
-    pth_filename = "damic_models/autoencoders_pretrain_" + \
+    pth_filename = "../damic_models/autoencoders_pretrain_" + \
         str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
     torch.save({
         "model": damic_model.state_dict(),
@@ -332,7 +332,7 @@ def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_u
                                 device,
                                 experiment,
                                 train_classifier=False,
-                                train_damic=True, folder_save_model="damic_models/", pth_filename_save_model=pth_filename)
+                                train_damic=True, folder_save_model="../damic_models/", pth_filename_save_model=pth_filename)
 
     print("== DAMIC training done!")
     return damic_model

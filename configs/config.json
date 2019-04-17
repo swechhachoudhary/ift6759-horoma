@@ -171,8 +171,8 @@
         "lr": 1e-3,
         "n_clusters": 21,
         "latent_dim": 10,
-        "encoder_path": "damic_models/autoencoder_pretrain_4_3_16_31.pth",
-        "train_encoder": false
+        "encoder_path": "",
+        "train_encoder": true
     },
     "damic_conv_net_pretrain": {
         "batch_size": 128,
