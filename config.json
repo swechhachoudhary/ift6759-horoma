@@ -98,8 +98,8 @@
     "n_epochs": 200,
     "lr_scheduler": "cyclic",
     "scheduler_mode":"both",
-    "genx":"interpolate",
-    "experiment":"Adam_1_l10_cyclic_both_interpolate"
+    "genx":"convolve",
+    "experiment":"Adam_1_l10_cyclic_both_convolve"
   },
   "CVAE_BASE": {
     "cluster_model": "kmeans",

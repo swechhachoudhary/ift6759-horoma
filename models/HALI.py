@@ -313,7 +313,7 @@ class GeneratorX2_convolve(nn.Module):
         self.conv1 = SpectralNorm(nn.ConvTranspose2d(zd1, zd1, 4, 2,1))        
         self.rn1 =  ResBlockTranspose(zd1, zd1)
 
-        self.conv2 = SpectralNorm(nn.ConvTranspose2d(zd1, zd1, 3, 1,1))
+        self.conv2 = SpectralNorm(nn.ConvTranspose2d(zd1, zd1, 4, 2,1))
         self.bn2   = nn.BatchNorm2d(zd1)
 
         self.conv3 =  SpectralNorm(nn.ConvTranspose2d(zd1, zd1//2, 3,1,1))
