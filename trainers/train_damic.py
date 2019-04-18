@@ -35,18 +35,16 @@ def main(datapath, configuration, config_key):
         configuration['damic_autoencoders_pretrain']
     train_subset = configuration['train_subset']
     overlapped = configuration['overlapped']
-
+    """
     damic_model, numpy_unla_train, numpy_unla_target_pred_by_cluster, labeled_train_and_valid = \
         execute_damic_pre_training(datapath, damic_model, train_subset,
                                    overlapped, ae_pretrain_config,
                                    conv_net_pretrain_config,
                                    damic_autoencoders_pretrain_config,
                                    experiment, seed)
+    """
 
-    damic_model = execute_damic_training(damic_model, configuration,
-                                         numpy_unla_train,
-                                         numpy_unla_target_pred_by_cluster,
-                                         labeled_train_and_valid, device,
+    damic_model, labeled_train_and_valid = execute_damic_training(datapath, train_subset, overlapped, damic_model, configuration, device,
                                          experiment)
 
     _, accuracy, f1 = get_accuracy_f1_scores_from_damic_model(damic_model, labeled_train_and_valid, device)

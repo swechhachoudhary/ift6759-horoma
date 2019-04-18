@@ -343,6 +343,60 @@ class CAE(nn.Module):
             self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
         return encode_dataset(self, traindata, batch_size, device), best_model
 
+class CAE2(nn.Module):
+    """
+    Convolutional autoencoder: Applies a 2D convolutions, max pooling,
+    and ReLU activations, two linear layers and 2D transpose convolutions
+    over the input images.
+
+    :param input_dim: input dimension of the model, 3072.
+    :param latent_dim: dimension of latent-space representation.
+
+    """
+    def __init__(self, input_dim=16, latent_dim=10):
+        self.latent_dim = latent_dim
+        self.input_dim = input_dim
+        self.is_variational = False
+
+        super().__init__()
+        self.encoder = nn.Sequential(
+            nn.Linear(256, 150),
+            nn.ReLU(),
+            nn.Linear(150, 75),
+            nn.ReLU(),
+            nn.Linear(75, 10)
+        )
+        # Decoder network architecture
+        self.decoder = nn.Sequential(
+            nn.Linear(10, 75),
+            nn.ReLU(),
+            nn.Linear(75, 150),
+            nn.ReLU(),
+            nn.Linear(150, 256),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        """return the reconstructed input after encoding/decoding"""
+        batch_size = x.shape[0]
+        return self.decoder(self.encoder(x.view(batch_size,256))).view(batch_size,16,4,4)
+
+    def encode(self, x):
+        return self.encoder(x)
+        #return self.embedding(self.encoder(x).view(-1, 4 * 4 * 4))
+
+    def fit(self, traindata, valid_data, batch_size, n_epochs, lr, device, experiment):
+        if valid_data == None:
+            train_loader, valid_loader = get_ae_dataloaders(traindata, batch_size, split=0.8)
+        else:
+            train_loader, valid_loader = get_cae_dataloaders(traindata, valid_data, batch_size)
+
+        optimizer = torch.optim.Adam(self.parameters(), lr=lr)
+
+        best_model = train_network(
+            self, train_loader, valid_loader, optimizer, n_epochs, device, experiment)
+        return encode_dataset(self, traindata, batch_size, device), best_model
+
 
 class VAE(nn.Module):
     """

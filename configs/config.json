@@ -188,7 +188,7 @@
     },
     "damic_train": {
         "batch_size": 128,
-        "n_epochs": 6,
+        "n_epochs": 9,
         "lr": 1e-3,
         "damic_train_path": ""
     },

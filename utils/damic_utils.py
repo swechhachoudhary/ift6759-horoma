@@ -1,8 +1,7 @@
 import torch
-import time
 import datetime
 import numpy as np
-from models.encoders import CVAE, ConvAE
+from models.encoders import CVAE, ConvAE, CAE2
 from models.clustering import KMeansClustering
 from utils.utils import assign_labels_to_clusters, eval_model_predictions, compute_metrics, load_original_horoma_datasets
 from utils.model_utils import encode_dataset, train_network
@@ -191,39 +190,57 @@ def _initialize_damic_autoencoders_weights(damic_model, damic_autoencoders_pretr
 
     # Didn't do a loop because it seems encapsulating the auto encoders into
     # an array led into issues with optimizing the parameters
-    _, damic_model.ae1 = damic_model.ae1.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [0]))],
+    #(self, traindata, valid_data, batch_size, n_epochs, lr, device, experiment):
+    _, damic_model.ae1 = damic_model.ae1.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [0]))],
+                                             valid_data=None,
                                              batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae2 = damic_model.ae2.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [1]))],
+    _, damic_model.ae2 = damic_model.ae2.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [1]))],
+                                             valid_data=None,
                                              batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae3 = damic_model.ae3.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [2]))],
+    _, damic_model.ae3 = damic_model.ae3.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [2]))],
+                                             valid_data=None,
                                              batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae4 = damic_model.ae4.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [3]))],
+    _, damic_model.ae4 = damic_model.ae4.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [3]))],
+                                             valid_data=None,
                                              batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae5 = damic_model.ae5.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [4]))],
+    _, damic_model.ae5 = damic_model.ae5.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [4]))],
+                                             valid_data=None,
                                              batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae6 = damic_model.ae6.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [5]))],
+    _, damic_model.ae6 = damic_model.ae6.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [5]))],
+                                             valid_data=None,
                                              batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae7 = damic_model.ae7.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [6]))],
+    _, damic_model.ae7 = damic_model.ae7.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [6]))],
+                                             valid_data=None,
                                              batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae8 = damic_model.ae8.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [7]))],
+    _, damic_model.ae8 = damic_model.ae8.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [7]))],
+                                             valid_data=None,
                                              batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae9 = damic_model.ae9.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [8]))],
+    _, damic_model.ae9 = damic_model.ae9.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [8]))],
+                                             valid_data=None,
                                              batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae10 = damic_model.ae10.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [9]))],
+    _, damic_model.ae10 = damic_model.ae10.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [9]))],
+                                               valid_data=None,
                                                batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae11 = damic_model.ae11.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [10]))],
+    _, damic_model.ae11 = damic_model.ae11.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [10]))],
+                                               valid_data=None,
                                                batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae12 = damic_model.ae12.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [11]))],
+    _, damic_model.ae12 = damic_model.ae12.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [11]))],
+                                               valid_data=None,
                                                batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae13 = damic_model.ae13.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [12]))],
+    _, damic_model.ae13 = damic_model.ae13.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [12]))],
+                                               valid_data=None,
                                                batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae14 = damic_model.ae14.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [13]))],
+    _, damic_model.ae14 = damic_model.ae14.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [13]))],
+                                               valid_data=None,
                                                batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae15 = damic_model.ae15.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [14]))],
+    _, damic_model.ae15 = damic_model.ae15.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [14]))],
+                                               valid_data=None,
                                                batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae16 = damic_model.ae16.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [15]))],
+    _, damic_model.ae16 = damic_model.ae16.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [15]))],
+                                               valid_data=None,
                                                batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
-    _, damic_model.ae17 = damic_model.ae17.fit(data=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [16]))],
+    _, damic_model.ae17 = damic_model.ae17.fit(traindata=numpy_unla_train[np.where(np.isin(numpy_unla_target_pred_by_cluster, [16]))],
+                                               valid_data=None,
                                                batch_size=batch_size, n_epochs=n_epochs, lr=lr, device=device, experiment=experiment)
 
     now = datetime.datetime.now()
@@ -289,8 +306,7 @@ def execute_damic_pre_training(datapath, damic_model, train_subset, overlapped, 
     return damic_model, numpy_unla_train, numpy_unla_target_pred_by_cluster, labeled_train_and_valid
 
 
-def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_unla_target_pred_by_cluster, labeled_train_and_valid,
-                           device, experiment):
+def execute_damic_training(datapath, train_subset, overlapped, damic_model, configuration, device, experiment):
     """
     See 'Deep clustering based on a mixture of autoencoders' paper
     We simultaneously train all the auto-encoders part of DAMIC as well as the Convolutional clustering network.
@@ -305,6 +321,9 @@ def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_u
     :return: trained damic_model
     """
     print("== Start DAMIC training ...!")
+    unlabeled_train, labeled_train, labeled_valid, labeled_train_and_valid = load_original_horoma_datasets(datapath,
+                                                                                                           train_subset=train_subset,
+                                                                                                           overlapped=overlapped)
 
     damic_train_config = configuration['damic_train']
     lr = damic_train_config["lr"]
@@ -315,8 +334,7 @@ def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_u
     if damic_train_path != "":
         damic_model.load_state_dict(torch.load(damic_train_path)["model"])
 
-    pretrain_dataset_with_label = LocalHoromaDataset(numpy_unla_train, numpy_unla_target_pred_by_cluster)
-    pretrain_dataset_with_label_loader = DataLoader(pretrain_dataset_with_label, batch_size=batch_size)
+    unlabeled_loader = DataLoader(unlabeled_train, batch_size=batch_size)
     valid_and_train_real_label_loader = DataLoader(labeled_train_and_valid, batch_size=batch_size)
 
     damic_model_parameters = damic_model.parameters()
@@ -325,7 +343,7 @@ def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_u
     now = datetime.datetime.now()
     pth_filename = "damic_train_" + str(now.month) + "_" + str(now.day) + "_" + str(now.hour) + "_" + str(now.minute)
     damic_model = train_network(damic_model,
-                                pretrain_dataset_with_label_loader,
+                                unlabeled_loader,
                                 valid_and_train_real_label_loader,
                                 optimizer,
                                 n_epochs,
@@ -335,7 +353,7 @@ def execute_damic_training(damic_model, configuration, numpy_unla_train, numpy_u
                                 train_damic=True, folder_save_model="../damic_models/", pth_filename_save_model=pth_filename)
 
     print("== DAMIC training done!")
-    return damic_model
+    return damic_model, labeled_train_and_valid
 
 
 def get_accuracy_f1_scores_from_damic_model(damic_model, labeled_train_and_valid, device):
@@ -348,9 +366,9 @@ def get_accuracy_f1_scores_from_damic_model(damic_model, labeled_train_and_valid
     :return: predictions made by damic, accuracy and f1 score
     """
     print("Evaluating DAMIC model ...")
-    start_time = time()
 
     valid_and_train_real_label_loader = DataLoader(labeled_train_and_valid, batch_size=len(labeled_train_and_valid))
+
 
     with torch.no_grad():
         for inputs, labels in valid_and_train_real_label_loader:
@@ -360,14 +378,13 @@ def get_accuracy_f1_scores_from_damic_model(damic_model, labeled_train_and_valid
             print("Accuracy predictions")
             damic_predictions = damic_model(inputs)
             _, damic_predictions = damic_predictions.max(1)
-            print("DAMIC predictions results")
-            print(damic_predictions)
-            print("Expected results")
-            print(labels)
+            #print("DAMIC predictions results")
+            #print(damic_predictions)
+            #print("Expected results")
+            #print(labels)
 
     accuracy, f1 = compute_metrics(labels, damic_predictions.cpu())
 
-    print(
-        "Done in {:.2f} sec | Accuracy: {:.2f} - F1: {:.2f}".format(time() - start_time, accuracy * 100, f1 * 100))
+    print("| Accuracy: {:.2f} - F1: {:.2f}".format(accuracy * 100, f1 * 100))
 
     return damic_predictions, accuracy, f1

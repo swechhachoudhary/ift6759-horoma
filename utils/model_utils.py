@@ -4,7 +4,7 @@ from copy import deepcopy
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
-from utils.utils import __compute_metrics
+from utils.utils import __compute_metrics, compute_metrics
 
 
 def get_ae_dataloaders(traindata, batch_size, split):
@@ -171,12 +171,12 @@ def _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experi
 
         optimizer.zero_grad()
 
-        conv_net_class_predictions, ae_reconstruction = model.train_damic(inputs, current_batch_size)
+        conv_net_class_predictions, ae_reconstruction = model.train_damic(inputs)
         criterion_ae = nn.MSELoss()
 
-        loss_autoencoders = torch.FloatTensor(17, len(inputs)).zero_().to(device)
+        loss_autoencoders = torch.FloatTensor(17, len(model.output_conv)).zero_().to(device)
         for i in range(17):
-            loss_autoencoder = criterion_ae(inputs, ae_reconstruction[i].to(device))
+            loss_autoencoder = criterion_ae(model.output_conv, ae_reconstruction[i].to(device))
             loss_autoencoders[i] = -(loss_autoencoder / 2.0)
 
         loss_autoencoders = loss_autoencoders.transpose(0, 1)
@@ -280,6 +280,18 @@ def train_network(model, train_loader, test_loader, optimizer, n_epochs, device,
         if train_damic:
             train_loss = _train_one_epoch_damic(model, train_loader, optimizer, epoch, device, experiment)
             valid_loss = _test_classifier(model, test_loader, epoch, device, experiment)
+            with torch.no_grad():
+                for inputs, labels in test_loader:
+                    inputs = inputs.to(device)
+                    labels = labels.long()
+                    labels = labels.squeeze()
+                    damic_predictions = model(inputs)
+                    _, damic_predictions = damic_predictions.max(1)
+            accuracy, f1 = compute_metrics(labels, damic_predictions.cpu())
+            print("| Accuracy: {:.2f} - F1: {:.2f}".format(accuracy * 100, f1 * 100))
+            experiment.log_metric("DAMIC Accuracy", accuracy, step=epoch)
+            experiment.log_metric("DAMIC F1score", f1, step=epoch)
+
         elif train_classifier:
             train_loss = _train_one_epoch_classifier(model, train_loader, optimizer, epoch, device, experiment)
             valid_loss = _test_classifier(model, test_loader, epoch, device, experiment)
