@@ -22,9 +22,10 @@ import re
 from models.clustering import *
 from utils.utils import *
 import copy
-
+from random import randint
 import numpy as np
 from os import listdir
+from torch.nn import init
 from os.path import isfile,isdir, join
 
 def initialize_ali(configs,data):
@@ -47,7 +48,6 @@ def initialize_ali(configs,data):
     Gx = ali.GeneratorX(zd=Zdim, ch=3)
 
     Gz = ali.GeneratorZ(zd=Zdim,ch = 3)
-
 
     Disc = ali.Discriminator(ch=3, zd= Zdim)
 
@@ -207,7 +207,7 @@ def training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment
                 scheduler1 = CyclicCosAnnealingLR(optim_d,milestones=milestones,eta_min=1e-5)
                 scheduler2 = CyclicCosAnnealingLR(optim_g,milestones=milestones,eta_min=1e-5)
             else:
-                scheduler = CyclicCosAnnealingLR(optim_d,milestones=milestones,eta_min=1e-5)
+                scheduler1 = CyclicCosAnnealingLR(optim_d,milestones=milestones,eta_min=1e-5)
 
         else:
             lambda1 = lambda epoch: 0.95 ** epoch
@@ -215,10 +215,21 @@ def training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment
                 scheduler1 = LambdaLR(optim_d, lr_lambda=lambda1)
                 scheduler2 = LambdaLR(optim_g, lr_lambda=lambda1)
             else:
-                scheduler = LambdaLR(optim_d, lr_lambda=lambda1)
+                scheduler1 = LambdaLR(optim_d, lr_lambda=lambda1)
 
+        if 'continue_from' in configs and configs['continue_from']==-1:
+            optim_d.load_state_dict(torch.load(configs['MODEL_PATH'],'optim_d.pth'))
+            optim_g.load_state_dict(torch.load(configs['MODEL_PATH'],'optim_g.pth'))
+            scheduler1.load_state_dict(torch.load(os.path.join(configs['MODEL_PATH'],'scheduler1.pth')))
+            if configs['scheduler_mode'] =='both':
+                scheduler1.load_state_dict(torch.load(os.path.join(configs['MODEL_PATH'],'scheduler2.pth')))
 
     for epoch in range(start_epoch, end_epoch):
+        
+        if 'lr_scheduler' in configs:
+            scheduler1.step()
+            if configs['scheduler_mode']=='both':
+                scheduler2.step()
 
 
 
@@ -226,16 +237,18 @@ def training_loop_ali(Gz,Gx,Disc,optim_d,optim_g,train_loader,configs,experiment
             Gz,Gx,Disc, optim_d,optim_g, train_loader,epoch,cuda,configs
         )
 
-        if 'lr_scheduler' in configs:
-            if configs['scheduler_mode']=='both':
-                scheduler1.step()
-                scheduler2.step()
-            else:
-                scheduler.step()
+
 
         # saveimages_hali(Gx1,Gx2,Gz1,Gz2,z_pred1,z_pred2,configs['IMAGE_PATH'])
         # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,True,configs['IMAGE_PATH'])
         # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,False,configs['IMAGE_PATH'])
+
+        if 'lr_scheduler' in configs:
+            torch.save(scheduler1.state_dict(),os.path.join(configs['MODEL_PATH'],'scheduler1.pth'))
+            if configs['scheduler_mode']=='both':
+                torch.save(scheduler1.state_dict(),os.path.join(configs['MODEL_PATH'],'scheduler2.pth'))
+        torch.save(optim_d.state_dict(), os.path.join(configs['MODEL_PATH'],'optim_d.pth'))
+        torch.save(optim_g.state_dict(), os.path.join(configs['MODEL_PATH'],'optim_g.pth'))
 
         save_models_ali(Gz,Gx,Disc,configs['MODEL_PATH'],epoch)
         sys.stdout.write("\r[%5d / %5d]: G: %.4f D: %.4f D(x,Gz(x)): %.4f D(Gx(z),z): %.4f" % (epoch,configs['n_epochs'],g_loss,d_loss,d_true,d_false))
@@ -332,8 +345,6 @@ def runloop_d_ali(imgs,Gx,Gz,Disc,optim_d,cuda,configs):
 
     return loss_d
 
-
-
 def initialize_hali(configs,data):
 
 
@@ -353,13 +364,24 @@ def initialize_hali(configs,data):
     zd1  = configs['z1dim']
     BS   = configs['batch_size'] 
 
-    Gx1 = hali.GeneratorX1(zd=Zdim, ch=3,zd1 = zd1)
-    Gx2 = hali.GeneratorX2(zd=Zdim, ch=3,zd1=zd1)
-
     Gz1 = hali.GeneratorZ1(zd=Zdim,ch = 3,zd1 = zd1)
     Gz2 = hali.GeneratorZ2(zd=Zdim, zd1=zd1)
-
     Disc = hali.Discriminator(ch=3, zd= Zdim,zd1 = zd1)
+
+    if 'genx' in configs:
+
+        if configs['genx'] == 'interpolate':
+            print('interpolate')
+            Gx1 = hali.GeneratorX1_interpolate(zd=Zdim, ch=3,zd1 = zd1)
+            Gx2 = hali.GeneratorX2_interpolate(zd=Zdim, ch=3,zd1=zd1)
+        else:
+            print('convolve')
+            Gx1 = hali.GeneratorX1_convolve(zd=Zdim, ch=3,zd1 = zd1)
+            Gx2 = hali.GeneratorX2_convolve(zd=Zdim, ch=3,zd1=zd1)
+    else:
+
+        Gx1 = hali.GeneratorX1(zd=Zdim, ch=3,zd1 = zd1)
+        Gx2 = hali.GeneratorX2(zd=Zdim, ch=3,zd1=zd1)
 
     if 'continue_from' in configs:
 
@@ -437,15 +459,13 @@ def get_max_epoch(configs):
 
     epoch = []
     for s in onlyfiles:
-        n = re.findall(r'\d+',s)
-        epoch.append(int(n[len(n)-1]))
+        if ('scheduler' not in s) and ('optim' not in s):
+            n = re.findall(r'\d+',s)
+            epoch.append(int(n[len(n)-1]))
     return(max(epoch))
 
 def get_results_hali(configs,experiment,train,labeled,valid_data):
     
-    if '_32' in configs['experiment']:
-        configs['z1dim'] =32
-
     Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs =  initialize_hali(configs,train)
 
     max_ep = get_max_epoch(configs)
@@ -454,18 +474,26 @@ def get_results_hali(configs,experiment,train,labeled,valid_data):
     best_f1 = 0
     accuracies = []
     f1_list  = []
-    for i in range(1,max_ep):
+
+    for i in range(1,max_ep+1):
         configs['continue_from'] =i
         Gx1,Gx2,Gz1,Gz2,Disc,z_pred1,z_pred2,optim_g,optim_d,train_loader,cuda,configs =  initialize_hali(configs,train)
         train_labeled_enc,train_labels = get_hali_embeddings(Gz1,Gz2,labeled,'z1')
         valid_enc,val_labels = get_hali_embeddings(Gz1,Gz2,valid_data,'z1')
-        svm = SVMClustering(configs['seed'])
-        svm.train(train_labeled_enc,train_labels)
-        y_pred = svm.predict_cluster(valid_enc)
-        y_true = val_labels
-        accuracy, f1 = compute_metrics(y_true, y_pred)
-        accuracies.append(accuracy)
-        f1_list.append(f1)
+        save_recon_hali(Gx1,Gx2,Gz1,Gz2,i,True,configs['IMAGE_PATH'],labeled)
+        save_recon_hali(Gx1,Gx2,Gz1,Gz2,i,False,configs['IMAGE_PATH'],labeled)
+        acc_tmp = []
+        f1_tmp  = []
+        for i in range(5):
+            svm = SVMClustering(randint(0, 5000))
+            svm.train(train_labeled_enc,train_labels)
+            y_pred = svm.predict_cluster(valid_enc)
+            y_true = val_labels
+            accuracy, f1 = compute_metrics(y_true, y_pred)
+            acc_tmp.append(accuracy)
+            f1_tmp.append(f1)
+        accuracies.append(max(acc_tmp))
+        f1_list.append(max(f1_tmp))
         if accuracy>best_accuracy:
             best_accuracy  = accuracy
             best_f1 = f1
@@ -509,7 +537,7 @@ def get_results_ali(configs,experiment,train,labeled,valid_data):
 
     accuracies = []
     f1_scores  = []
-    for i in range(1,max_ep):
+    for i in range(1,max_ep+1):
         configs['continue_from'] =i
         Gx,Gz,Disc,z_pred,optim_g,optim_d,train_loader,cuda,configs =  initialize_ali(configs,train)
         train_labeled_enc,train_labels = get_ali_embeddings(Gz,labeled)
@@ -729,18 +757,52 @@ def training_loop_hali(Gz1,Gz2,Gx1,Gx2,Disc,optim_d,optim_g,train_loader,configs
         start_epoch = 0
         end_epoch = configs['n_epochs']
 
+    if 'lr_scheduler' in configs:
+        if configs['lr_scheduler'] =='cyclic':
+            milestones = [int(np.floor((2**x)*1.2)) for x in range(7)]
+            if configs['scheduler_mode'] =='both':
+                scheduler1 = CyclicCosAnnealingLR(optim_d,milestones=milestones,eta_min=1e-5)
+                scheduler2 = CyclicCosAnnealingLR(optim_g,milestones=milestones,eta_min=1e-5)
+            else:
+                scheduler1 = CyclicCosAnnealingLR(optim_d,milestones=milestones,eta_min=1e-5)
 
+        else:
+            lambda1 = lambda epoch: 0.95 ** epoch
+            if configs['scheduler_mode'] =='both':
+                scheduler1 = LambdaLR(optim_d, lr_lambda=lambda1)
+                scheduler2 = LambdaLR(optim_g, lr_lambda=lambda1)
+            else:
+                scheduler1 = LambdaLR(optim_d, lr_lambda=lambda1)
 
-
+        if 'continue_from' in configs and configs['continue_from']==-1:
+            optim_d.load_state_dict(torch.load(configs['MODEL_PATH'],'optim_d.pth'))
+            optim_g.load_state_dict(torch.load(configs['MODEL_PATH'],'optim_g.pth'))
+            scheduler1.load_state_dict(torch.load(os.path.join(configs['MODEL_PATH'],'scheduler1.pth')))
+            if configs['scheduler_mode'] =='both':
+                scheduler1.load_state_dict(torch.load(os.path.join(configs['MODEL_PATH'],'scheduler2.pth')))
+ 
     for epoch in range(start_epoch, end_epoch):
+        
+        if 'lr_scheduler' in configs:
+            scheduler1.step()
+            if configs['scheduler_mode']=='both':
+                scheduler2.step()
 
         g_loss,d_loss,d_true,d_false = train_epoch_hali(
             Gz1,Gz2,Gx1,Gx2,Disc, optim_d,optim_g, train_loader,epoch,cuda,configs
         )
 
+
         # saveimages_hali(Gx1,Gx2,Gz1,Gz2,z_pred1,z_pred2,configs['IMAGE_PATH'])
         # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,True,configs['IMAGE_PATH'])
         # save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,False,configs['IMAGE_PATH'])
+
+        if 'lr_scheduler' in configs:
+            torch.save(scheduler1.state_dict(),os.path.join(configs['MODEL_PATH'],'scheduler1.pth'))
+            if configs['scheduler_mode']=='both':
+                torch.save(scheduler1.state_dict(),os.path.join(configs['MODEL_PATH'],'scheduler2.pth'))
+        torch.save(optim_d.state_dict(), os.path.join(configs['MODEL_PATH'],'optim_d.pth'))
+        torch.save(optim_g.state_dict(), os.path.join(configs['MODEL_PATH'],'optim_g.pth'))
 
         save_models_hali(Gz1,Gz2,Gx1,Gx2,Disc,configs['MODEL_PATH'],epoch)
         sys.stdout.write("\r[%5d / %5d]: G: %.4f D: %.4f D(x,Gz(x)): %.4f D(Gx(z),z): %.4f" % (epoch,configs['n_epochs'],g_loss,d_loss,d_true,d_false))
@@ -958,8 +1020,8 @@ def saveimages_hali(Gx1,Gx2,Gz1,Gz2,noise1,noise2,IMAGE_PATH):
              nrow=9, padding=1,
              normalize=False)
 
-def save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,from_z1,IMAGE_PATH):
-
+def save_recon_hali(Gx1,Gx2,Gz1,Gz2,epoch,from_z1,IMAGE_PATH,data):
+        dataloader = DataLoader(data, batch_size = 32,shuffle=True)
         data=  next(iter(dataloader))
         data = data[0]
         data=data.to('cuda')

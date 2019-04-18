@@ -310,7 +310,7 @@ class OptMirrorAdam(Optimizer):
 
 
 class CyclicCosAnnealingLR(_LRScheduler):
-    r"""
+    """
     Implements reset on milestones inspired from CosineAnnealingLR pytorch
     
     Set the learning rate of each parameter group using a cosine annealing
