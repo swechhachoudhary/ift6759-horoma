@@ -97,7 +97,7 @@ if __name__ == '__main__':
                         help="Path to dataset folder")
     parser.add_argument("--encoder_path", type=str, default=None)
 
-    parser.add_argument("--config", type=str, default="CAE_BASE",
+    parser.add_argument("--config", type=str, default="CAE_SVM",
                         help="To select configuration from config.json")
     args = parser.parse_args()
     config_key = args.config
