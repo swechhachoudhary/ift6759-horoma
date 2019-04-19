@@ -855,18 +855,21 @@ def save_res_figure(configs, accuracies, f1_list):
     """
 
     print()
-    import matplotlib
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = plt.axes()
 
-    ax.plot(f1_list, label='F1 Score')
-    ax.plot(accuracies, label='Accuracy')
-    ax.legend(loc='best')
-    plt.title(configs['experiment'])
-    formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
-    plt.gca().xaxis.set_major_formatter(formatter)
-    plt.savefig(configs['IMAGE_PATH'] + '/clustering_results.png')
+    # commented to avoid "stack smashing detected" error on cluster 
+    
+    # import matplotlib
+    # import matplotlib.pyplot as plt
+    # fig = plt.figure()
+    # ax = plt.axes()
+
+    # ax.plot(f1_list, label='F1 Score')
+    # ax.plot(accuracies, label='Accuracy')
+    # ax.legend(loc='best')
+    # plt.title(configs['experiment'])
+    # formatter = matplotlib.ticker.StrMethodFormatter("{x:.0f}")
+    # plt.gca().xaxis.set_major_formatter(formatter)
+    # plt.savefig(configs['IMAGE_PATH'] + '/clustering_results.png')
 
 
 def get_results_ali(configs, experiment, train, labeled, valid_data):
