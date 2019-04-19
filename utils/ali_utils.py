@@ -222,14 +222,6 @@ def training_loop_ali(Gz, Gx, Disc, optim_d, optim_g, train_loader, configs, exp
                 scheduler1 = CyclicCosAnnealingLR(
                     optim_d, milestones=milestones, eta_min=1e-5)
 
-        else:
-            lambda1 = lambda epoch: 0.95 ** epoch
-            if configs['scheduler_mode'] == 'both':
-                scheduler1 = LambdaLR(optim_d, lr_lambda=lambda1)
-                scheduler2 = LambdaLR(optim_g, lr_lambda=lambda1)
-            else:
-                scheduler1 = LambdaLR(optim_d, lr_lambda=lambda1)
-
         if 'continue_from' in configs and configs['continue_from'] == -1:
             optim_d.load_state_dict(torch.load(
                 configs['MODEL_PATH'], 'optim_d.pth'))
@@ -615,14 +607,6 @@ def training_loop_hali(Gz1, Gz2, Gx1, Gx2, Disc, optim_d, optim_g, train_loader,
             else:
                 scheduler1 = CyclicCosAnnealingLR(
                     optim_d, milestones=milestones, eta_min=1e-5)
-
-        else:
-            lambda1 = lambda epoch: 0.95 ** epoch
-            if configs['scheduler_mode'] == 'both':
-                scheduler1 = LambdaLR(optim_d, lr_lambda=lambda1)
-                scheduler2 = LambdaLR(optim_g, lr_lambda=lambda1)
-            else:
-                scheduler1 = LambdaLR(optim_d, lr_lambda=lambda1)
 
         if 'continue_from' in configs and configs['continue_from'] == -1:
             optim_d.load_state_dict(torch.load(
