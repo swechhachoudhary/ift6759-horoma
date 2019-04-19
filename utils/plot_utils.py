@@ -61,7 +61,9 @@ def plot_confusion_matrix(y_true, y_pred, classes,
 
 
 def plot_historgrams(data, label, str_labels):
-
+    """
+    This function plots the histograms.
+    """
     counter = Counter(data)
     print(counter)
     counter = dict(sorted(counter.items(), key=lambda i: i[0]))

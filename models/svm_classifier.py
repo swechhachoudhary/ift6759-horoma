@@ -26,7 +26,6 @@ class SVMClassifier:
     def validate_classifier(self, valid_X):
         """
         valid_X: low dim representation of images, size is (n_samples, dim)
-        valid_y: target class of image, size is (n_samples)
         """
         valid_X = valid_X.cpu().numpy()
         y_pred = self.clf.predict(valid_X)

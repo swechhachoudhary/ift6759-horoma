@@ -20,7 +20,19 @@ from utils.dataset import HoromaDataset
 
 def main(datapath, encoding_model, batch_size, n_epochs, lr, device, train_split, valid_split, train_labeled_split,
          experiment, path_to_model=None):
-
+    """
+    :param datapath: path to the directory containing the samples
+    :param encoding_model: which encoding model to use, convolutional, variational or simple autoencoders.
+    :param batch_size: batch size
+    :param n_epochs: number of epochs
+    :param lr: learning rate for unsupervised part
+    :param train_split: dataset used for unsupervised part
+    :param valid_split: valid split for SVM
+    :param train_labeled_split: train split for SVM
+    :param device: use CUDA device if available else CPU .
+    :param experiment: track experiment
+    :param path_to_model: path to the directory containing saved models.
+    """
     full_dataset = HoromaDataset(datapath, split=train_split, flattened=flattened)
     train_labeled = HoromaDataset(
         datapath, split=train_labeled_split, flattened=flattened)
@@ -82,13 +94,6 @@ def main(datapath, encoding_model, batch_size, n_epochs, lr, device, train_split
     experiment.log_metric('Validation accuracy', valid_accuracy)
     experiment.log_metric('Validation f1-score', valid_f1)
 
-    # Plot non-normalized confusion matrix
-    # plot_confusion_matrix(train_labeled.targets, pred_train_y, classes=np.arange(17),
-    #                       title='Confusion matrix for Train, without normalization')
-    # validation data
-    # plot_confusion_matrix(valid_data.targets, pred_valid_y, classes=np.arange(17),
-    #                       title='Confusion matrix for Validation, without normalization')
-
 
 if __name__ == '__main__':
 
@@ -127,15 +132,10 @@ if __name__ == '__main__':
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
-    # Set up Comet Experiment tracking  # Replace this with appropriate comet
-    # workspaces
+    # Set up Comet Experiment tracking
     experiment = OfflineExperiment(
         "z15Um8oxWZwiXQXZxZKGh48cl", workspace='swechhachoudhary', offline_directory="../swechhas_experiments")
 
-    # Set up Comet Experiment tracking
-    # experiment = OfflineExperiment(project_name='general',
-    #                                workspace='benjaminbenoit',  # Replace this with appropriate comet workspace
-    #                                offline_directory="experiments")
     experiment.set_name(
         name=args.config + "_dim={}_overlapped={}".format(latent_dim, train_split))
     experiment.log_parameters(configuration)

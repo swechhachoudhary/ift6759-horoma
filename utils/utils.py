@@ -237,6 +237,7 @@ def compute_metrics(y_true, y_pred):
 
 
 def __compute_metrics(y_true, y_pred):
+    """Computes accuracy and F1 score"""
     accuracy = accuracy_score(y_true, y_pred)
     f1 = f1_score(y_true, y_pred, average="weighted")
     _f1 = f1_score(y_true, y_pred, average=None)
@@ -483,7 +484,3 @@ def train_nrm(net, train_loader, labeled_loader, eval_loader, num_epochs, config
         print(epoch_str)
 
     return best_f1, best_acc, best_model
-
-if __name__ == '__main__':
-    train, labeled = load_datasets(
-        "/rap/jvb-000-aa/COURS2019/etudiants/data/horoma", None, overlapped=False)
