@@ -61,7 +61,8 @@ def eval_model(model_path, dataset_dir, split):
 
     y_pred = y_pred.cpu()
     _, y_pred = y_pred.max(1)
-    return y_pred.detach().numpy()
+    final_pred = dataset.map_labels[y_pred]
+    return final_pred
 
 
 if __name__ == "__main__":
