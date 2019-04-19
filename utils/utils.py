@@ -8,7 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
-
+import sys
+import os
 
 def get_acc(output, label):
     pred = torch.argmax(output, dim=1, keepdim=False)

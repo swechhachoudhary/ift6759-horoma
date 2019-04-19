@@ -12,7 +12,7 @@
     "valid_split": "valid",
     "train_labeled_split": "train_labeled",
     "seed": 1234,
-    "n_epochs": 200,        
+    "n_epochs": 100,        
     "num_train_sup":228 ,
     "batch_size": 6 ,
     "labeled_batch_size": 3 ,

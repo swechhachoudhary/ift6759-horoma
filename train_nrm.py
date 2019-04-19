@@ -9,7 +9,7 @@ from utils.utils import load_datasets
 from utils.constants import Constants
 from data.dataset import HoromaDataset
 import torch
-from nrm import NRM
+from models.nrm import NRM
 
 
 def main(datapath, configs, experiment):
@@ -42,6 +42,7 @@ def main(datapath, configs, experiment):
 
     n_iterations = np.floor(
         labeled.data.shape[0] / configs['labeled_batch_size'])
+    device = 'cuda'
 
     net = NRM('AllConv13', batch_size=configs['labeled_batch_size'], num_class=17, use_bias=configs['use_bias'], use_bn=configs[
               'use_bn'], do_topdown=configs['do_topdown'], do_pn=configs['do_pn'], do_bnmm=configs['do_bnmm']).to(device)
@@ -94,7 +95,7 @@ if __name__ == '__main__':
 
     experiment.add_tag(configuration['experiment'])
 
-    MODEL_PATH = 'experiments/' + configs['experiment'] + '/models'
+    MODEL_PATH = 'experiments/' + configuration['experiment'] + '/models'
 
     if not os.path.exists(MODEL_PATH):
         print('mkdir ', MODEL_PATH)
