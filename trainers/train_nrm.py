@@ -2,7 +2,6 @@ from comet_ml import OfflineExperiment
 import json
 import argparse
 import torch
-from nrm import NRM
 import sys
 import os
 
@@ -13,61 +12,47 @@ from utils.ali_utils import *
 from utils.utils import *
 from utils.utils import load_datasets
 from utils.constants import Constants
-from utils.dataset import HoromaDataset
+from data.dataset import HoromaDataset
+from models.nrm import NRM
 
 
-def main(datapath, clustering_model, encoding_model, configs, train_split, valid_split, train_labeled_split,
-         experiment, encode, cluster, train_subset=None, path_to_model=None):
+def main(datapath, configs, experiment):
     """
     :param datapath: path to the directory containing the samples
-    :param clustering_model: which clustering model to use [kmeans, gmm].
-    :param encoding_model: which encoding model to use, convolutional, variational or simple autoencoders.
-    :param batch_size: batch size
-    :param n_epochs: number of epochs
-    :param lr: learning rate
-    :param flattened: If True return the images in a flatten format.
-    :param device: use CUDA device if available else CPU .
-    :param overlapped: boolean, if True use the overlapped pixel patches.
-    :param experiment: track experiment
-    :param encode: boolean, if True, train and apply encoding model.
-    :param cluster: boolean, if True, train and apply clustering model.
-    :param train_subset: How many elements will be used. Default: all.
-    :param path_to_model: path to the directory containing saved models.
-
+    :param configs: dictionary containing hyperparameters for training.
+    :param experiment: comet ml experiment object for logging results
     """
 
-    batch_size = 6
-    labeled_batch_size = 3
+    train_split = configs['train_split']
+    valid_split = configs['valid_split']
+    train_labeled_split = configs['train_labeled_split']
 
-    train = HoromaDataset(datapath, split=train_split, subset=train_subset,
-                          flattened=flattened)
-    labeled = HoromaDataset(datapath, split=train_labeled_split, subset=train_subset,
-                            flattened=flattened)
+    train = HoromaDataset(datapath, split=train_split, subset=None,
+                          flattened=False)
+    labeled = HoromaDataset(datapath, split=train_labeled_split, subset=None,
+                            flattened=False)
     valid_data = HoromaDataset(
-        datapath, split=valid_split, subset=train_subset, flattened=flattened)
+        datapath, split=valid_split, subset=None, flattened=False)
 
-    train_label_indices = labeled.targets
-    valid_indices = valid_data.targets
-    # train_label_indices, valid_indices = get_split_indices(
-    #     labeled.targets, overlapped=overlapped)
-    train_loader = DataLoader(train, batch_size=configs['batch_size'], shuffle=True)
-    labeled_loader = DataLoader(labeled, batch_size=configs['labeled_batch_size'], shuffle=True)
-    eval_loader = DataLoader(valid_data, batch_size=configs['labeled_batch_size'], shuffle=True)
+    train_loader = DataLoader(train, batch_size=configs[
+                              'batch_size'], shuffle=True)
+    labeled_loader = DataLoader(labeled, batch_size=configs[
+                                'labeled_batch_size'], shuffle=True)
+    eval_loader = DataLoader(valid_data, batch_size=configs[
+                             'labeled_batch_size'], shuffle=True)
+
     print("Shape of training set: ", train.data.shape)
     print("Shape of validation set: ", valid_data.data.shape)
-    # print("Shape of labeled training set: ",
-    #       labeled.data[train_label_indices].shape)
-    # print("Shape of validation dataset: ", labeled.data[valid_indices].shape)
 
-    if encode:
-        # Train and apply encoding model
-        n_iterations = np.floor(labeled.data.shape[0] / configs['labeled_batch_size'])
+    n_iterations = np.floor(
+        labeled.data.shape[0] / configs['labeled_batch_size'])
+    device = 'cuda'
 
-        net = NRM('AllConv13', batch_size=configs['labeled_batch_size'], num_class=17, use_bias=configs['use_bias'], use_bn=configs[
-                  'use_bn'], do_topdown=configs['do_topdown'], do_pn=configs['do_pn'], do_bnmm=configs['do_bnmm']).to(device)
-        net.apply(weights_init)
-        best_f1, best_acc, best_model = train_nrm(net, train_loader, labeled_loader, eval_loader, configs[
-                                                  'n_epochs'], configs, n_iterations)
+    net = NRM('AllConv13', batch_size=configs['labeled_batch_size'], num_class=17, use_bias=configs['use_bias'], use_bn=configs[
+              'use_bn'], do_topdown=configs['do_topdown'], do_pn=configs['do_pn'], do_bnmm=configs['do_bnmm']).to(device)
+    net.apply(weights_init)
+    best_f1, best_acc, best_model = train_nrm(net, train_loader, labeled_loader, eval_loader, configs[
+                                              'n_epochs'], configs, n_iterations, experiment)
 
     experiment.log_metric('best_accuracy', best_acc)
     experiment.log_metric('best_f1-score', best_f1)
@@ -77,11 +62,12 @@ def main(datapath, clustering_model, encoding_model, configs, train_split, valid
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
+
     parser.add_argument("--datapath", type=str, default=Constants.DATAPATH,
                         help="Path to dataset folder")
     parser.add_argument("--encoder_path", type=str, default=None)
 
-    parser.add_argument("--config", type=str, default="CAE_BASE",
+    parser.add_argument("--config", type=str, default="NRM",
                         help="To select configuration from config.json")
     args = parser.parse_args()
     config_key = args.config
@@ -92,19 +78,7 @@ if __name__ == '__main__':
         configuration = json.load(f)[config_key]
 
     # Parse configuration file
-    clustering_model = configuration['cluster_model']
-    encoding_model = configuration['enc_model']
-    batch_size = configuration['batch_size']
     seed = configuration['seed']
-    n_epochs = configuration['n_epochs']
-    # train_subset = configuration['train_subset']
-    train_split = configuration['train_split']
-    valid_split = configuration['valid_split']
-    train_labeled_split = configuration['train_labeled_split']
-    encode = configuration['encode']
-    cluster = configuration['cluster']
-    flattened = False  # Default
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     # Set all seeds for full reproducibility
     np.random.seed(seed)
@@ -117,17 +91,22 @@ if __name__ == '__main__':
         print('mkdir ', 'experiments')
         os.mkdir('experiments')
 
-    if encode:
-        experiment = OfflineExperiment(project_name="ali", workspace='timothynest',  # Replace this with appropriate comet workspace
-                                       offline_directory=str('experiments/' + configuration['experiment']))
-    elif cluster:
-        experiment = OfflineExperiment(project_name="ali", workspace='timothynest',  # Replace this with appropriate comet workspace
-                                       offline_directory=str('experiments/' + configuration['experiment'] + '/cluster'))
+    experiment = OfflineExperiment(project_name="ali", workspace='timothynest',  # Replace this with appropriate comet workspace
+                                   offline_directory=str('experiments/' + configuration['experiment']))
+
     experiment.set_name(
-        name=args.config + "_NRMTEST")
+        name=configuration['experiment'])
     experiment.log_parameters(configuration)
+
     experiment.add_tag(configuration['experiment'])
 
+    MODEL_PATH = 'experiments/' + configuration['experiment'] + '/models'
+
+    if not os.path.exists(MODEL_PATH):
+        print('mkdir ', MODEL_PATH)
+        os.mkdir(MODEL_PATH)
+
+    configuration['MODEL_PATH'] = MODEL_PATH
+
     # Initiate experiment
-    main(datapath, clustering_model, encoding_model, configuration, train_split, valid_split, train_labeled_split,
-         experiment, encode, cluster, path_to_model=path_to_model)
+    main(datapath, configuration, experiment)

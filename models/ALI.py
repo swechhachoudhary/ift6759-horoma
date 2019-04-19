@@ -29,7 +29,8 @@ class SpectralNorm(nn.Module):
 
         height = w.data.shape[0]
         for _ in range(self.power_iterations):
-            v.data = l2normalize(torch.mv(torch.t(w.view(height, -1).data), u.data))
+            v.data = l2normalize(
+                torch.mv(torch.t(w.view(height, -1).data), u.data))
             u.data = l2normalize(torch.mv(w.view(height, -1).data, v.data))
 
         # sigma = torch.dot(u.data, torch.mv(w.view(height,-1).data, v.data))
@@ -77,10 +78,12 @@ class Discriminator(nn.Module):
 
     def forward(self, x_input, z_input):
         eps = 1e-12
-        noise = Variable((torch.Tensor(x_input.size()).normal_(0, 0.1 * 0.01))).cuda()
+        noise = Variable(
+            (torch.Tensor(x_input.size()).normal_(0, 0.1 * 0.01))).cuda()
 
         dx_out = self.Dx(x_input + noise)
-        noise = Variable((torch.Tensor(dx_out.size()).normal_(0, 0.1 * 0.01))).cuda()
+        noise = Variable(
+            (torch.Tensor(dx_out.size()).normal_(0, 0.1 * 0.01))).cuda()
 
         d_out = self.Dxz(torch.cat((dx_out, z_input + noise), dim=1)) + eps
 
@@ -150,18 +153,23 @@ class GeneratorZ(nn.Module):
 
     def __init__(self, zd=128, ch=1):
         super().__init__()
-        self.c1 = nn.Conv2d(ch, zd // 8, 3, 2)
+        self.c1 = SpectralNorm(nn.Conv2d(ch, zd // 8, 3, 2))
         self.bn1 = nn.BatchNorm2d(zd // 8)
         self.lr = nn.LeakyReLU(0.02)
 
-        self.c2 = nn.Conv2d(zd // 8, zd // 4, 3, 2)
+        self.c2 = SpectralNorm(nn.Conv2d(zd // 8, zd // 4, 3, 2))
         self.bn2 = nn.BatchNorm2d(zd // 4)
 
-        self.c3 = nn.Conv2d(zd // 4, zd // 2, 3, 1)
+        self.c3 = SpectralNorm(nn.Conv2d(zd // 4, zd // 2, 3, 1))
         self.bn3 = nn.BatchNorm2d(zd // 2)
 
-        self.c4 = nn.Conv2d(zd // 2, zd, 3, 1)
+        self.c4 = SpectralNorm(nn.Conv2d(zd // 2, zd, 3, 1))
         self.bn4 = nn.BatchNorm2d(zd)
+
+        self.c5 = SpectralNorm(nn.Conv2d(zd, zd * 2, 3, 1))
+        self.bn5 = nn.BatchNorm2d(zd * 2)
+
+        self.c6 = SpectralNorm(nn.Conv2d(zd * 2, zd * 2, 3, 1))
 
         self.c5 = nn.Conv2d(zd, zd * 2, 3, 1)
         self.bn5 = nn.BatchNorm2d(zd * 2)
@@ -196,23 +204,25 @@ class GeneratorX(nn.Module):
     def __init__(self, zd=128, ch=1):
         super().__init__()
 
-        self.conv1 = nn.ConvTranspose2d(zd, zd, 3, 1)
+        self.conv1 = SpectralNorm(nn.ConvTranspose2d(zd, zd, 3, 1))
+
         self.bn1 = nn.BatchNorm2d(zd)
         self.rl = nn.LeakyReLU(0.02)
 
-        self.conv2 = nn.ConvTranspose2d(zd, zd // 2, 3, 2)
+        self.conv2 = SpectralNorm(nn.ConvTranspose2d(zd, zd // 2, 3, 2))
         self.bn2 = nn.BatchNorm2d(zd // 2)
         #    nn.LeakyReLU(0.02),
 
-        self.conv3 = nn.ConvTranspose2d(zd // 2, zd // 4, 3, 2)
+        self.conv3 = SpectralNorm(nn.ConvTranspose2d(zd // 2, zd // 4, 3, 2))
         self.bn3 = nn.BatchNorm2d(zd // 4)
         # nn.LeakyReLU(0.02),
 
-        self.conv4 = nn.ConvTranspose2d(zd // 4, zd // 4, 3, 2)
+        self.conv4 = SpectralNorm(nn.ConvTranspose2d(zd // 4, zd // 4, 3, 2))
         self.bn4 = nn.BatchNorm2d(zd // 4)
         # nn.LeakyReLU(0.02),
 
-        self.conv5 = nn.ConvTranspose2d(zd // 4, ch, 2, 1)
+        self.conv5 = SpectralNorm(nn.ConvTranspose2d(zd // 4, ch, 2, 1))
+
         self.tanh = nn.Tanh()
 
     def forward(self, x):
