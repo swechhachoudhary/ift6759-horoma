@@ -26,6 +26,10 @@ def main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr_un
     :param n_epochs: number of epochs
     :param lr_unsup: learning rate for unsupervised part
     :param lr_sup: learning rate for supervised part
+    :param train_unlabeled_split: unlabeled data used for unsupervised part
+    :param valid_split: valid split for MLP
+    :param train_labeled_split: train split for MLP
+    :param patience: patience for early stopping
     :param device: use CUDA device if available else CPU .
     :param experiment: track experiment
     :param path_to_model: path to the directory containing saved models.
@@ -118,12 +122,6 @@ if __name__ == '__main__':
 
     if classifier_model == "MLPClassifier":
         classifier_model = MLPClassifier(latent_dim=latent_dim, hidden_size=hidden_size, n_layers=n_layers).to(device)
-
-    # print("Loading model....\n")
-    # # # load the best model
-    # x = torch.load(path_to_model, map_location=device)
-    # print(x["best_acc"], x["best_f1"])
-    # print(x["train_acc"], x["train_f1"])
 
     # Initiate experiment
     main(datapath, encoding_model, classifier_model, batch_size, n_epochs, lr_unsup, lr_sup, device,

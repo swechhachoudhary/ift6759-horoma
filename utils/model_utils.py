@@ -330,7 +330,16 @@ def loop_over_labeled_data(data, batch_size):
 
 
 def _train_one_epoch_unlabeled(model, train_data, optimizer, batch_size, n_unlabeled_batch, epoch, device, experiment):
-    """Train one epoch of unlabeled data."""
+    """Train one epoch of unlabeled data.
+    :param model: CAE model
+    :param train_data: train dataset
+    :param optimizer: unsupervised optimizer
+    :param batch_size: batch size
+    :param n_unlabeled_batch: number of unlabeled batches
+    :param epoch: epoch number
+    :param device: device
+    :param experiment: cometml experiment
+    """
     model.train()
 
     running_loss = 0.0
@@ -363,7 +372,17 @@ def _train_one_epoch_unlabeled(model, train_data, optimizer, batch_size, n_unlab
 
 
 def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optimizer, batch_size, n_labeled_batch, epoch, device, experiment):
-    """Train one epoch of labeled data."""
+    """Train one epoch of labeled data.
+    :param encoding_model: CAE model 
+    :param classifier_model: MLP model
+    :param train_data: train dataset
+    :param optimizer: unsupervised optimizer
+    :param batch_size: batch size
+    :param n_labeled_batch: number of labeled batches
+    :param epoch: epoch number
+    :param device: device
+    :param experiment: cometml experiment
+    """
     encoding_model.train()
     classifier_model.train()
 
@@ -416,7 +435,14 @@ def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optim
 
 
 def _test_semisupervised(encoding_model, classifier_model, test_loader, epoch, device, experiment):
-    """ Validation of semisupervised task"""
+    """ Validation of semisupervised task
+    :param encoding_model: CAE model 
+    :param classifier_model: MLP model
+    :param test_loader: test data loader
+    :param epoch: epoch number
+    :param device: device
+    :param experiment: cometml experiment
+    """
     encoding_model.eval()
     classifier_model.eval()
 
@@ -467,7 +493,22 @@ def _test_semisupervised(encoding_model, classifier_model, test_loader, epoch, d
 
 def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_data, train_lab_data, valid_loader,
                                   n_epochs, batch_size, lr_unsup, lr_sup, device, n_labeled_batch, n_unlabeled_batch, patience, experiment):
-    """Training of semisupervised task"""
+    """Training of semisupervised task
+    :param encoding_model: CAE model 
+    :param classifier_model: MLP model
+    :param train_unlab_data: unlabeled train dataset
+    :param train_lab_data: labeled train dataset
+    :param valid_loader: validation set loader
+    :param lr_unsup: unsupervised learning rate
+    :param lr_sup: supervised learning rate
+    :param batch_size: batch size
+    :param n_labeled_batch: number of labeled batches
+    :param n_unlabeled_batch: number of unlabeled batches
+    :param n_epochs: no. of epochs
+    :param patience: patience for early stopping
+    :param device: device
+    :param experiment: cometml experiment
+    """
     best_acc = 0.0
     best_f1 = 0.0
     k = 0
