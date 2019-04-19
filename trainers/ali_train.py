@@ -99,12 +99,12 @@ if __name__ == '__main__':
         print('mkdir ', 'experiments')
         os.mkdir('experiments')
 
-    if configuration['encode']==True:
-        experiment = OfflineExperiment(project_name="ali", workspace='timothynest',  # Replace this with appropriate comet workspace
+    if configuration['encode']:
+        experiment = OfflineExperiment(project_name="ali", workspace='timothynest',
                                        offline_directory=str('../experiments/' + configuration['experiment']))
-    elif configuration['cluster']==True:
-        experiment = OfflineExperiment(project_name="ali", workspace='timothynest',  # Replace this with appropriate comet workspace
-                                       offline_directory=str('../experiments/' + configuration['experiment'] +'/cluster'))
+    elif configuration['cluster']:
+        experiment = OfflineExperiment(project_name="ali", workspace='timothynest', offline_directory=str(
+            '../experiments/' + configuration['experiment'] + '/cluster'))
     experiment.set_name(name=configuration['experiment'])
 
     experiment.log_parameters(configuration)

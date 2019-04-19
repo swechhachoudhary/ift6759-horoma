@@ -159,7 +159,7 @@ def load_original_horoma_datasets(datapath, train_subset, flattened=False, overl
     if overlapped:
         unlabeled_trainset = OriginalHoromaDataset(
             datapath, split="train_overlapped", subset=train_subset, flattened=flattened)
-        labeled_trainset = OriginalHoromaDataset(datapath, split="train_labeled_overlapped",flattened=flattened)
+        labeled_trainset = OriginalHoromaDataset(datapath, split="train_labeled_overlapped", flattened=flattened)
         labeled_validset = OriginalHoromaDataset(datapath, split="valid_overlapped", flattened=flattened)
     else:
         unlabeled_trainset = OriginalHoromaDataset(
@@ -346,8 +346,7 @@ def train_nrm(net, train_loader, labeled_loader, eval_loader, num_epochs, config
             softmax_unsup = F.softmax(output_unsup)
 
             loss_kl_unsup = - \
-                torch.sum(torch.log(10.0 * softmax_unsup + 1e-8)
-                          * softmax_unsup) / minibatch_unsup_size
+                torch.sum(torch.log(10.0 * softmax_unsup + 1e-8) * softmax_unsup) / minibatch_unsup_size
             loss_unsup = configs['alpha_reconst'] * loss_reconst_unsup + configs['alpha_kl'] * \
                 loss_kl_unsup + \
                 configs['alpha_bnmm'] * loss_bnmm_unsup + \
