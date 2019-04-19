@@ -12,7 +12,7 @@ from utils.ali_utils import *
 from utils.utils import *
 from utils.utils import load_datasets
 from utils.constants import Constants
-from data.dataset import HoromaDataset
+from utils.dataset import HoromaDataset
 from models.nrm import NRM
 
 
@@ -92,7 +92,7 @@ if __name__ == '__main__':
         os.mkdir('experiments')
 
     experiment = OfflineExperiment(project_name="ali", workspace='timothynest',  # Replace this with appropriate comet workspace
-                                   offline_directory=str('experiments/' + configuration['experiment']))
+                                   offline_directory=str('../experiments/' + configuration['experiment']))
 
     experiment.set_name(
         name=configuration['experiment'])
@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
     experiment.add_tag(configuration['experiment'])
 
-    MODEL_PATH = 'experiments/' + configuration['experiment'] + '/models'
+    MODEL_PATH = '../experiments/' + configuration['experiment'] + '/models'
 
     if not os.path.exists(MODEL_PATH):
         print('mkdir ', MODEL_PATH)
