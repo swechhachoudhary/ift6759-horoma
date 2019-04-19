@@ -1237,7 +1237,7 @@ def calc_gradient_penalty_hali(discriminator, real_data, fake_data, z1, z_enc1, 
     return gradient_penalty
 
 
-def calc_gradient_penalty_ali(discriminator,  real_data, fake_data, z, z_enc,
+def calc_gradient_penalty_ali(discriminator, real_data, fake_data, z, z_enc,
                               gp_lambda):
     """Calculate Gradient Penalty HALI Variant 1
     Computes interpolates of all encodings before passing to the discriminator to account for gradients of encoder

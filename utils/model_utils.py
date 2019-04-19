@@ -373,7 +373,7 @@ def _train_one_epoch_unlabeled(model, train_data, optimizer, batch_size, n_unlab
 
 def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optimizer, batch_size, n_labeled_batch, epoch, device, experiment):
     """Train one epoch of labeled data.
-    :param encoding_model: CAE model 
+    :param encoding_model: CAE model
     :param classifier_model: MLP model
     :param train_data: train dataset
     :param optimizer: unsupervised optimizer
@@ -436,7 +436,7 @@ def _train_one_epoch_labeled(encoding_model, classifier_model, train_data, optim
 
 def _test_semisupervised(encoding_model, classifier_model, test_loader, epoch, device, experiment):
     """ Validation of semisupervised task
-    :param encoding_model: CAE model 
+    :param encoding_model: CAE model
     :param classifier_model: MLP model
     :param test_loader: test data loader
     :param epoch: epoch number
@@ -494,7 +494,7 @@ def _test_semisupervised(encoding_model, classifier_model, test_loader, epoch, d
 def train_semi_supervised_network(encoding_model, classifier_model, train_unlab_data, train_lab_data, valid_loader,
                                   n_epochs, batch_size, lr_unsup, lr_sup, device, n_labeled_batch, n_unlabeled_batch, patience, experiment):
     """Training of semisupervised task
-    :param encoding_model: CAE model 
+    :param encoding_model: CAE model
     :param classifier_model: MLP model
     :param train_unlab_data: unlabeled train dataset
     :param train_lab_data: labeled train dataset
