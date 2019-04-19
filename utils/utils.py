@@ -159,17 +159,11 @@ def load_original_horoma_datasets(datapath, train_subset, flattened=False, overl
     if overlapped:
         unlabeled_trainset = OriginalHoromaDataset(
             datapath, split="train_overlapped", subset=train_subset, flattened=flattened)
-<< << << < HEAD
+
     labeled_trainset = OriginalHoromaDataset(
         datapath, split="train_labeled_overlapped", flattened=flattened)
     labeled_validset = OriginalHoromaDataset(
         datapath, split="valid_overlapped", flattened=flattened)
-== == == =
-    labeled_trainset = OriginalHoromaDataset(
-        datapath, split="train_labeled_overlapped", flattened=flattened)
-    labeled_validset = OriginalHoromaDataset(
-        datapath, split="valid_overlapped", flattened=flattened)
->>>>>> > master
 
     else:
         unlabeled_trainset = OriginalHoromaDataset(
