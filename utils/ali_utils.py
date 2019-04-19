@@ -36,12 +36,12 @@ def initialize_ali(configs, data):
     :param data: Data used to create the loader.
     :return Gx: Decoder/Generator
     :return Gz: Encoder
-    :return Disc: Discriminator 
+    :return Disc: Discriminator
     :return optim_g: Optimizer for Generator params
     :return optim_d: Optimizer for Discriminator params
     :return train_loader: the dataloader we will use for training
     :return cuda: whether we are running on cuda
-    :return configs: updated with correct model and image path 
+    :return configs: updated with correct model and image path
     """
 
     IMAGE_PATH = 'experiments/' + configs['experiment'] + '/images'
@@ -138,7 +138,7 @@ def initialize_ali(configs, data):
 def train_epoch_ali(Gz, Gx, Disc, optim_d, optim_g, loader, epoch, cuda, configs):
     """
     :param Gz: Encoder
-    :param Gx: Decoder/Generator    
+    :param Gx: Decoder/Generator
     :param Disc: Discriminator
     :param optim_d: Optimizer for Discriminator params
     :param optim_g: Optimizer for Generator params
@@ -188,14 +188,14 @@ def train_epoch_ali(Gz, Gx, Disc, optim_d, optim_g, loader, epoch, cuda, configs
 def training_loop_ali(Gz, Gx, Disc, optim_d, optim_g, train_loader, configs, experiment, cuda):
     """
     :param Gz: Encoder
-    :param Gx: Decoder/Generator    
+    :param Gx: Decoder/Generator
     :param Disc: Discriminator
     :param optim_d: Optimizer for Discriminator params
     :param optim_g: Optimizer for Generator params
     :param loader: data loader
     :param configs: a dictionary with all params necessary for training
-    :param experiment: comet_ml experiment variable to store results 
-    :param cuda: whether we are running on cuda     
+    :param experiment: comet_ml experiment variable to store results
+    :param cuda: whether we are running on cuda
     """
 
     Zdim = configs['Zdim']
@@ -279,10 +279,10 @@ def runloop_g_ali(imgs, Gx, Gz, Disc, optim_g, cuda, configs):
     """
     :param imgs: data for generator loop
     :param Gz: Encoder
-    :param Gx: Decoder/Generator    
+    :param Gx: Decoder/Generator
     :param Disc: Discriminator
     :param optim_g: Optimizer for Generator params
-    :param cuda: whether we are running on cuda     
+    :param cuda: whether we are running on cuda
     :param configs: a dictionary with all params necessary for training
     :return g_loss: Generator loss
     :return d_true: Prediction for x
@@ -330,10 +330,10 @@ def runloop_d_ali(imgs, Gx, Gz, Disc, optim_d, cuda, configs):
     """
     :param imgs: data for generator loop
     :param Gz: Encoder
-    :param Gx: Decoder/Generator    
+    :param Gx: Decoder/Generator
     :param Disc: Discriminator
     :param optim_g: Optimizer for Generator params
-    :param cuda: whether we are running on cuda     
+    :param cuda: whether we are running on cuda
     :param configs: a dictionary with all params necessary for training
     :return d_loss: Discriminator loss
     """
@@ -394,12 +394,12 @@ def initialize_hali(configs, data):
     :return Gx2: Level 2 of Decoder/Generator
     :return Gz1: Level 1 of Encoder
     :return Gz2: Level 2 of Encoder
-    :return Disc: Discriminator 
+    :return Disc: Discriminator
     :return optim_g: Optimizer for Generator params
     :return optim_d: Optimizer for Discriminator params
     :return train_loader: the dataloader we will use for training
     :return cuda: whether we are running on cuda
-    :return configs: updated with correct model and image path 
+    :return configs: updated with correct model and image path
 
     """
 
@@ -523,8 +523,8 @@ def train_epoch_hali(Gz1, Gz2, Gx1, Gx2, Disc, optim_d, optim_g, loader, epoch, 
     """
     :param Gz1: Level 1 of Encoder
     :param Gz2: Level 2 of Encoder
-    :param Gx1: Level 1 of Decoder/Generator    
-    :param Gx2: Level 2 of Decoder/Generator    
+    :param Gx1: Level 1 of Decoder/Generator
+    :param Gx2: Level 2 of Decoder/Generator
     :param Disc: Discriminator
     :param optim_d: Optimizer for Discriminator params
     :param optim_g: Optimizer for Generator params
@@ -581,15 +581,15 @@ def training_loop_hali(Gz1, Gz2, Gx1, Gx2, Disc, optim_d, optim_g, train_loader,
     """
     :param Gz1: Level 1 of Encoder
     :param Gz2: Level 2 of Encoder
-    :param Gx1: Level 1 of Decoder/Generator    
-    :param Gx2: Level 2 of Decoder/Generator    
+    :param Gx1: Level 1 of Decoder/Generator
+    :param Gx2: Level 2 of Decoder/Generator
     :param Disc: Discriminator
     :param optim_d: Optimizer for Discriminator params
     :param optim_g: Optimizer for Generator params
     :param train_loader: data loader
     :param configs: a dictionary with all params necessary for training
-    :param experiment: comet_ml experiment variable to store results 
-    :param cuda: whether we are running on cuda     
+    :param experiment: comet_ml experiment variable to store results
+    :param cuda: whether we are running on cuda
     """
 
     Zdim = configs['Zdim']
@@ -673,13 +673,13 @@ def training_loop_hali(Gz1, Gz2, Gx1, Gx2, Disc, optim_d, optim_g, train_loader,
 def runloop_g_hali(imgs, Gx1, Gx2, Gz1, Gz2, Disc, optim_g, cuda, configs):
     """
     :param imgs: data for generator loop
-    :param Gx1: Level 1 of Decoder/Generator    
-    :param Gx2: Level 2 of Decoder/Generator    
+    :param Gx1: Level 1 of Decoder/Generator
+    :param Gx2: Level 2 of Decoder/Generator
     :param Gz1: Level 1 of Encoder
     :param Gz2: Level 2 of Encoder
     :param Disc: Discriminator
     :param optim_g: Optimizer for Generator params
-    :param cuda: whether we are running on cuda     
+    :param cuda: whether we are running on cuda
     :param configs: a dictionary with all params necessary for training
     :return loss_g: Generator loss
     :return d_false: Prediction for x_hat
@@ -734,13 +734,13 @@ def runloop_g_hali(imgs, Gx1, Gx2, Gz1, Gz2, Disc, optim_g, cuda, configs):
 def runloop_d_hali(imgs, Gx1, Gx2, Gz1, Gz2, Disc, optim_d, cuda, configs):
     """
     :param imgs: data for generator loop
-    :param Gx1: Level 1 of Decoder/Generator    
-    :param Gx2: Level 2 of Decoder/Generator    
+    :param Gx1: Level 1 of Decoder/Generator
+    :param Gx2: Level 2 of Decoder/Generator
     :param Gz1: Level 1 of Encoder
     :param Gz2: Level 2 of Encoder
     :param Disc: Discriminator
     :param optim_d: Optimizer for Discriminator params
-    :param cuda: whether we are running on cuda     
+    :param cuda: whether we are running on cuda
     :param configs: a dictionary with all params necessary for training
     :return loss_d: Discriminator loss
     """
@@ -799,17 +799,17 @@ def runloop_d_hali(imgs, Gx1, Gx2, Gz1, Gz2, Disc, optim_d, cuda, configs):
 
 def runloop_g_hali_unrolled(imgs, Gx1, Gx2, Gz1, Gz2, Disc, optim_g, optim_d, cuda, configs, loader):
     """
-    function runloop_g_hali_unrolled is a function that manages unrolled alternative training. 
+    function runloop_g_hali_unrolled is a function that manages unrolled alternative training.
     Training in this way is significantly slower, but more stable
 
     :param imgs: data for generator loop
-    :param Gx1: Level 1 of Decoder/Generator    
-    :param Gx2: Level 2 of Decoder/Generator    
+    :param Gx1: Level 1 of Decoder/Generator
+    :param Gx2: Level 2 of Decoder/Generator
     :param Gz1: Level 1 of Encoder
     :param Gz2: Level 2 of Encoder
     :param Disc: Discriminator
     :param optim_g: Optimizer for Generator params
-    :param cuda: whether we are running on cuda     
+    :param cuda: whether we are running on cuda
     :param configs: a dictionary with all params necessary for training
     :return loss_g: Generator loss
     :return d_false: Prediction for x_hat
@@ -836,7 +836,7 @@ def get_max_epoch(configs):
     """
     get_max_epoch is a function that returns the highest epoch trainined so far for evaluation
     :param configs: a dictionary with all params necessary for training
-    :returns highest epoch in saved models directory 
+    :returns highest epoch in saved models directory
     """
 
     onlyfiles = [f for f in listdir(configs['MODEL_PATH']) if isfile(
@@ -862,7 +862,7 @@ def get_experiments():
 
 def save_res_figure(configs, accuracies, f1_list):
     """
-    save_res_figure is a function that saves plotted results to image directory during evaluation. 
+    save_res_figure is a function that saves plotted results to image directory during evaluation.
     it will fail on the cluster and is purely for convenience/local use.
 
     :param configs: a dictionary with all params necessary for training
@@ -896,7 +896,7 @@ def get_results_ali(configs, experiment, train, labeled, valid_data):
     :param valid_data: validation data
     :returns best_f1 : highest f1 score
     :returns best_accuracy: highest accuracy
-    :returns best_model : best model epoch 
+    :returns best_model : best model epoch
 
     """
 
@@ -945,7 +945,7 @@ def get_results_hali(configs, experiment, train, labeled, valid_data):
     :param valid_data: validation data
     :returns best_f1 : highest f1 score
     :returns best_accuracy: highest accuracy
-    :returns best_model : best model epoch 
+    :returns best_model : best model epoch
 
     """
     Gx1, Gx2, Gz1, Gz2, Disc, optim_g, optim_d, train_loader, cuda, configs = initialize_hali(
@@ -999,7 +999,7 @@ def get_hali_embeddings(Gz1, Gz2, data, mode):
 
     :param Gz1: Gz1 model
     :param Gz2: Gz2 model
-    :param data: the data to be used 
+    :param data: the data to be used
     :param mode: which level of the latent space to use (z1, z2, or zcat)
     :returns all_embeddings : returns list of embedding vectors
     :returns all_targets: labels corresponding to embeddings list
@@ -1054,7 +1054,7 @@ def get_ali_embeddings(Gz, data):
     get_ali_embeddings is a function that returns embeddings from prescribed level of ALI's latent space
 
     :param Gz: Encoder
-    :param data: the data to be used 
+    :param data: the data to be used
     :returns all_embeddings : returns list of embedding vectors
     :returns all_targets: labels corresponding to embeddings list
     """
@@ -1207,7 +1207,7 @@ def save_models_ali(Gz, Gx, Disc, MODEL_PATH, epoch):
 
 
 def calc_gradient_penalty_hali(discriminator, real_data, fake_data, z1, z_enc1, z2, z_enc2, gp_lambda):
-    """Calculate Gradient Penalty HALI Variant 1 
+    """Calculate Gradient Penalty HALI Variant 1
     Computes interpolates of all encodings before passing to the discriminator to account for gradients of encoder
 
     :param Disc: Discriminator
@@ -1218,7 +1218,7 @@ def calc_gradient_penalty_hali(discriminator, real_data, fake_data, z1, z_enc1, 
     :param z2: empirical z2
     :param z_enc2: encoded (fake) z2
     :param gp_lambda: chosen lambda for gradient penalty
-    :return gradient_penalty : the penalty 
+    :return gradient_penalty : the penalty
     """
     assert real_data.size(0) == fake_data.size(0)
     alpha = torch.rand(real_data.size(0), 1, 1, 1)
@@ -1255,7 +1255,7 @@ def calc_gradient_penalty_hali(discriminator, real_data, fake_data, z1, z_enc1, 
 
 def calc_gradient_penalty_ali(discriminator,  real_data, fake_data, z, z_enc,
                               gp_lambda):
-    """Calculate Gradient Penalty HALI Variant 1 
+    """Calculate Gradient Penalty HALI Variant 1
     Computes interpolates of all encodings before passing to the discriminator to account for gradients of encoder
 
     :param Disc: Discriminator
@@ -1263,7 +1263,7 @@ def calc_gradient_penalty_ali(discriminator,  real_data, fake_data, z, z_enc,
     :param fake_data: fake data
     :param z: empirical z
     :param z_enc: encoded (fake) z
-    :return gradient_penalty : the penalty 
+    :return gradient_penalty : the penalty
     """
     assert real_data.size(0) == fake_data.size(0)
     alpha = torch.rand(real_data.size(0), 1, 1, 1)
@@ -1299,7 +1299,7 @@ def calc_gradient_penalty2_hali(discriminator, real_data, fake_data, encoder1, e
     :param encoder1: encoder for z1
     :param encoder2: encoder for z2
     :param gp_lambda: chosen lambda for gradient penalty
-    :return gradient_penalty : the penalty 
+    :return gradient_penalty : the penalty
     """
     assert real_data.size(0) == fake_data.size(0)
     alpha = torch.rand(real_data.size(0), 1, 1, 1)
@@ -1327,13 +1327,13 @@ def calc_gradient_penalty2_hali(discriminator, real_data, fake_data, encoder1, e
 
 
 def calc_gradient_penalty2_ali(discriminator, real_data, fake_data, encoder, gp_lambda):
-    """Calculate Gradient Penalty for ALI feeds interpolates through encoder to discriminator.    
+    """Calculate Gradient Penalty for ALI feeds interpolates through encoder to discriminator.
     :param Disc: Discriminator
     :param real_data: real data
     :param fake_data: fake data
-    :param encoder: encoder 
+    :param encoder: encoder
     :param gp_lambda: chosen lambda for gradient penalty
-    :return gradient_penalty : the penalty 
+    :return gradient_penalty : the penalty
     """
     assert real_data.size(0) == fake_data.size(0)
     alpha = torch.rand(real_data.size(0), 1, 1, 1)

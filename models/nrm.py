@@ -10,7 +10,7 @@ cfg = {
     'AllConv13': [128, 128, 128, 'M', 256, 256, 256, 'M', 512, 256, 128, 'A'],
 }
 
-#################### Some utils class ####################
+# Some utils class
 
 
 class Reshape(nn.Module):
@@ -76,7 +76,7 @@ def make_one_hot(labels, C=2):
     target = target.to(labels.get_device())
     return target
 
-#################### Main NRM class ####################
+# Main NRM class
 
 
 class NRM(nn.Module):

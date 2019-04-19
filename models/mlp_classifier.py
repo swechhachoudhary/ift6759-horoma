@@ -21,7 +21,6 @@ class MLPClassifier(nn.Module):
         self.n_layers = n_layers
         self.hidden_size = hidden_size
         n_channels = [latent_dim] + [hidden_size] * (n_layers - 1) + [n_class]
-       # self.dropout = nn.Dropout(p=0.4)
         self.layers = nn.ModuleList(
             [nn.Linear(n_channels[i], n_channels[i + 1]) for i in range(n_layers)])
         self._weight_init()
@@ -41,8 +40,6 @@ class MLPClassifier(nn.Module):
 
         for i in range(self.n_layers - 1):
             out = F.relu(self.layers[i](inputs))
-           # if i < (self.n_layers - 1):
-           #     out = self.dropout(out)
             inputs = out
 
         return self.layers[self.n_layers - 1](inputs)

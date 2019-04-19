@@ -260,7 +260,7 @@ class TransformerNet(nn.Module):
         return l_out
 
     def forward(self, x, noise=None):
-        #x = self.preprocess(x)
+        # x = self.preprocess(x)
         if noise is not None:
             x = x + noise
 
