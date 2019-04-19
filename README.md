@@ -9,10 +9,52 @@ Benjamin Rosa
 Project Organization
 ------------
 
-    ├── data	          <- Datasets used accross the project
+    ├── configs           <- contains config files for the project
+    ├── data              <- Datasets used accross the project
+    ├── evaluation        <- contains eval.py 
     ├── models            <- all the models architecture
-    ├── utils             <- utilities used across the application
+    ├── trainers          <- training scripts for all the models
+    ├── utils             <- utilities used int the project
+    ├── run.pbs           <- script for training on cluster
     └── README.md         <- The top-level README for developers using this project.
+
+--------
+
+## To run scripts
+
+Add the following command in run.pbs for training
+* TransformerNet model
+```
+s_exec python train_transformer_net.py
+```
+* CAE-SVM model
+```
+s_exec python svm_trainer.py
+```
+* CAE-MLP model
+```
+s_exec python semisupervised_trainer.py
+```
+* HALI model
+```
+s_exec python ali_train.py --config HALI
+```
+* ALI model
+```
+s_exec python ali_train.py --config ALI
+```
+* DAMIC model
+```
+s_exec python train_damic.py
+```
+* CVAE model
+```
+s_exec python train.py --config CVAE_BASE --encoder_path experiment_models/cvae_base.pth
+```
+* CONV_AE model
+```
+s_exec python train.py --config CONV_AE --encoder_path experiment_models/conv_ae.pth
+```
 
 --------
 
@@ -20,11 +62,9 @@ DAMIC Trainer Usage
 ------------
 
 ```
-usage: ./train_damic.py [-h] [--datapath] [--config]
+usage: trainers/train_damic.py [-h] [--datapath] [--config]
 
 Start a training for a DAMIC model
-
-Note: training can also be started with default values using run_damic.pbs
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -40,13 +80,11 @@ optional arguments:
 Transformer Net Trainer Usage
 ------------
 ```
-usage: hyperparameter_search.py [-h] [--batch-size] [--eval-batch-size] [--iters] [--lr] [--momentum]
+usage: train_transformer_net.py [-h] [--batch-size] [--eval-batch-size] [--iters] [--lr] [--momentum]
 [--alpha] [--ema_decay] [--xi] [--eps] [--cr_type] [--ip] [--workers] [--seed] [--targets] [--data_dir]
 [--checkpoint_dir] [--log-interval] [--chkpt-freq] [--no-entropy] [--reg-vat-var] 
 
 Start a training for a Transformer Net model
-
-Note: training can also be started with default values using run_transf_net.pbs
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -68,10 +106,6 @@ optional arguments:
                           default: 5.0
   --eps                 hyperparameter of VAT
                           default: 1.0
-  --cr_type             Consistency Regularization (1:Stochastic Pertubation, 2:VAT, 3:MeanTeacher)
-                          default: 3
-  --ip                  hyperparameter of VAT
-                          default: 1
   --workers             number of CPU
                           default: 8
   --seed                 random seed
@@ -92,42 +126,6 @@ optional arguments:
                           default: 0.1
 
 
-```
-
-## To run scripts
-
-Add the following command in run.pbs for training 
-* CAE-SVM model
-```
-s_exec python svm_trainer.py
-```
-* CAE-MLP model
-```
-s_exec python semisupervised_trainer.py
-```
-* TransformerNet model
-```
-s_exec python train_transformer_net.py
-```
-* HALI model
-```
-s_exec python ali_train.py --config HALI
-```
-* ALI model
-```
-s_exec python ali_train.py --config ALI
-```
-* DAMIC model
-```
-s_exec python train_damic.py
-```
-* CVAE model
-```
-s_exec python train.py --config CVAE_BASE --encoder_path experiment_models/cvae_base.pth
-```
-* CONV_AE model
-```
-s_exec python train.py --config CONV_AE --encoder_path experiment_models/conv_ae.pth
 ```
 
 ## Github conventions
