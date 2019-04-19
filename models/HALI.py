@@ -47,9 +47,6 @@ class ResBlockTranspose(nn.Module):
         nn.init.xavier_uniform_(self.conv1.weight.data, 1.)
         nn.init.xavier_uniform_(self.conv2.weight.data, 1.)
 
-        # self.c1 = SpectralNorm(self.conv1)
-        # self.c2 = SpectralNorm(self.conv2)
-
         self.model = nn.Sequential(
             nn.BatchNorm2d(in_channels),
             nn.LeakyReLU(0.02),

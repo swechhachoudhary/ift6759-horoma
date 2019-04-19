@@ -1,10 +1,5 @@
-
-
-
-
-
 {
-"NRM":{
+  "NRM":{
     "enc_model":"nrm",
     "train_subset": null,
     "overlapped": false,
@@ -171,8 +166,8 @@
         "lr": 1e-3,
         "n_clusters": 21,
         "latent_dim": 10,
-        "encoder_path": "damic_models/autoencoder_pretrain_4_3_16_31.pth",
-        "train_encoder": false
+        "encoder_path": "",
+        "train_encoder": true
     },
     "damic_conv_net_pretrain": {
         "batch_size": 128,
@@ -193,7 +188,36 @@
         "damic_train_path": ""
     },
     "seed": 1234,
-    "train_subset": 250,
+    "train_subset": null,
     "overlapped": false
+  },
+  "CAE_MLP": {
+    "enc_model": "cae",
+    "classifier_model": "MLPClassifier",
+    "batch_size": 32,
+    "seed": 1234,
+    "n_epochs": 200,
+    "lr_unsup": 1e-3,
+    "lr_sup": 1e-2,
+    "patience": 30,
+    "latent_dim": 32,
+    "train_split": "train_all",
+    "train_unlabeled_split": "train",
+    "train_labeled_split": "train_labeled",
+    "valid_split": "valid",
+    "hidden_size": 128,
+    "n_layers":2
+  },
+  "CAE_SVM": {
+    "enc_model": "cae",
+    "batch_size": 128,
+    "seed": 1234,
+    "n_epochs": 40,
+    "lr": 1e-3,
+    "latent_dim": 100,
+    "train_split": "train_all",
+    "train_unlabeled_split": "train",
+    "train_labeled_split": "train_labeled_all",
+    "valid_split": "valid_all"
   }
 }

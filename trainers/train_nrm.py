@@ -1,6 +1,11 @@
 from comet_ml import OfflineExperiment
 import json
 import argparse
+import torch
+import sys
+import os
+
+sys.path.append("../")
 from models import *
 from models.clustering import *
 from utils.ali_utils import *
@@ -8,7 +13,6 @@ from utils.utils import *
 from utils.utils import load_datasets
 from utils.constants import Constants
 from data.dataset import HoromaDataset
-import torch
 from models.nrm import NRM
 
 
@@ -89,6 +93,7 @@ if __name__ == '__main__':
 
     experiment = OfflineExperiment(project_name="ali", workspace='timothynest',  # Replace this with appropriate comet workspace
                                    offline_directory=str('experiments/' + configuration['experiment']))
+
     experiment.set_name(
         name=configuration['experiment'])
     experiment.log_parameters(configuration)

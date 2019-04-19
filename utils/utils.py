@@ -1,8 +1,10 @@
 from time import time
-from data.dataset import HoromaDataset, OriginalHoromaDataset
+from utils.dataset import HoromaDataset, OriginalHoromaDataset
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score
 from utils.constants import Constants
+from collections import Counter
+from sklearn.utils.multiclass import unique_labels
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,6 +12,7 @@ import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
 import sys
 import os
+
 
 def get_acc(output, label):
     pred = torch.argmax(output, dim=1, keepdim=False)
@@ -156,10 +159,17 @@ def load_original_horoma_datasets(datapath, train_subset, flattened=False, overl
     if overlapped:
         unlabeled_trainset = OriginalHoromaDataset(
             datapath, split="train_overlapped", subset=train_subset, flattened=flattened)
-        labeled_trainset = OriginalHoromaDataset(
-            datapath, split="train_labeled_overlapped", flattened=flattened)
-        labeled_validset = OriginalHoromaDataset(
-            datapath, split="valid_overlapped", flattened=flattened)
+<< << << < HEAD
+    labeled_trainset = OriginalHoromaDataset(
+        datapath, split="train_labeled_overlapped", flattened=flattened)
+    labeled_validset = OriginalHoromaDataset(
+        datapath, split="valid_overlapped", flattened=flattened)
+== == == =
+    labeled_trainset = OriginalHoromaDataset(
+        datapath, split="train_labeled_overlapped", flattened=flattened)
+    labeled_validset = OriginalHoromaDataset(
+        datapath, split="valid_overlapped", flattened=flattened)
+>>>>>> > master
 
     else:
         unlabeled_trainset = OriginalHoromaDataset(
@@ -230,14 +240,22 @@ def assign_labels_to_clusters(model, data, labels_true):
 
 
 def compute_metrics(y_true, y_pred):
+    """ From the true and predicted labels, return the accuracy and the f1 score"""
     accuracy = accuracy_score(y_true, y_pred)
     f1 = f1_score(y_true, y_pred, average="weighted")
     return accuracy, f1
 
 
+def __compute_metrics(y_true, y_pred):
+    accuracy = accuracy_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred, average="weighted")
+    _f1 = f1_score(y_true, y_pred, average=None)
+    return accuracy, f1, _f1
+
+
 def eval_model_predictions(model, x, y_true, cluster_labels):
     """
-    Predict labels and compare to true labels to compute the accuracy.
+    Predict labels and compare to true labels to compute the accuracy and f1 score
     """
     print("Evaluating model ...", end=' ')
     start_time = time()
@@ -296,7 +314,9 @@ def train_nrm(net, train_loader, labeled_loader, eval_loader, num_epochs, config
 
     best_valid_acc = 0
     iter_indx = 0
+
     net.to(device)
+
     for epoch in range(1, num_epochs):
         train_loss = 0
         train_loss_xentropy = 0
@@ -319,6 +339,7 @@ def train_nrm(net, train_loader, labeled_loader, eval_loader, num_epochs, config
             # labels
             input_unsup_var = torch.autograd.Variable(unsup_batch[0:(
                 configs['batch_size'] - configs['labeled_batch_size'])]).to(device)
+
             input_sup_var = torch.autograd.Variable(sup_batch).to(device)
             target_sup_var = torch.autograd.Variable(
                 target.data.long()).to(device)
@@ -332,6 +353,7 @@ def train_nrm(net, train_loader, labeled_loader, eval_loader, num_epochs, config
                 loss_bnmm_unsup] = net(input_unsup_var)
             loss_reconst_unsup = L2_loss(xhat_unsup, input_unsup_var).mean()
             softmax_unsup = F.softmax(output_unsup)
+
             loss_kl_unsup = - \
                 torch.sum(torch.log(10.0 * softmax_unsup + 1e-8)
                           * softmax_unsup) / minibatch_unsup_size
@@ -350,6 +372,7 @@ def train_nrm(net, train_loader, labeled_loader, eval_loader, num_epochs, config
             loss_kl_sup = - \
                 torch.sum(torch.log(10.0 * softmax_sup + 1e-8)
                           * softmax_sup) / minibatch_sup_size
+
             loss_sup = loss_xentropy_sup + configs['alpha_reconst'] * loss_reconst_sup + configs[
                 'alpha_kl'] * loss_kl_sup + configs['alpha_bnmm'] * loss_bnmm_sup + configs['alpha_pn'] * loss_pn_sup
 
@@ -418,15 +441,18 @@ def train_nrm(net, train_loader, labeled_loader, eval_loader, num_epochs, config
                     loss_xentropy).cpu().detach().numpy()
                 valid_loss_reconst += torch.mean(
                     loss_reconst).cpu().detach().numpy()
+
                 valid_loss_pn += torch.mean(loss_pn).cpu().detach().numpy()
                 valid_loss_kl += torch.mean(loss_kl).cpu().detach().numpy()
                 valid_loss_bnmm += torch.mean(loss_bnmm).cpu().detach().numpy()
                 valid_loss += torch.mean(loss).cpu().detach().numpy()
+
                 valid_correct += get_acc(output,
                                          target_var).cpu().detach().numpy()
 
                 accuracy, f1 = compute_metrics(
                     target_var.cpu(), torch.argmax(output, dim=1, keepdim=False).cpu())
+
                 valid_accuracy += accuracy
                 valid_f1 += f1
                 num_batch_valid += 1

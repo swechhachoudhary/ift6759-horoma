@@ -1,4 +1,4 @@
-from utils.model_utils import get_ae_dataloaders, train_network, encode_dataset
+from utils.model_utils import get_ae_dataloaders, train_network, encode_dataset, get_cae_dataloaders
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA
 
 class ConvAE(nn.Module):
     """
-    Convolutional autoencoder: composed of encoder an decoder components.
+    Convolutional autoencoder: composed of encoder and decoder components.
     Applies multiple 2D convolutions and 2D transpose convolutions, over
     the input images. each operator is followed by batch normalization and
     ReLU activations.
@@ -83,7 +83,6 @@ class ConvAE(nn.Module):
 
         :param data: the input data
         :param batch_size: batch size set in config file
-        :param seed: for reproductibililty.
         :param n_epochs: number of epochs
         :param lr: learning rate
         :param device: 'cuda' if available else 'cpu'
@@ -131,6 +130,7 @@ class CVAE(nn.Module):
     :param latent_dim: dimension of latent-space representation.
 
     """
+
     def __init__(self, input_dim=3072, latent_dim=2, folder_save_model="experiment_models/", pth_filename_save_model=""):
 
         self.latent_dim = latent_dim
@@ -335,8 +335,8 @@ class CAE(nn.Module):
         return self.embedding(self.encoder(x).view(-1, 16 * 4 * 4))
 
     def fit(self, traindata, valid_data, batch_size, n_epochs, lr, device, experiment):
-        train_loader, valid_loader = get_ae_dataloaders(
-            traindata, valid_data, batch_size)
+        train_loader, valid_loader = get_cae_dataloaders(traindata, valid_data, batch_size)
+
         optimizer = torch.optim.Adam(self.parameters(), lr=lr)
 
         best_model = train_network(
