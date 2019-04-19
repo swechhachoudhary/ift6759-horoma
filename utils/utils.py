@@ -276,18 +276,18 @@ def weights_init(m):
 
 def train_nrm(net, train_loader, labeled_loader, eval_loader, num_epochs, configs, n_iterations, experiment):
     """
-    train_nrm is a function for training NRM 
+    train_nrm is a function for training NRM
     :param net: the NRM network
     :param train_loader: dataloader for NRM unlabeled.
     :param labeled_loader: dataloader for NRM labeled.
     :param eval_loader: dataloader for NRM validation.
-    :param num_epochs: number of epochs to train for 
-    :param configs: dictionary containing hyperparameters 
-    :param n_iterations: number of iterations per batch of labeled data 
+    :param num_epochs: number of epochs to train for
+    :param configs: dictionary containing hyperparameters
+    :param n_iterations: number of iterations per batch of labeled data
     :param experiment: comet_ml experiment object for logging
-    :return best_f1: highest f1 score obtained 
+    :return best_f1: highest f1 score obtained
     :return best_acc: accuracy score corresponding to epoch with highest f1
-    :return best_model: best epoch model 
+    :return best_model: best epoch model
 
     """
 
@@ -364,8 +364,7 @@ def train_nrm(net, train_loader, labeled_loader, eval_loader, num_epochs, config
             loss_reconst_sup = L2_loss(xhat_sup, input_sup_var).mean()
             softmax_sup = F.softmax(output_sup)
             loss_kl_sup = - \
-                torch.sum(torch.log(10.0 * softmax_sup + 1e-8)
-                          * softmax_sup) / minibatch_sup_size
+                torch.sum(torch.log(10.0 * softmax_sup + 1e-8) * softmax_sup) / minibatch_sup_size
 
             loss_sup = loss_xentropy_sup + configs['alpha_reconst'] * loss_reconst_sup + configs[
                 'alpha_kl'] * loss_kl_sup + configs['alpha_bnmm'] * loss_bnmm_sup + configs['alpha_pn'] * loss_pn_sup
@@ -426,8 +425,7 @@ def train_nrm(net, train_loader, labeled_loader, eval_loader, num_epochs, config
                 loss_reconst = L2_loss(xhat, input_var).mean()
                 softmax_val = F.softmax(output)
                 loss_kl = - \
-                    torch.sum(torch.log(10.0 * softmax_val + 1e-8)
-                              * softmax_val) / minibatch_size
+                    torch.sum(torch.log(10.0 * softmax_val + 1e-8) * softmax_val) / minibatch_size
                 loss = loss_xentropy + configs['alpha_reconst'] * loss_reconst + configs[
                     'alpha_kl'] * loss_kl + configs['alpha_bnmm'] * loss_bnmm + configs['alpha_pn'] * loss_pn
 

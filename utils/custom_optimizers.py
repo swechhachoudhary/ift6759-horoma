@@ -126,11 +126,11 @@ class OAdam(Optimizer):
 
 
 class OptMirrorAdam(Optimizer):
-    """Implements Optimistic Adam algorithm. Built on official implementation of Adam by pytorch. 
+    """Implements Optimistic Adam algorithm. Built on official implementation of Adam by pytorch.
        See "Optimistic Mirror Descent in Saddle-Point Problems: Gointh the Extra (-Gradient) Mile"
-       double blind review, paper: https://openreview.net/pdf?id=Bkg8jjC9KQ 
+       double blind review, paper: https://openreview.net/pdf?id=Bkg8jjC9KQ
 
-    Standard Adam 
+    Standard Adam
     It has been proposed in `Adam: A Method for Stochastic Optimization`_.
 
     Arguments:
