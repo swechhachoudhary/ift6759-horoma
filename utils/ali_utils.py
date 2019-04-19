@@ -44,8 +44,8 @@ def initialize_ali(configs, data):
     :return configs: updated with correct model and image path
     """
 
-    IMAGE_PATH = 'experiments/' + configs['experiment'] + '/images'
-    MODEL_PATH = 'experiments/' + configs['experiment'] + '/models'
+    IMAGE_PATH = '../experiments/' + configs['experiment'] + '/images'
+    MODEL_PATH = '../experiments/' + configs['experiment'] + '/models'
     configs['IMAGE_PATH'] = IMAGE_PATH
     configs['MODEL_PATH'] = MODEL_PATH
 
@@ -403,8 +403,8 @@ def initialize_hali(configs, data):
 
     """
 
-    IMAGE_PATH = 'experiments/' + configs['experiment'] + '/images'
-    MODEL_PATH = 'experiments/' + configs['experiment'] + '/models'
+    IMAGE_PATH = '../experiments/' + configs['experiment'] + '/images'
+    MODEL_PATH = '../experiments/' + configs['experiment'] + '/models'
 
     configs['IMAGE_PATH'] = IMAGE_PATH
     configs['MODEL_PATH'] = MODEL_PATH

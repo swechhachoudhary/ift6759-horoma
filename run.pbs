@@ -6,4 +6,4 @@
 
 cd "${PBS_O_WORKDIR}/trainers"
 
-s_exec python semisupervised_trainer.py
+s_exec python ali_train.py --config HALI
