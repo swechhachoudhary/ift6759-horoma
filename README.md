@@ -2,9 +2,10 @@
 ## Horoma Project Block 3
 
 Authors:
-Swechha Swechha
+Benjamin Rosa,
+Swechha Swechha,
 Timothy Nest
-Benjamin Rosa
+
 
 Project Organization
 ------------
@@ -80,7 +81,7 @@ optional arguments:
 Transformer Net Trainer Usage
 ------------
 ```
-usage: train_transformer_net.py [-h] [--batch-size] [--eval-batch-size] [--iters] [--lr] [--momentum]
+usage: trainers/train_transformer_net.py [-h] [--batch-size] [--eval-batch-size] [--iters] [--lr] [--momentum]
 [--alpha] [--ema_decay] [--xi] [--eps] [--cr_type] [--ip] [--workers] [--seed] [--targets] [--data_dir]
 [--checkpoint_dir] [--log-interval] [--chkpt-freq] [--no-entropy] [--reg-vat-var] 
 
