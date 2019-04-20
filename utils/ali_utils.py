@@ -856,8 +856,7 @@ def save_res_figure(configs, accuracies, f1_list):
 
     print()
 
-    # commented to avoid "stack smashing detected" error on cluster 
-    
+    # commented to avoid "stack smashing detected" error on cluster
     # import matplotlib
     # import matplotlib.pyplot as plt
     # fig = plt.figure()
