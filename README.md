@@ -56,7 +56,10 @@ s_exec python train.py --config CVAE_BASE --encoder_path experiment_models/cvae_
 ```
 s_exec python train.py --config CONV_AE --encoder_path experiment_models/conv_ae.pth
 ```
-
+* Neural Rendering Model
+```
+s_exec python train_nrm.py
+```
 --------
 
 DAMIC Trainer Usage
@@ -126,6 +129,26 @@ optional arguments:
   --reg-vat-var          Assumed variance of the predicted Gaussian for regression tasks
                           default: 0.1
 
+
+```
+
+ALI/HALI Usage
+------------
+
+```
+usage: trainers/ali_train.py [-h] [--datapath] [--config]
+
+To start training an ALI-based model, be sure to specify encode=true and cluster=false.
+
+This will save models for each epoch of unlabeled training in the experiment folder.
+
+To evaluate, specify encode=false and cluster=true.
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+  --config              which config to load within config.json (HALI, ALI)
+                          default: DAMIC
 
 ```
 
